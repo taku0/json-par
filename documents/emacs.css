@@ -1,0 +1,126 @@
+body {
+    box-sizing: border-box;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 16px;
+    color: #222;
+    background-color: #EEE;
+}
+
+section {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 8px;
+    border-color: #CCC;
+    padding: 1em;
+    margin: 2em 0;
+    background-color: #FFF;
+}
+
+table {
+    border-collapse: collapse;
+    border-style: none;
+    border-width: 1px;
+    border-color: #CCC;
+}
+
+tbody th, tbody td {
+    border-style: solid none;
+    border-width: 1px;
+    border-color: #DDD;
+    padding: 4px 8px;
+}
+
+figure img {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #DDD;
+    max-width: 100%;
+}
+
+summary {
+    color: #009;
+    text-decoration: underline;
+}
+
+kbd {
+    border-style: solid;
+    border-width: 1px 1.5px 2px 1.5px;
+    border-radius: 2px;
+    border-color: #666;
+    padding: 2px 4px;
+    background-color: #FFF;
+}
+
+code {
+    background-color: #f7f7f7;
+    padding: 2px;
+    font-style: normal;
+    font-family: monospace;
+}
+
+pre code {
+    background-color: transparent;
+}
+
+var {
+    padding: 2px;
+    font-style: normal;
+    font-family: monospace;
+    color: #a0522d;
+}
+
+.translation-links {
+    text-align: right;
+    font-size: 70%;
+}
+
+.emacs {
+    padding: 4px 0px;
+    font-family: monospace;
+    color: 31363b;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #DDD;
+    background-color: #fcfcfc;
+    white-space: pre-wrap;
+}
+
+.emacs .constant {
+    color: #008b8b;
+}
+
+.emacs .keyword {
+    color: #a020f0;
+}
+
+.emacs .string {
+    color: #8b2252;
+}
+
+@media (min-color: 5) {
+    .emacs .point, .emacs .mark {
+        position: absolute;
+        color: transparent;
+        color-adjust: exact;
+    }
+}
+
+.emacs .point-container {
+    position: relative;
+}
+.emacs .region {
+    background-color: #ffebcd;
+    color-adjust: exact;
+}
+
+.emacs .after-point {
+    background-color: #31363b;
+    color: #fcfcfc;
+    color-adjust: exact;
+}
+
+section:target {
+    border-width: 2px;
+    border-color: #F93;
+}

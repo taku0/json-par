@@ -1,0 +1,2118 @@
+/// Test for commands relating to deleting values or keys.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Empty buffer
+
+// context-start
+/*|*/
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+/*|*/
+// expected-end
+// test-end
+
+// context-start
+/*|*/
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// action: (save-excursion (newline))
+// expected-start
+/*|*/
+// expected-end
+// test-end
+
+// context-start
+/*|*/
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// action: (save-excursion (newline))
+// expected-start
+/*|*/
+// expected-end
+// test-end
+
+
+/// Empty array/object
+
+// context-start
+[
+    [
+        /*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[ [ /*|*/ ] ]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[ /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ { /*|*/ } ]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[ { /*|*/ } ]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+{/*|*/}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+{ /*|*/ }
+// expected-end
+// test-end
+
+
+/// After open brackets
+
+// context-start
+[
+    [ /*|*/1, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ /*|*/2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [/*|*/
+        1,
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [/*|*/
+        ,
+        2,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1,
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [
+        /*|*/,
+        2,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [/*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [/*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"a": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"a": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"a": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/"": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+
+/// After comma
+
+// context-start
+[
+    [ 1, /*|*/2, 3 ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    [ /*|*/2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, /*|*/2, 3 ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    [ 1, /*|*/, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, /*|*/2, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ 1, /*|*/, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, /*|*/, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ 1, /*|*/3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, /*|*/, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    [ 1, /*|*/, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [
+        1,/*|*/
+        ,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [
+        1,
+        /*|*/,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/"b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/"b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": 1, "/*|*/": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/"b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": 1, "/*|*/": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": 1, /*|*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "a": 1, /*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+
+/// Before colon
+
+// context-start
+[
+    { "a"/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { ""/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { ""/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { ""/*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "/*|*/": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { /*|*/: 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { /*|*/: 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+
+/// After colon
+
+// context-start
+[
+    { "a": /*|*/1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": /*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+
+/// Before comma
+
+// context-start
+[
+    [ 1/*|*/, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1/*|*/, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    [ 1/*|*/, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1/*|*/, 2, 3 ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ /*|*/, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": 1/*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": /*|*/, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+
+/// Before close brackets
+
+// context-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    [ 1, 2, /*|*/ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ 1, 2, /*|*/ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, /*|*/ ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ 1, 2/*|*/ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, /*|*/ ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    [ 1, 2, /*|*/ ]
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    [
+        1,
+        2,
+        3/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [
+        1,
+        2,
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    /*|*/]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [
+        1,
+        2,
+        
+    /*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1/*|*/ ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [/*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [/*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/ }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/ }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/ }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": 1, "b": 2/*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": 1, "b": 2/*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, /*|*/ }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": 1, "b": 2/*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, /*|*/ }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "a": 1, "b": 2, /*|*/ }
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3/*|*/
+    }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": /*|*/
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    /*|*/}
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 
+    /*|*/}
+]
+// expected-end
+// test-end
+
+
+/// Inside atom
+
+// context-start
+[
+    [ "aaa", "/*|*/bbb", "ccc" ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    [ "aaa", /*|*/, "ccc" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "aaa", "/*|*/bbb", "ccc" ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    [ "aaa", /*|*/, "ccc" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "aaa", "/*|*/bbb", "ccc" ]
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    [ "aaa", /*|*/, "ccc" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b": "/*|*/bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", "b": /*|*/, "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b": "/*|*/bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", "b": /*|*/, "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b": "/*|*/bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": "aaa", "b": /*|*/, "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "b/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", /*|*/"c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list)
+// expected-start
+[
+    { "a": "aaa", /*|*/"c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key)
+// expected-start
+[
+    { "a": "aaa", /*|*/"c": "ccc" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// context-end
+// action: (json-par-delete-current-value-or-key (point) t)
+// expected-start
+[
+    { "a": "aaa", "/*|*/": "bbb", "c": "ccc" }
+]
+// expected-end
+// test-end
+
+
+/// With action parameter
+
+// context-start
+[
+    [ 1/*|*/ ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark)
+// expected-start
+[
+    [/*[*/ 1 /*|]*/]
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    [ 1, 2, /*|*/3, 4 ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark)
+// expected-start
+[
+    [ 1, /*|*/3, 4 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1 ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark)
+// expected-start
+[
+    [/*[|*/ 1 /*]*/]
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    [ 1, 2/*|*/, 3, 4 ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark)
+// expected-start
+[
+    [ 1, 2/*|*/, 4 ]
+]
+// expected-end
+// test-end
+
+
+/// With action-when-deleting-brackets-from-inside parameter
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'delete-outer)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-outer)
+// expected-start
+[
+    /*[|*/[
+        1
+    ]/*]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-inner)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-inner)
+// expected-start
+[
+    [
+        /*[|*/1/*]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// expected-start
+[
+    [
+        /*[|*/1/*]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'exit)
+// expected-start
+[
+    /*|*/[
+        1
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'none)
+// expected-start
+[
+    [
+        /*|*/1
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'delete-outer)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-outer)
+// expected-start
+[
+    /*[*/[
+        1
+    ]/*|]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-inner)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-inner)
+// expected-start
+[
+    [
+        /*[*/1/*|]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// expected-start
+[
+    [
+        /*[*/1/*|]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'mark-or-delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'exit)
+// expected-start
+[
+    [
+        1
+    ]/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-inside 'none)
+// expected-start
+[
+    [
+        1/*|*/
+    ]
+]
+// expected-end
+// test-end
+
+/// With action-when-deleting-brackets-from-outside parameter
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'delete-outer)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-outer)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-outer)
+// expected-start
+[
+    /*[*/[
+        1
+    ]/*|]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// expected-start
+[
+    /*[*/[
+        1
+    ]/*|]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// expected-start
+[
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-inner)
+// expected-start
+[
+    [
+        /*[*/1/*|]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ]/*|*/
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'enter)
+// expected-start
+[
+    [
+        1/*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'delete-outer)
+// expected-start
+[/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-outer)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-outer)
+// expected-start
+[
+    /*[|*/[
+        1
+    ]/*]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// expected-start
+[
+    /*[|*/[
+        1
+    ]/*]*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-or-delete-outer)
+// expected-start
+[
+    /*|*/
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'delete-inner)
+// expected-start
+[
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'mark-inner)
+// expected-start
+[
+    [
+        /*[|*/1/*]*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-brackets-from-outside 'enter)
+// expected-start
+[
+    [
+        /*|*/1
+    ]
+]
+// expected-end
+// test-end
+
+
+/// With action-when-deleting-colon parameter
+
+// context-start
+[
+    { "a": 1, "b"/*|*/: 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'delete)
+// expected-start
+[
+    { "a": 1, /*|*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/: 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark)
+// expected-start
+[
+    { "a": 1, /*[|*/: 2, /*]*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b"/*|*/: 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// expected-start
+[
+    { "a": 1, /*[|*/"b": 2, /*]*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, /*|*/: 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// expected-start
+[
+    { "a": 1, /*|*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b"/*|*/: 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'skip)
+// expected-start
+[
+    { "a": 1, "b": /*|*/2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b":/*|*/ 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'delete)
+// expected-start
+[
+    { "a": 1/*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b":/*|*/ , "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark)
+// expected-start
+[
+    { "a": 1/*[*/, "b": /*|]*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b":/*|*/ 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// expected-start
+[
+    { "a": 1/*[*/, "b": 2/*|]*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b":/*|*/ , "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
+// expected-start
+[
+    { "a": 1/*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b":/*|*/ 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'skip)
+// expected-start
+[
+    { "a": 1, "b"/*|*/: 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+/// With action-when-deleting-comma parameter
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'delete)
+// expected-start
+[
+    { "a": 1/*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark)
+// expected-start
+[
+    { "a": 1/*[|*/, "b": 2/*]*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// expected-start
+[
+    { "a": 1/*[|*/, "b": 2/*]*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// expected-start
+[
+    { "a": 1/*|*/, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1/*|*/, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'skip)
+// expected-start
+[
+    { "a": 1, /*|*/"b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2,/*|*/ "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'delete)
+// expected-start
+[
+    { "a": 1, /*|*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2,/*|*/ "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark)
+// expected-start
+[
+    { "a": 1, /*[*/"b": 2, /*|]*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2,/*|*/ "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// expected-start
+[
+    { "a": 1, /*[*/"b": 2, /*|]*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2,/*|*/ "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
+// expected-start
+[
+    { "a": 1, /*|*/"c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2,/*|*/ "c": 3 }
+]
+// context-end
+// action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'skip)
+// expected-start
+[
+    { "a": 1, "b": 2/*|*/, "c": 3 }
+]
+// expected-end
+// test-end

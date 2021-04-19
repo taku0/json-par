@@ -1,0 +1,316 @@
+/// Test for commands relating to transposing members.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Empty array/object
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+[ /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+[ /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{ /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{ /*|*/ }
+// expected-end
+// test-end
+
+
+/// Singleton array/object
+
+// context-start
+[ "a"/*|*/ ]
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+[ "a"/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ "a"/*|*/ ]
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+[ "a"/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/"a" ]
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+[ /*|*/"a" ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/"a" ]
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+[ /*|*/"a" ]
+// expected-end
+// test-end
+
+// context-start
+{ "a": "aaa"/*|*/ }
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{ "a": "aaa"/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "aaa"/*|*/ }
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{ "a": "aaa"/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/"aaa" }
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{ "a": /*|*/"aaa" }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/"aaa" }
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{ "a": /*|*/"aaa" }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": "aaa" }
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{ /*|*/"a": "aaa" }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": "aaa" }
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{ /*|*/"a": "aaa" }
+// expected-end
+// test-end
+
+/// Multiple elements
+
+// context-start
+[
+    "a",
+    /*|*/"b",
+    "c"
+]
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+[
+    /*|*/"b",
+    "a",
+    "c"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "a",
+    /*|*/"b",
+    "c"
+]
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+[
+    "a",
+    "c",
+    /*|*/"b"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "a",
+    "b"/*|*/,
+    "c"
+]
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+[
+    "b"/*|*/,
+    "a",
+    "c"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "a",
+    "b"/*|*/,
+    "c"
+]
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+[
+    "a",
+    "c",
+    "b"/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/"b": "bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{
+    /*|*/"b": "bbb",
+    "a": "aaa",
+    "c": "ccc"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/"b": "bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{
+    "a": "aaa",
+    "c": "ccc",
+    /*|*/"b": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": "bbb"/*|*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{
+    "b": "bbb"/*|*/,
+    "a": "aaa",
+    "c": "ccc"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": "bbb"/*|*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{
+    "a": "aaa",
+    "c": "ccc",
+    "b": "bbb"/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*|*/"bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-backward)
+// expected-start
+{
+    "b": /*|*/"bbb",
+    "a": "aaa",
+    "c": "ccc"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*|*/"bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-transpose-member-forward)
+// expected-start
+{
+    "a": "aaa",
+    "c": "ccc",
+    "b": /*|*/"bbb"
+}
+// expected-end
+// test-end
+

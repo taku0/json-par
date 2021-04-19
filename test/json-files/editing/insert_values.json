@@ -1,0 +1,2725 @@
+/// Test for commands relating to inserting values.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+
+/// Empty buffer
+
+// context-start
+/*|*/
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+true/*|*/
+// expected-end
+// test-end
+
+
+/// Empty brackets
+
+// context-start
+[/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// action: (json-par-insert-false-if-special)
+// action: (json-par-insert-null-if-special)
+// action: (execute-kbd-macro "123 -1")
+// action: (execute-kbd-macro "\"\"")
+// action: (execute-kbd-macro "[]")
+// action: (execute-kbd-macro "{}")
+// action: (execute-kbd-macro "[")
+// action: (execute-kbd-macro "{")
+// action: (execute-kbd-macro "\"abc")
+// expected-start
+[ true, false, null, 123, -1, "", [], {}, [ { "abc/*|*/":  } ] ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[/*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// action: (json-par-insert-false-if-special)
+// action: (json-par-insert-null-if-special)
+// action: (execute-kbd-macro "123")
+// expected-start
+[
+    true,
+    false,
+    null,
+    123/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+{/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// action: (json-par-insert-false-if-special)
+// action: (json-par-insert-null-if-special)
+// action: (execute-kbd-macro "123 -1")
+// action: (execute-kbd-macro "\"a")
+// action: (forward-char 2)
+// action: (execute-kbd-macro "[")
+// action: (forward-char)
+// action: (execute-kbd-macro "{"))
+// action: (forward-char)
+// expected-start
+{ "": true, "": false, "": null, "": 123, "": -1, "a": [], "": {}/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// action: (json-par-insert-false-if-special)
+// action: (json-par-insert-null-if-special)
+// action: (execute-kbd-macro "123")
+// expected-start
+{
+    "": true,
+    "": false,
+    "": null,
+    "": 123/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+
+/// After last comma
+
+// context-start
+[ 1,/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/ ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3,/*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2,
+    3, true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3,
+/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2,
+    3,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,/*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+
+/// Between two commas
+
+// context-start
+[ 1,/*|*/, 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/, 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1,/*|*/ , 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/, 2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true/*|*/, 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/,
+    2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/ , "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/, "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true/*|*/, "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon without value
+
+// context-start
+{ "a":/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/ }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/, "b": false }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true/*|*/, "b": false }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/, "b": false }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true/*|*/, "b": false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/,
+    "b": false
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": true/*|*/,
+    "b": false
+}
+// expected-end
+// test-end
+
+
+/// Between colon and next key (comma missing)
+
+// context-start
+{ "a": /*|*/ "b": false }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true, /*|*/"b": false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+    "b": false
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": true,/*|*/
+    "b": false
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+    "b": false
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a":
+    true,/*|*/
+    "b": false
+}
+// expected-end
+// test-end
+
+
+/// Between two colons (comma and key missing)
+
+// context-start
+{ "a": /*|*/ : false }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": true, /*|*/: false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+    : false
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": true,/*|*/
+    : false
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+    : false
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a":
+    true,/*|*/
+    : false
+}
+// expected-end
+// test-end
+
+
+/// Before colon
+
+// context-start
+{ "a"/*|*/: 1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a"/*|*/: 1 }
+// context-end
+// action: (execute-kbd-macro "999")
+// expected-start
+{ "": 999/*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b"/*|*/: 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a"/*|*/: 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b"/*|*/: 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon (with value)
+
+// context-start
+{ "a":/*|*/ 1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/ 1 }
+// context-end
+// action: (execute-kbd-macro "999")
+// expected-start
+{ "": 999/*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b":/*|*/ 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": /*|*/2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":/*|*/ 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b":/*|*/ 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b": /*|*/2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After last value
+
+// context-start
+[ 1 /*|*/ ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1 /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+/*|*/]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3/*|*/
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2,
+    3, true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1 /*|*/ }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1 /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3/*|*/
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3
+/*|*/}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+
+/// Before array value or object key
+
+// context-start
+[ /*|*/1 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true,/*|*/ 1 ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/"1" ]
+// context-end
+// action: (execute-kbd-macro "999")
+// expected-start
+[ 999/*|*/, "1" ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ 1 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true,/*|*/ 1 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true,/*|*/ 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/ 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true,/*|*/ 2 ]
+// expected-end
+// test-end
+
+// context-start
+[/*|*/
+    1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true,/*|*/
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/
+    1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ true,/*|*/
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    true,/*|*/
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/ 1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    true,/*|*/
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/
+    1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    true,/*|*/
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true,/*|*/ 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/ 2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true,/*|*/ 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true,/*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,/*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true,/*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true,/*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    /*|*/3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2,
+    true,/*|*/ 3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,/*|*/
+    3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2, true,/*|*/
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,/*|*/
+    2, 3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true,/*|*/
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": 1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ "a": 1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/ "a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true,/*|*/ "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/ "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true,/*|*/ "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    /*|*/"c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "": true,/*|*/ "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,/*|*/
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2, "": true,/*|*/
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true,/*|*/
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Inside a atom
+
+// context-start
+[ t/*|*/rue ]
+// context-end
+// action: (json-par-insert-false-if-special)
+// expected-start
+[ true, false/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1/*|*/1 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 11, true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ "1/*[|*/1/*]*/1" ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ "111", true/*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1/*|*/1, 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 11, true,/*|*/ 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ t/*|*/rue, 1 ]
+// context-end
+// action: (execute-kbd-macro "999")
+// expected-start
+[ true, 999/*|*/, 1 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    11,
+    true/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1, 2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    11, true,/*|*/ 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1,
+    2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    11,
+    true,/*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1, 2,
+    3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    11, true,/*|*/ 2,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1,
+    2, 3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    11, true,/*|*/
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": t/*|*/rue }
+// context-end
+// action: (json-par-insert-false-if-special)
+// expected-start
+{ "a": true, "": false/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 11, "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1/*[|*/1/*]*/1" }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": "111", "": true/*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a/*[|*/a/*]*/a": 1 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "": true,/*|*/ "aaa": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1, "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 11, "": true,/*|*/ "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b/*[|*/b/*]*/b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true,/*|*/ "bbb": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 11,
+    "": true/*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/
+    "aaa": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1, "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 11, "": true,/*|*/ "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b/*[|*/b/*]*/b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true,/*|*/ "bbb": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b/*[|*/b/*]*/b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true,/*|*/
+    "bbb": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 11,
+    "": true,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1, "b": 2,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 11, "": true,/*|*/ "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 11, "": true,/*|*/
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1, "b": 2,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/ "aaa": 1, "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "": true,/*|*/ "aaa": 1,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Between value and comma
+
+// context-start
+[ 1/*|*/, 2 ]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[ 1, true/*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/,
+    2
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1,
+    true/*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2/*|*/,
+    3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, 2, true/*|*/,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/,
+    2, 3
+]
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+[
+    1, true/*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{ "a": 1, "": true/*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1,
+    "": true/*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2/*|*/,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "b": 2, "": true/*|*/,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-true-if-special)
+// expected-start
+{
+    "a": 1, "": true/*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Inserting brackets
+
+// context-start
+[
+    [ 1, 2, 3 ]/*|*/
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [ 1, 2, 3 ],
+    [/*|*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[ 1, 2, 3 ]
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [/*|*/],
+    [ 1, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1, 2, 3
+    ]/*|*/
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [
+        1, 2, 3
+    ],
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1, 2, 3
+    ]
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [
+        /*|*/
+    ],
+    [
+        1, 2, 3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ]/*|*/
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ], [
+        2
+    ]/*|*/
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [
+        1
+    ], [
+        2
+    ], [
+        /*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[
+        1
+    ], [
+        2
+    ]
+]
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+[
+    [
+        /*|*/
+    ], [
+        1
+    ], [
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": [ 1, 2, 3 ]/*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+{
+    "aaa": [ 1, 2, 3 ],
+    "": [/*|*/]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"aaa": [ 1, 2, 3 ]
+}
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+{
+    "": [/*|*/],
+    "aaa": [ 1, 2, 3 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": [
+        1, 2, 3
+    ]/*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+{
+    "aaa": [
+        1, 2, 3
+    ],
+    "": [
+        /*|*/
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"aaa": [
+        1, 2, 3
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+{
+    "": [
+        /*|*/
+    ],
+    "aaa": [
+        1, 2, 3
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1,
+        2,
+        3
+    ]/*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets-if-special)
+// expected-start
+{
+    "": [
+        1,
+        2,
+        3
+    ],
+    "": [
+        /*|*/
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3 }/*|*/
+]
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": 3 },
+    {/*|*/}
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1, "b": 2, "c": 3
+    }/*|*/
+]
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+[
+    {
+        "a": 1, "b": 2, "c": 3
+    },
+    {
+        /*|*/
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1
+    }, {
+        "b": 2
+    }/*|*/
+]
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+[
+    {
+        "a": 1
+    }, {
+        "b": 2
+    }, {
+        /*|*/
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }/*|*/
+]
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    {
+        /*|*/
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 }/*|*/
+}
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    "": {/*|*/}
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1, "b": 2, "c": 3
+    }/*|*/
+}
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+{
+    "aaa": {
+        "a": 1, "b": 2, "c": 3
+    },
+    "": {
+        /*|*/
+    }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }/*|*/
+}
+// context-end
+// action: (json-par-insert-curly-brackets-if-special)
+// expected-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    "": {
+        /*|*/
+    }
+}
+// expected-end
+// test-end
+
+
+/// With default-brackets-style parameter
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [/*|*/]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ]
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [],
+    /*|*/
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [],
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": []/*|*/,
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [],
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ],
+    /*|*/
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ]/*|*/,
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [],
+    /*|*/"": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [],
+    "": [/*|*/],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": []/*|*/,
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": [],
+    "": [/*|*/],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": true,
+    /*|*/"": true
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": true,
+    "": [/*|*/],
+    "": true
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": true/*|*/,
+    "": true
+}
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{
+    "": true,
+    "": [/*|*/],
+    "": true
+}
+// expected-end
+// test-end
+
+// context-start
+{ "": true, /*|*/"": true }
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{ "": true, "": [/*|*/], "": true }
+// expected-end
+// test-end
+
+// context-start
+{ "": true/*|*/, "": true }
+// context-end
+// action: (json-par-insert-square-brackets 'one-line)
+// expected-start
+{ "": true, "": [/*|*/], "": true }
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [
+        /*|*/
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ]
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [],
+    /*|*/
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [],
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": []/*|*/,
+    "": [
+        1
+    ]
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [],
+    "": [
+        /*|*/
+    ],
+    "": [
+        1
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ],
+    /*|*/
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [
+        1
+    ]/*|*/,
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [
+        1
+    ],
+    "": [
+        /*|*/
+    ],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": [],
+    /*|*/"": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [],
+    "": [/*|*/],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": []/*|*/,
+    "": []
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": [],
+    "": [/*|*/],
+    "": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": true,
+    /*|*/"": true
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": true,
+    "": [
+        /*|*/
+    ],
+    "": true
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "": true/*|*/,
+    "": true
+}
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{
+    "": true,
+    "": [
+        /*|*/
+    ],
+    "": true
+}
+// expected-end
+// test-end
+
+// context-start
+{ "": true, /*|*/"": true }
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{ "": true, "": [/*|*/], "": true }
+// expected-end
+// test-end
+
+// context-start
+{ "": true/*|*/, "": true }
+// context-end
+// action: (json-par-insert-square-brackets 'multiline)
+// expected-start
+{ "": true, "": [/*|*/], "": true }
+// expected-end
+// test-end
+
+
+

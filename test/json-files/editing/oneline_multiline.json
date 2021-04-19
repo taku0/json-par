@@ -1,0 +1,963 @@
+/// Test for commands relating to oneline/multiline conversion.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Electronic newline
+
+// context-start
+[ /*|*/1, 2, 3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-inside-brackets)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// expected-start
+[
+    /*|*/1, 2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/1, [ 2, 2, 2 ], 3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    /*|*/1,
+    [ 2, 2, 2 ],
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/1, 2, 3
+]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+
+    /*|*/1, 2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/1, 2,
+  3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    /*|*/1, 2,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[ 1, 2, 3/*|*/ ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-inside-brackets)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// expected-start
+[
+    1, 2, 3
+/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[ 1, [ 2, 2, 2 ], 3/*|*/ ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1,
+    [ 2, 2, 2 ],
+    3
+/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/2, 3
+]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'just-break)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// expected-start
+[
+    1,
+    /*|*/2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/2, 3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'just-break)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// expected-start
+[
+    1,
+    /*|*/2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/[ 2, 2, 2 ], 3
+]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1,
+    /*|*/[ 2, 2, 2 ],
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/2,
+    3, 4
+]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1,
+    /*|*/2,
+    3, 4
+]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/[ 2, 2, 2 ], 3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1,
+    /*|*/[ 2, 2, 2 ],
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/2,
+  3, 4 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1,
+    /*|*/2,
+    3, 4
+]
+// expected-end
+// test-end
+
+// context-start
+[ 1, 2, /*|*/3 ]
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+[
+    1, 2,
+    /*|*/3
+]
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": 1, "b": 2, "c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-inside-brackets)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// expected-start
+{
+    /*|*/"a": 1, "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": 1, "b": [ 2, 2, 2 ], "c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    /*|*/"a": 1,
+    "b": [ 2, 2, 2 ],
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"a": 1, "b": 2, "c": 3
+}
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+
+    /*|*/"a": 1, "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": 1, "b": 2,
+  "c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    /*|*/"a": 1, "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": 2, "c": 3/*|*/ }
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-inside-brackets)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// expected-start
+{
+    "a": 1, "b": 2, "c": 3
+/*|*/}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": [ 2, 2, 2 ], "c": 3/*|*/ }
+// context-end
+// action: (setq json-par-action-when-breaking-line-at-just-inside-brackets 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1,
+    "b": [ 2, 2, 2 ],
+    "c": 3
+/*|*/}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": 2, "c": 3
+}
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'just-break)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": 2, "c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'just-break)
+// action: (execute-kbd-macro (kbd "C-m"))
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": [ 2, 2, 2 ], "c": 3
+}
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": [ 2, 2, 2 ],
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": 2,
+    "c": 3, 4
+}
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": 2,
+    "c": 3, 4
+}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": [ 2, 2, 2 ], "c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": [ 2, 2, 2 ],
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": 2,
+  "c": 3, 4 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": 2,
+    "c": 3, 4
+}
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": 2, /*|*/"c": 3 }
+// context-end
+// action: (setq json-par-action-when-breaking-line-after-first-member 'break-each-member)
+// action: (execute-kbd-macro (kbd "C-m"))
+// expected-start
+{
+    "a": 1, "b": 2,
+    /*|*/"c": 3
+}
+// expected-end
+// test-end
+
+
+/// Multiline
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[ 4, 5, 6 ],
+    [ 7, 8, 9 ]
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[
+        4,
+        5,
+        6
+    ],
+    [ 7, 8, 9 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    [ 4, 5, 6 ]/*|*/,
+    [ 7, 8, 9 ]
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    [ 1, 2, 3 ],
+    [
+        4,
+        5,
+        6
+    ]/*|*/,
+    [ 7, 8, 9 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[ [ 4 ], [ 5 ], [ 6 ] ],
+    [ 7, 8, 9 ]
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[
+        [
+            4
+        ],
+        [
+            5
+        ],
+        [
+            6
+        ]
+    ],
+    [ 7, 8, 9 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[ [ 4 ], [ 5 ], [ 6 ] ],
+    [ 7, 8, 9 ]
+]
+// context-end
+// action: (json-par-multiline 1)
+// expected-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[
+        [ 4 ],
+        [ 5 ],
+        [ 6 ]
+    ],
+    [ 7, 8, 9 ]
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": { "d": 4, "e": 5, "f": 6 },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// context-end
+// action: (json-par-multiline)
+// expected-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": {
+        "d": 4,
+        "e": 5,
+        "f": 6
+    },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    "ddd": { "d": 4, "e": 5, "f": 6 }/*|*/,
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// context-end
+// action: (json-par-multiline)
+// expected-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    "ddd": {
+        "d": 4,
+        "e": 5,
+        "f": 6
+    }/*|*/,
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": { "dd": { "d": 4 }, "ee": { "e": 5 }, "ff": { "f": 6 } },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// context-end
+// action: (json-par-multiline)
+// expected-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": {
+        "dd": {
+            "d": 4
+        },
+        "ee": {
+            "e": 5
+        },
+        "ff": {
+            "f": 6
+        }
+    },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": { "dd": { "d": 4 }, "ee": { "e": 5 }, "ff": { "f": 6 } },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// context-end
+// action: (json-par-multiline 1)
+// expected-start
+{
+    "aaa": { "a": 1, "b": 2, "c": 3 },
+    /*|*/"ddd": {
+        "dd": { "d": 4 },
+        "ee": { "e": 5 },
+        "ff": { "f": 6 }
+    },
+    "ggg": { "g": 7, "h": 8, "i": 9 }
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/"aaa\nbbb\"ccc"
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    /*|*/"aaa
+bbb\"ccc"
+]
+// expected-end
+// test-end
+
+
+/// Oneline
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[
+        4
+        ,
+        5
+        ,
+        6
+    ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[ 4, 5, 6 ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    [
+        4,
+        5,
+        6
+    ]/*|*/,
+    [
+        7,
+        8,
+        9
+    ]
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    [ 4, 5, 6 ]/*|*/,
+    [
+        7,
+        8,
+        9
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[
+        [
+            4
+        ],
+        [
+            5
+        ],
+        [
+            6
+        ],
+        [
+        ]
+    ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[ [ 4 ], [ 5 ], [ 6 ], [] ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[
+        [
+            4
+        ],
+        [
+            5
+        ],
+        [
+            6
+        ]
+    ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// context-end
+// action: (json-par-oneline 1)
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[
+        [ 4 ],
+        [ 5 ],
+        [ 6 ]
+    ],
+    [
+        7,
+        8,
+        9
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd"
+    :
+    {
+        "d"
+        :
+        4
+        ,
+        "e"
+        :
+        5
+        ,
+        "f"
+        :
+        6
+    },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// context-end
+// action: (json-par-oneline)
+// expected-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd": { "d": 4, "e": 5, "f": 6 },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    "ddd"
+    :
+    {
+        "d": 4,
+        "e": 5,
+        "f": 6
+    }/*|*/,
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// context-end
+// action: (json-par-oneline)
+// expected-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    "ddd": { "d": 4, "e": 5, "f": 6 }/*|*/,
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd": {
+        "dd": {
+            "d": 4
+        },
+        "ee": {
+            "e": 5
+        },
+        "ff": {
+            "f": 6
+        },
+        "": {
+        }
+    },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// context-end
+// action: (json-par-oneline)
+// expected-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd": { "dd": { "d": 4 }, "ee": { "e": 5 }, "ff": { "f": 6 }, "": {} },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd": {
+        "dd": {
+            "d": 4
+        },
+        "ee": {
+            "e": 5
+        },
+        "ff": {
+            "f": 6
+        }
+    },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// context-end
+// action: (json-par-oneline 1)
+// expected-start
+{
+    "aaa": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/"ddd": {
+        "dd": { "d": 4 },
+        "ee": { "e": 5 },
+        "ff": { "f": 6 }
+    },
+    "ggg": {
+        "g": 7,
+        "h": 8,
+        "i": 9
+    }
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/"aaa
+bbb\"ccc"
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    /*|*/"aaa\nbbb\"ccc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/[ { "a": "aaa", "b": "bbb" }, /* a */ /* b */ { "c": "ccc" } ]
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    /*|*/[{"a":"aaa","b":"bbb"},/* a *//* b */{"c":"ccc"}]
+]
+// expected-end
+// test-end

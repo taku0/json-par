@@ -1,0 +1,949 @@
+/// Test for commands relating to joining lines.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Empty buffer
+
+// context-start
+/*|*/
+// context-end
+// action: (json-par-join-line)
+// expected-start
+/*|*/
+// expected-end
+// test-end
+
+
+/// Empty line
+
+// context-start
+[
+    [
+        1,
+
+
+        /*|*/
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        1,/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        1,
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+
+
+        /*|*/
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        1,
+
+/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        1,
+/*|*/
+        
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+
+
+        /*|*/
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,
+/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,
+/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+
+/// The previous/next line is empty.
+
+// context-start
+[
+    [
+        1,
+
+
+        /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        1,
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        1,/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+
+
+        /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        1,
+
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        1,/*|*/
+        
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+
+
+
+        /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,
+
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+
+        /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,
+/*|*/2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+
+
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,/*|*/
+        
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+        
+        2
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        1,/*|*/
+        2
+    ]
+]
+// expected-end
+// test-end
+
+
+/// Inside multiline string.
+
+// context-start
+[
+    [
+        "a
+/*|*/b"
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        "a/*|*/ b"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "a/*|*/
+b"
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        "a/*|*/ b"
+    ]
+]
+// expected-end
+// test-end
+
+/// The current line and the next/previous line is single-line comment.
+
+// context-start
+[
+    [
+        // a
+        //
+        //
+        /*|*/// b
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        // a
+        ///*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a/*|*/
+        //
+        //
+        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        // a/*|*/
+        // b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a
+        //
+        //
+/*|*/        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        // a
+        //
+        ///*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a/*|*/
+        //
+        //
+        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'delete-one)
+// expected-start
+[
+    [
+        // a/*|*/
+        //
+        // b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a
+        //
+        //
+        //
+/*|*/        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        // a
+        //
+        ///*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a
+        //
+/*|*/        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        // a
+        ///*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    [
+        // a/*|*/
+        //
+        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-deleting-successive-empty-lines 'leave-one)
+// expected-start
+[
+    [
+        // a/*|*/
+        // b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a
+        /*|*/// b
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        // a/*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        // a/*|*/
+        // b
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        // a/*|*/ b
+    ]
+]
+// expected-end
+// test-end
+
+
+/// The former line ends with a single-line comment.
+
+// context-start
+[
+    [
+        1, // a
+        /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        1,/*|*/ 2 // a
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/
+        2 // a
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        1,/*|*/ 2 // a
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1, // a
+        /*|*/2 // b
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        1,/*|*/ 2 // a b
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/ // a
+        2 // b
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        1,/*|*/ 2 // a b
+    ]
+]
+// expected-end
+// test-end
+
+
+/// Before the first member.
+
+// context-start
+[
+    [
+        /*|*/1,
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [/*|*/ 1, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [/*|*/
+        1,
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [/*|*/ 1, 2, 3 ]
+]
+// expected-end
+// test-end
+
+
+/// After the last member.
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    /*|*/]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3/*|*/
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// expected-end
+// test-end
+
+
+/// Between members.
+
+// context-start
+[
+    [
+        1,
+        /*|*/2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    [
+        1,/*|*/ 2,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,/*|*/
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    [
+        1,
+        2,/*|*/ 3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-joining-non-empty-lines 'delete-line-breaks-between-members)
+// expected-start
+[
+    [
+        1,/*|*/ 2, 3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,/*|*/
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-joining-non-empty-lines 'delete-line-breaks-between-members)
+// expected-start
+[
+    [
+        1, 2,/*|*/ 3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        /*|*/2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-joining-non-empty-lines 'delete-line-breaks-inside-brackets)
+// expected-start
+[
+    [ 1,/*|*/ 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,/*|*/
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-joining-non-empty-lines 'delete-line-breaks-inside-brackets)
+// expected-start
+[
+    [ 1, 2,/*|*/ 3 ]
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    [
+        1,
+        /*|*/2,
+        3, 4
+    ]
+]
+// context-end
+// action: (json-par-join-line nil :action-when-joining-non-empty-lines 'delete-line-breaks-inside-brackets)
+// expected-start
+[
+    [
+        1,/*|*/ 2,
+        3, 4
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1, 2,
+        3,/*|*/
+        4
+    ]
+]
+// context-end
+// action: (json-par-join-line t :action-when-joining-non-empty-lines 'delete-line-breaks-inside-brackets)
+// expected-start
+[
+    [
+        1, 2,
+        3,/*|*/ 4
+    ]
+]
+// expected-end
+// test-end
+
+/// Otherwise.
+
+// context-start
+[
+    {
+        "a":
+        /*|*/"aaa"
+    }
+]
+// context-end
+// action: (json-par-join-line)
+// expected-start
+[
+    {
+        "a":/*|*/ "aaa"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a":/*|*/
+        "aaa"
+    }
+]
+// context-end
+// action: (json-par-join-line t)
+// expected-start
+[
+    {
+        "a":/*|*/ "aaa"
+    }
+]
+// expected-end
+// test-end

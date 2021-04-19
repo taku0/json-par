@@ -1,0 +1,214 @@
+/// Test for commands relating to deleting parent array/object.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+// context-start
+[
+    1,
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    },
+    2
+]
+// context-end
+// action: (json-par-delete-backward-parent 1)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    },
+    2
+]
+// context-end
+// action: (json-par-delete-forward-parent 1)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    {
+        "a": "aaa",
+        "b": "/*|*/bbb",
+        "c": "ccc"
+    },
+    2
+]
+// context-end
+// action: (json-par-delete-backward-parent 1)
+// expected-start
+[
+    1,
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    },
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    {
+        "a": "aaa",
+        "b": "/*|*/bbb",
+        "c": "ccc"
+    },
+    2
+]
+// context-end
+// action: (json-par-delete-forward-parent 1)
+// expected-start
+[
+    1,
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    },
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1 ]
+]
+// context-end
+// action: (json-par-delete-backward-parent 1 'mark)
+// expected-start
+[/*[*/
+    [ 1 ]
+/*|]*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1 ]
+]
+// context-end
+// action: (json-par-delete-forward-parent 1 'mark)
+// expected-start
+[/*[|*/
+    [ 1 ]
+/*]*/]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        [
+            [ /*|*/1 ]
+        ]
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-parent 2 'mark)
+// expected-start
+[
+    [/*[*/
+        [
+            [ 1 ]
+        ]
+    /*|]*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        [
+            [ /*|*/1 ]
+        ]
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-parent 2 'mark)
+// expected-start
+[
+    [/*[|*/
+        [
+            [ 1 ]
+        ]
+    /*]*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        [
+            [ /*|*/1 ]
+        ]
+    ]
+]
+// context-end
+// action: (json-par-delete-backward-parent -2 'mark)
+// expected-start
+[
+    [/*[|*/
+        [
+            [ 1 ]
+        ]
+    /*]*/]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        [
+            [ /*|*/1 ]
+        ]
+    ]
+]
+// context-end
+// action: (json-par-delete-forward-parent -2 'mark)
+// expected-start
+[
+    [/*[*/
+        [
+            [ 1 ]
+        ]
+    /*|]*/]
+]
+// expected-end
+// test-end

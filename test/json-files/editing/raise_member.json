@@ -1,0 +1,116 @@
+/// Test for commands relating to raising members.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+[
+    /*|*/"bbb"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        "bbb"/*|*/,
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+[
+    /*|*/"bbb"
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+}
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+{
+    /*|*/"b": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": {
+        "a": "aaa",
+        "b": /*|*/"bbb",
+        "c": "ccc"
+    }
+}
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+{
+    /*|*/"b": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    "a": {
+        "a": "aaa",
+        "b": /*[|*/"bbb"/*]*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+[
+    /*|*/"bbb"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        [
+            "aaa",
+            /*|*/"bbb",
+            "ccc"
+        ]
+    ]
+]
+// context-end
+// action: (json-par-raise-member 2)
+// expected-start
+[
+    /*|*/"bbb"
+]
+// expected-end
+// test-end

@@ -1,0 +1,500 @@
+/// Test for commands relating to joining values.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Comments
+
+// context-start
+[
+    ///   aaa   bbb
+    /*|*////   ccc   ddd
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    ///   aaa   bbb/*|*/ccc   ddd
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    ///   aaa   bbb
+
+    /*|*////   ccc   ddd
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    ///   aaa   bbb/*|*/ccc   ddd
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /***   aaa   bbb  **/
+    /*|*//***   ccc   ddd  **/
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    /***   aaa   bbb/*|*/ccc   ddd  **/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /***   aaa   bbb  **/
+
+    /*|*//***   ccc   ddd  **/
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    /***   aaa   bbb/*|*/ccc   ddd  **/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /***
+     * aaa
+     * bbb
+     **/
+    /*|*//***
+     * ccc
+     * ddd
+     **/
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    /***
+     * aaa
+     * bbb/*|*/ccc
+     * ddd
+     **/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    ///  aaa bbb
+    /*|*//***
+     * ccc
+     * ddd
+     **/
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    /***
+     *   aaa bbb/*|*/ccc
+     * ddd
+     **/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /***
+     * aaa
+     * bbb
+     **/
+    /*|*////  ccc ddd
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    /***
+     * aaa
+     * bbb/*|*/ccc ddd
+     **/
+]
+// expected-end
+// test-end
+
+
+/// String
+
+// context-start
+[
+    "abc",
+    /*|*/"def"
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    "abc/*|*/def"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "abc"/*|*/,
+    "def"
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    "abc/*|*/def"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    true,
+    /*|*/"def"
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    "true/*|*/def"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "abc",
+    /*|*/true
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    "abc/*|*/true"
+]
+// expected-end
+// test-end
+
+/// Array
+
+// context-start
+[
+    [],
+    /*|*/[ 1, 2, 3 ]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ /*|*/1, 2, 3 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ 1, 2, 3/*|*/ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/[ 4, 5, 6 ]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ 1, 2, 3/*|*/, 4, 5, 6 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [],
+    /*|*/[
+        1,
+        2,
+        3
+    ]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [
+        /*|*/1,
+        2,
+        3
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [
+        1,
+        2,
+        3/*|*/
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    /*|*/[
+        4,
+        5,
+        6
+    ]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [
+        1,
+        2,
+        3/*|*/,
+        4,
+        5,
+        6
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    true,
+    /*|*/[ 4, 5, 6 ]
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ true/*|*/, 4, 5, 6 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/true
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ 1, 2, 3/*|*/, true ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, 2, 3 ],
+    /*|*/{ "a": "aaa" }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    [ 1, 2, 3/*|*/, { "a": "aaa" } ]
+]
+// expected-end
+// test-end
+
+
+/// Objects
+
+// context-start
+[
+    {},
+    /*|*/{ "a": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    { /*|*/"a": 1, "b": 2, "c": 3 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3 },
+    /*|*/{}
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3 },
+    /*|*/{ "d": 4, "e": 5, "f": 6 }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/, "d": 4, "e": 5, "f": 6 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {},
+    /*|*/{
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    {
+        /*|*/"a": 1,
+        "b": 2,
+        "c": 3
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/{}
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3/*|*/
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    },
+    /*|*/{
+        "d": 4,
+        "e": 5,
+        "f": 6
+    }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3/*|*/,
+        "d": 4,
+        "e": 5,
+        "f": 6
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    true,
+    /*|*/{ "a": 4, "b": 5, "c": 6 }
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    { "": true/*|*/, "a": 4, "b": 5, "c": 6 }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": 1, "b": 2, "c": 3 },
+    /*|*/true
+]
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+[
+    { "a": 1, "b": 2, "c": 3/*|*/, "": true }
+]
+// expected-end
+// test-end

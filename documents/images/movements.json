@@ -1,0 +1,17 @@
+[
+  {
+    "name": "GNU Emacs",
+    "website": "https://www.gnu.org/software/emacs/",
+    "written_in": [ "C", "Emacs Lisp" ]
+  },
+  {
+    "name": "Vim",
+    "written_in": [ "C", "Vim script" ],
+    "website": "https://www.vim.org/"
+  },
+  {
+    "name": "Visual Studio Code",
+    "website": "https://code.visualstudio.com/",
+    "written_in": [ "TypeScript" ]
+  }
+]

@@ -1,0 +1,619 @@
+/// Test for commands relating to inserting colons.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Before a colon
+
+// context-start
+[
+    { "a"/*|*/: "aaa" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/"aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/: }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/}
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a"/*|*/: 
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Empty brackets
+
+// context-start
+[
+    {/*|*/}
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+/*|*/}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Between an open bracket and a comma
+
+// context-start
+[
+    { /*|*/, "a": "aaa" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "": /*|*/, "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/,
+    "a": "aaa"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/,
+    "a": "aaa"
+}
+// expected-end
+// test-end
+
+
+/// Between an open bracket and a key
+
+// context-start
+[
+    { /*|*/"a": "aaa" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "": /*|*/, "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"a": "aaa"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/,
+    "a": "aaa"
+}
+// expected-end
+// test-end
+
+
+/// Between an open bracket and a value
+
+// context-start
+[
+    { /*|*/"aaa" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "": /*|*/"aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"aaa"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/"aaa"
+}
+// expected-end
+// test-end
+
+
+/// Between a comma and a close bracket
+
+// context-start
+[
+    { "a": "aaa", /*|*/ }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+/*|*/}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Between two commas
+
+// context-start
+[
+    { "a": "aaa", /*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/,
+    "b": "bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/,
+    "b": "bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a comma and a key
+
+// context-start
+[
+    { "a": "aaa", /*|*/"b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/"b": "bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/,
+    "b": "bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a comma and a value
+
+// context-start
+[
+    { "a": "aaa", /*|*/"bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/"bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*|*/"bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/"bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a value and a close bracket
+
+// context-start
+[
+    { "a": "aaa"/*|*/ }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa"
+/*|*/}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa"/*|*/
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Between a value and a comma
+
+// context-start
+[
+    { "a": "aaa"/*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa"/*|*/,
+    "b": "bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/,
+    "b": "bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a value and the next key (missing comma)
+
+// context-start
+[
+    { "a": "aaa"/*|*/ "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa"/*|*/
+    "b": "bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/,
+    "b": "bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between two values (missing comma)
+
+// context-start
+[
+    { "a": "aaa"/*|*/ "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": "aaa", "": /*|*/"bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa"
+    /*|*/"bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": "aaa",
+    "": /*|*/"bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a colon and a close bracket
+
+// context-start
+[
+    { "a": /*|*/ }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": , "": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+/*|*/}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": ,
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": ,
+    "": /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Between a colon and a comma
+
+// context-start
+[
+    { "a": /*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": , "": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/,
+    "b": "bbb"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "a": ,
+    "": /*|*/,
+    "b": "bbb"
+}
+// expected-end
+// test-end
+
+
+/// Between a colon and a value
+
+// context-start
+[
+    { "a": /*|*/"aaa" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "": /*|*/, "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/"aaa"
+}
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+{
+    "": /*|*/,
+    "a": "aaa"
+}
+// expected-end
+// test-end
+
+
+/// Between a key and a comma
+
+// context-start
+[
+    { "a" /*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+
+/// Between a key and a close bracket
+
+// context-start
+[
+    { "a" /*|*/ }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/ }
+]
+// expected-end
+// test-end
+
+
+/// Between a key and a value (colon missing)
+
+// context-start
+[
+    { "a" /*|*/"b" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/"b" }
+]
+// expected-end
+// test-end

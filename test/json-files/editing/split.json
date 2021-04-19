@@ -1,0 +1,952 @@
+/// Test for commands relating to splitting values.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Object key
+
+// context-start
+[
+    {"a/*|*/aa": "a"}
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {"a": , /*|*/"aa": "a"}
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a/*|*/aa": "a" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": , /*|*/"aa": "a" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a/*|*/aa": "a"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": ,
+        /*|*/"aa": "a"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "aaa": "a",
+        "b/*|*/bb": "b",
+        "ccc": "c"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "aaa": "a",
+        "b": ,
+        /*|*/"bb": "b",
+        "ccc": "c"
+    }
+]
+// expected-end
+// test-end
+
+
+/// String (not key)
+
+// context-start
+[
+    ["a/*|*/aa"]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    ["a", /*|*/"aa"]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a/*|*/aa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a", /*|*/"aa" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "a/*|*/aa"
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        "a",
+        /*|*/"aa"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        "b/*|*/bb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        "aaa",
+        "b",
+        /*|*/"bb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {"a": "a/*|*/aa"}
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {"a": "a", "": /*|*/"aa"}
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "a/*|*/aa" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": "a", "": /*|*/"aa" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "a/*|*/aa"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "a",
+        "": /*|*/"aa"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        "b": "b/*|*/bb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": "b",
+        "": /*|*/"bb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\/*|*/na" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\n", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\n/*|*/a" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\n", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a/*|*/\na" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a", /*|*/"\na" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\/*|*/uABCDa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\u/*|*/ABCDa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\uA/*|*/BCDa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\uAB/*|*/CDa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\uABC/*|*/Da" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\uABCD/*|*/a" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uABCD", /*|*/"a" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a/*|*/\uABCDa" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a", /*|*/"\uABCDa" ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ "a\u/*|*/AB" ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ "a\uAB", /*|*/"" ]
+]
+// expected-end
+// test-end
+
+/// Comment
+
+// context-start
+[
+    /// aaa/*|*/bbb
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /// aaa
+    /// /*|*/bbb
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    ////*|*////
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    ///
+    ////*|*////
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    //*|*//////
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    //
+    ///*|*/////
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /** aaa/*|*/bbb **/
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /** aaa **/
+    /** /*|*/bbb **/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /**
+     * 
+     * aaa/*|*/bbb
+     *
+     */
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /**
+     * 
+     * aaa
+     *
+     */
+    /**
+     * 
+     * /*|*/bbb
+     *
+     */
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /***/*|*/***/
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /******/
+    /***/*|*/***/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    //*|*/******/
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /******/
+    /*/*|*/*****/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /******/*|*//
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /*****/
+    /*****/*|*/*/
+]
+// expected-end
+// test-end
+
+
+/// Array
+
+// context-start
+[
+    [ /*|*/1 ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ ],
+    /*|*/[ 1 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1/*|*/ ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ 1 ],
+    /*|*/[ ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1/*|*/, 2 ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ 1 ],
+    /*|*/[ 2 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1,/*|*/ 2 ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ 1 ],
+    /*|*/[ 2 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ 1, /*|*/2 ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ 1 ],
+    /*|*/[ 2 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+    ],
+    /*|*/[
+        1
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        1
+    ],
+    /*|*/[
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1/*|*/, 2
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        1
+    ],
+    /*|*/[
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1,/*|*/ 2
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        1
+    ],
+    /*|*/[
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1, /*|*/2
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+        1
+    ],
+    /*|*/[
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [ /*|*/1 ], [ 2 ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [ ], /*|*/[ 1 ], [ 2 ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        /*|*/1
+    ], [
+        2
+    ]
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    [
+    ], /*|*/[
+        1
+    ], [
+        2
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": [ /*|*/1 ]
+}
+// context-end
+// action: (json-par-split)
+// expected-start
+{
+    "a": [ ],
+    "": /*|*/[ 1 ]
+}
+// expected-end
+// test-end
+
+
+/// Object
+
+// context-start
+[
+    { /*|*/"a": "aaa" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { },
+    /*|*/{ "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/: "aaa" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { },
+    /*|*/{ "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/"aaa" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { },
+    /*|*/{ "a": "aaa" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa"/*|*/ }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": "aaa" },
+    /*|*/{ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa"/*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": "aaa" },
+    /*|*/{ "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa",/*|*/ "b": "bbb" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": "aaa" },
+    /*|*/{ "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": "aaa", /*|*/"b": "bbb" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { "a": "aaa" },
+    /*|*/{ "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": /*|*/"aaa"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+    },
+    /*|*/{
+        "a": "aaa"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa"/*|*/
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "aaa"
+    },
+    /*|*/{
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa"/*|*/, "b": "bbb"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "aaa"
+    },
+    /*|*/{
+        "b": "bbb"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",/*|*/ "b": "bbb"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "aaa"
+    },
+    /*|*/{
+        "b": "bbb"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa", /*|*/"b": "bbb"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+        "a": "aaa"
+    },
+    /*|*/{
+        "b": "bbb"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a": /*|*/"aaa" }, { "b": "bbb" }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    { }, /*|*/{ "a": "aaa" }, { "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": /*|*/"aaa"
+    }, {
+        "b": "bbb"
+    }
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    {
+    }, /*|*/{
+        "a": "aaa"
+    }, {
+        "b": "bbb"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": { "a": /*|*/"aaa" }
+}
+// context-end
+// action: (json-par-split)
+// expected-start
+{
+    "a": { },
+    "": /*|*/{ "a": "aaa" }
+}
+// expected-end
+// test-end

@@ -1,0 +1,2727 @@
+/// Test for commands relating to inserting commas.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Between values
+
+// context-start
+[ []/*|*/[] ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ [], /*|*/[] ]
+// expected-end
+// test-end
+
+// context-start
+[ [] /*|*/[] ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ [], /*|*/[] ]
+// expected-end
+// test-end
+
+// context-start
+[ []/*|*/ [] ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ [], /*|*/[] ]
+// expected-end
+// test-end
+
+// context-start
+[ [] /*|*/ [] ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ [], /*|*/ [] ]
+// expected-end
+// test-end
+
+// context-start
+[
+    []/*|*/[]
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    [], /*|*/[]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,/*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": []/*|*/"b": [] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/"b": [] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": [] /*|*/"b": [] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/"b": [] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": []/*|*/ "b": [] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/"b": [] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": []/*|*/[] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/[] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": [] /*|*/[] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/[] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": []/*|*/ [] }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/[] }
+// expected-end
+// test-end
+
+// context-start
+{ "a": []/*|*/"b" }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": [], /*|*/"b" }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": []/*|*/"b": []
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": [], /*|*/"b": []
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/"b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,/*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// Between open bracket and colon
+
+// context-start
+{ /*|*/: 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, : 1 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/ : 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, : 1 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/,
+    : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/: 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    : 1
+}
+// expected-end
+// test-end
+
+
+/// Between comma and colon
+
+// context-start
+{ "a": 1,/*|*/: 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, : 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/ : 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, : 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/, : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    : 2
+}
+// expected-end
+// test-end
+
+
+/// Between value (not key) and colon
+
+// context-start
+{ 1 /*|*/: 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ 1, /*|*/: 2 }
+// expected-end
+// test-end
+
+// context-start
+{ 1/*|*/ : 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ 1, /*|*/: 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1" /*|*/: 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": "1", /*|*/: 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    1 /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    1, /*|*/: 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    1,
+    /*|*/: 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    1,/*|*/
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    1,
+    /*|*/
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1" /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": "1", /*|*/: 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": "1",
+    /*|*/: 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": "1",/*|*/
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": "1",
+    /*|*/
+    : 2
+}
+// expected-end
+// test-end
+
+
+/// Between colons
+
+// context-start
+{ :/*|*/: 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ : , /*|*/: 1 }
+// expected-end
+// test-end
+
+// context-start
+{ : /*|*/: 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ : , /*|*/: 1 }
+// expected-end
+// test-end
+
+// context-start
+{ :/*|*/ : 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ : , /*|*/: 1 }
+// expected-end
+// test-end
+
+// context-start
+{
+    :/*|*/: 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    : , /*|*/: 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :
+    /*|*/: 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    : ,
+    /*|*/: 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :/*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    : ,/*|*/
+    : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :
+    /*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    : ,
+    /*|*/
+    : 1
+}
+// expected-end
+// test-end
+
+
+/// Between colon and next key
+
+// context-start
+{ "a": /*|*/"b": 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/"b": 1 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+    "b": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,/*|*/
+    "b": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 
+    /*|*/"b": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/"b": 1
+}
+// expected-end
+// test-end
+
+
+/// Empty brackets
+
+// context-start
+[/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ /*|*/, ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ /*|*/, ]
+// expected-end
+// test-end
+
+// context-start
+[/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+{/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+}
+// expected-end
+// test-end
+
+
+/// After last comma
+
+// context-start
+[ 1,/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/ ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3,/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    3, /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3,
+/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    3,
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3,
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    3,
+    /*|*/,
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    /*|*/,
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    /*|*/,
+}
+// expected-end
+// test-end
+
+
+/// Between two commas
+
+// context-start
+[ 1,/*|*/, 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, , 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/, 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, , 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1,/*|*/ , 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, , 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/, 2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/, , 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/,
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    ,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+    ,
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    ,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/ , "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/, "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/, , "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    ,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon without value
+
+// context-start
+{ "a":/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/ }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/ }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/, "b": false }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/, "b": false }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/, "b": false }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": , /*|*/, "b": false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/,
+    "b": false
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/,
+    "b": false
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": , /*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": , /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+    ,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": ,
+    /*|*/
+    ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// Before colon
+
+// context-start
+{ "a"/*|*/: 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b"/*|*/: 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a"/*|*/: 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b"/*|*/: 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon (with value)
+
+// context-start
+{ "a":/*|*/ 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b":/*|*/ 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": /*|*/2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":/*|*/ 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b":/*|*/ 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b": /*|*/2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After last value
+
+// context-start
+[ 1/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1 /*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1/*|*/ ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1 /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+/*|*/]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    3, /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    3
+    /*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    3,
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        1
+    ], [
+        2
+    ]/*|*/
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    [
+        1
+    ], [
+        2
+    ], /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1 /*|*/ }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1 /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3
+/*|*/}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    {
+        "a": 1
+    }, {
+        "b": 2
+    }/*|*/
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    {
+        "a": 1
+    }, {
+        "b": 2
+    }, /*|*/
+}
+// expected-end
+// test-end
+
+
+/// Before array value or object key
+
+// context-start
+[ /*|*/1 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ /*|*/, 1 ]
+// expected-end
+// test-end
+
+// context-start
+[ /*|*/ 1 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ /*|*/, 1 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[ 1, /*|*/ 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/1
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    /*|*/,
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/ 1
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    /*|*/,
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/
+    1
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    /*|*/,
+    1
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/, 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, /*|*/ 2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/, 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,/*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,
+    /*|*/3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    /*|*/, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2,/*|*/
+    3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2, /*|*/,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,/*|*/
+    2, 3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1,
+    /*|*/
+    2, 3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a": 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, 1 }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/"a" }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a" }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ "a": 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"a": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/ "a": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/, "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/ "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/, "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    /*|*/"c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    /*|*/, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,/*|*/
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2, /*|*/,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Inside a atom
+
+// context-start
+[ t/*|*/rue ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ true, /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1/*|*/1 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 11, /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ "1/*[|*/1/*]*/1" ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ "111", /*|*/ ]
+// expected-end
+// test-end
+
+// context-start
+[ 1/*|*/1, 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 11, /*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    11,
+    /*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1, 2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    11, /*|*/, 2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1,
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    11,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1, 2,
+    3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    11, /*|*/, 2,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/1,
+    2, 3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    11, /*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": t/*|*/rue }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": true, /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 11, /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1/*[|*/1/*]*/1" }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": "111", /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{ "a/*[|*/a/*]*/a": 1 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ /*|*/, "aaa": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1, "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 11, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b/*[|*/b/*]*/b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "bbb": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a/*[|*/a/*]*/a" }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "aaa", /*|*/ }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 11,
+    /*|*/
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/,
+    "aaa": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1, "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 11, /*|*/, "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b/*[|*/b/*]*/b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/, "bbb": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b/*[|*/b/*]*/b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "bbb": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 11,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1, "b": 2,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 11, /*|*/, "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 11, /*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1, "b": 2,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/, "aaa": 1, "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a/*[|*/a/*]*/a": 1,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    /*|*/, "aaa": 1,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Between value and comma
+
+// context-start
+[ 1/*|*/, 2 ]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[ 1, /*|*/, 2 ]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/,
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/,
+    2
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2/*|*/,
+    3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2, /*|*/,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1, 2
+    /*|*/,
+    3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, 2,
+    /*|*/,
+    3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1/*|*/,
+    2, 3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1, /*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    1
+    /*|*/,
+    2, 3
+]
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+[
+    1,
+    /*|*/,
+    2, 3
+]
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{ "a": 1, /*|*/, "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2/*|*/,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2, /*|*/,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2
+    /*|*/,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, "b": 2,
+    /*|*/,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1, /*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-comma-if-special)
+// expected-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end

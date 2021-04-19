@@ -1,0 +1,380 @@
+/// Test for commands relating to cloning members or parent object/array.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+
+/// Clone members
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-member-backward)
+// expected-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "b": "bbb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-member-forward)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": "bbb",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-member-backward)
+// expected-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "bbb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-member-forward)
+// expected-start
+[
+    [
+        "aaa",
+        "bbb",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+
+/// Clone parent
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-parent-backward)
+// expected-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    },
+    {
+        "a": "aaa",
+        "b": "bbb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-parent-forward)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": "bbb",
+        "c": "ccc"
+    },
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-parent-backward)
+// expected-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ],
+    [
+        "aaa",
+        "bbb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-parent-forward)
+// expected-start
+[
+    [
+        "aaa",
+        "bbb",
+        "ccc"
+    ],
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+
+/// Clone parent without values
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-parent-backward-without-value)
+// expected-start
+[
+    {
+        "a": ,
+        /*|*/"b": ,
+        "c": 
+    },
+    {
+        "a": "aaa",
+        "b": "bbb",
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-clone-parent-forward-without-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": "bbb",
+        "c": "ccc"
+    },
+    {
+        "a": ,
+        /*|*/"b": ,
+        "c": 
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-parent-backward-without-value)
+// expected-start
+[
+    [
+        ,
+        /*|*/,
+        
+    ],
+    [
+        "aaa",
+        "bbb",
+        "ccc"
+    ]
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*|*/"bbb",
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-clone-parent-forward-without-value)
+// expected-start
+[
+    [
+        "aaa",
+        "bbb",
+        "ccc"
+    ],
+    [
+        ,
+        /*|*/,
+        
+    ]
+]
+// expected-end
+// test-end
+
+
+/// Clone with level parameter
+
+// context-start
+[
+    [
+        {
+            "a": "aaa",
+            "b"/*|*/: "bbb",
+            "c": "ccc"
+        },
+        {
+            "d": "ddd",
+            "e": "eee",
+            "f": "fff"
+        }
+    ]
+]
+// context-end
+// Clone grand-parent two times without values.
+// action: (execute-kbd-macro (kbd "C-2 cvhhhij"))
+// expected-start
+[
+    [
+        {
+            "a": "aaa",
+            "b": "bbb",
+            "c": "ccc"
+        },
+        {
+            "d": "ddd",
+            "e": "eee",
+            "f": "fff"
+        }
+    ],
+    [
+        {
+            "a": ,
+            "b": ,
+            "c": 
+        },
+        {
+            "d": "ddd",
+            "e": "eee",
+            "f": "fff"
+        }
+    ],
+    [
+        {
+            "a": ,
+            "b"/*|*/: ,
+            "c": 
+        },
+        {
+            "d": "ddd",
+            "e": "eee",
+            "f": "fff"
+        }
+    ]
+]
+// expected-end
+// test-end

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JSON Par mode features</title>
+    <link rel="stylesheet" href="emacs.css" />
+  </head>
+  <body>
+    <h1 class="title"><a href="https://github.com/taku0/json-par">JSON Par mode</a> features</h1>
+
+    <p class="translation-links">Translations: <a href="manual.html">English</a>, <a href="manual.ja.html">日本語</a></p>
+
+    <p class="note"><small>(For non-visual user-agents, ‘|’ is the point and ‘*’ is the mark in the following examples.)</small></p>
+
+    <section>
+      <h2>Table of contents</h2>
+      <nav>
+        <ul>
+          <li><a href="#ctrl-less-yet-modeless">Ctrl-less, yet modeless</a></li>
+          <li><a href="#structural-movement">Structural movement</a></li>
+          <li><a href="#escape-hatch">Escape hatch (disabling the mode temporarily)</a></li>
+          <li><a href="#inserting-values">Inserting values and balanced brackets</a></li>
+          <li><a href="#mark-and-delete">Marking or deleting things</a></li>
+          <li><a href="#delete-values">Delete values of object/array</a></li>
+          <li><a href="#single-line-and-multiline">Switching single-line and multiline</a></li>
+          <li><a href="#cloning">Cloning members</a></li>
+          <li><a href="#completion">Completion</a></li>
+          <li><a href="#transposing">Transposing members</a></li>
+          <li><a href="#raising">Raising member</a></li>
+          <li><a href="#mark-narrow">Mark/narrow DWIM</a></li>
+          <li><a href="#split-join">Split/join</a></li>
+        </ul>
+      </nav>
+    </section>
+
+    <section id="ctrl-less-yet-modeless">
+      <h2>Ctrl-less, yet modeless</h2>
+      <p>If the point is not in a string, each key is interpreted as a command like the vi editor. If the point is in a string, keys are inserted as is:</p>
+      <figure>
+        <img src="images/modeless.svg" alt="Type “{” to insert “{}”, “t” to insert “true”."/>
+      </figure>
+      <p>If the region is active, each key is interpreted as a command.</p>
+    </section>
+
+    <section id="structural-movement">
+      <h2>Structural movement</h2>
+      <p>Moving to the next/previous member (key-value pair), parents, and more:</p>
+      <figure>
+        <img src="images/movements.svg" alt="Press “a” to go to the beginning of the member, “e” to go to the end of the member, and more."/>
+      </figure>
+      <table id="movement-keymap-table">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><kbd>j</kbd></th>
+            <td><code>json-par-backward-member</code></td>
+            <td>To the next member (key-value pair).</td>
+          </tr>
+          <tr>
+            <th><kbd>k</kbd></th>
+            <td><code>json-par-forward-member</code></td>
+            <td>To the previous member.</td>
+          </tr>
+          <tr>
+            <th><kbd>h</kbd></th>
+            <td><code>json-par-up-backward</code></td>
+            <td>To the beginning of the containing object/array.</td>
+          </tr>
+          <tr>
+            <th><kbd>l</kbd>, <kbd>}</kbd>, or <kbd>]</kbd></th>
+            <td><code>json-par-up-forward</code></td>
+            <td>To the end of the containing object/array.</td>
+          </tr>
+          <tr>
+            <th><kbd>a</kbd></th>
+            <td><code>json-par-beginning-of-member</code></td>
+            <td>To the beginning of the member.</td>
+          </tr>
+          <tr>
+            <th><kbd>e</kbd></th>
+            <td><code>json-par-end-of-member</code></td>
+            <td>To the end of the member.</td>
+          </tr>
+          <tr>
+            <th><kbd>v</kbd></th>
+            <td><code>json-par-beginning-of-object-value</code></td>
+            <td>To the beginning of the value.</td>
+          </tr>
+          <tr>
+            <th><kbd>J</kbd></th>
+            <td><code>json-par-backward-record</code></td>
+            <td>To the same key in the previous object.</td>
+          </tr>
+          <tr>
+            <th><kbd>K</kbd></th>
+            <td><code>json-par-forward-record</code></td>
+            <td>To the same key in the next object.</td>
+          </tr>
+          <tr>
+            <th><kbd>A</kbd></th>
+            <td><code>json-par-beginning-of-list</code></td>
+            <td>To the beginning of the first member.</td>
+          </tr>
+          <tr>
+            <th><kbd>E</kbd></th>
+            <td><code>json-par-end-of-list</code></td>
+            <td>To the end of the last member.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Other commands:</p>
+      <pre class="emacs"><code><span class="point-container"><span class="point">|</span></span><span class="after-point">[</span> <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+
+↓ <kbd>i</kbd> (‘json-par-down’)
+
+[ <span class="point-container"><span class="point">|</span></span><span class="constant after-point">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+
+
+[ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+
+↓ <kbd>i</kbd> (‘json-par-down’)
+
+[ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>]</code></pre>
+      <pre class="emacs"><code>{
+  <span class="keyword">"key</span><span class="point-container"><span class="keyword point">|</span></span><span class="keyword after-point">"</span>: <span class="constant">123</span>
+}
+
+↓ <kbd>TAB</kbd> (‘json-par-tab’)
+
+{
+  <span class="keyword">"key"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point constant">1</span><span class="constant">23</span>
+}
+
+↓ <kbd>S-TAB</kbd> (‘json-par-mark-head-of-member’)
+
+{
+  <span class="keyword">"</span><span class="keyword mark">*</span><span class="keyword region">key</span><span class="point-container"><span class="keyword point">|</span></span><span class="keyword after-point">"</span>: <span class="constant">123</span>
+}</code></pre>
+      <pre class="emacs"><code>[
+  <span class="string">"The quick brown </span><span class="point-container"><span class="string point">|</span></span><span class="string after-point">f</span><span class="string">ox jumps over the lazy dog."</span>
+]
+
+↓ <kbd>TAB</kbd> (‘json-par-tab’)
+
+[
+  <span class="string">"The quick brown fox jumps over the lazy dog."</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+]</code></pre>
+      <pre class="emacs"><code>{
+  <span class="point-container"><span class="point">|</span></span><span class="after-point keyword">"</span><span class="keyword">name"</span>: <span class="string">"Emacs"</span>,
+  <span class="keyword">"website"</span>: <span class="string">"https://www.gnu.org/software/emacs/"</span>,
+  <span class="keyword">"written_in"</span>: [ <span class="string">"C"</span>, <span class="string">"Emacs Lisp"</span> ]
+}
+
+↓ <kbd>g</kbd> (‘json-par-goto-key’) <kbd>website</kbd> <kbd>RET</kbd>
+
+{
+  <span class="keyword">"name"</span>: <span class="string">"Emacs"</span>,
+  <span class="point-container"><span class="point">|</span></span><span class="after-point keyword">"</span><span class="keyword">website"</span>: <span class="string">"https://www.gnu.org/software/emacs/"</span>,
+  <span class="keyword">"written_in"</span>: [ <span class="string">"C"</span>, <span class="string">"Emacs Lisp"</span> ]
+}</code></pre>
+      <pre class="emacs"><code>[
+  <span class="string">"a"</span>,
+  <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">b"</span>,
+  <span class="string">"c"</span>
+]
+
+↓ <kbd>M-x</kbd> <kbd>json-par-goto-index</kbd> <kbd>0</kbd> <kbd>RET</kbd>
+
+[
+  <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">a"</span>,
+  <span class="string">"b"</span>,
+  <span class="string">"c"</span>
+]</code></pre>
+      <p>Pro tip: those commands except <kbd>j</kbd>, <kbd>k</kbd>, <kbd>J</kbd>, or <kbd>K</kbd> push a mark in the mark ring before moving, and <kbd>b</kbd> is bound to <code>pop-to-mark-command</code>.  So pressing <kbd>b</kbd> goes back to the previous position.</p>
+    </section>
+
+    <section id="escape-hatch">
+      <h2>Escape hatch (disabling the mode temporarily)</h2>
+      <p>Press <kbd>q</kbd> to disable JSON Par mode only for next command. Press <kbd>Q</kbd> to disable JSON Par mode until explicitly enabled again.</p>
+    </section>
+
+    <section id="inserting-values">
+      <h2>Inserting values and balanced brackets</h2>
+      <p>Just one key to insert values:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><kbd>t</kbd></th>
+            <td>Insert <code>true</code></td>
+          </tr>
+          <tr>
+            <th><kbd>f</kbd></th>
+            <td>Insert <code>false</code></td>
+          </tr>
+          <tr>
+            <th><kbd>n</kbd></th>
+            <td>Insert <code>null</code></td>
+          </tr>
+          <tr>
+            <th><kbd>[</kbd></th>
+            <td>Insert <code>[]</code></td>
+          </tr>
+          <tr>
+            <th><kbd>{</kbd></th>
+            <td>Insert <code>{}</code></td>
+          </tr>
+          <tr>
+            <th><kbd>"</kbd></th>
+            <td>Insert <code>""</code></td>
+          </tr>
+          <tr>
+            <th><kbd>,</kbd></th>
+            <td>Insert <code>,</code></td>
+          </tr>
+          <tr>
+            <th><kbd>:</kbd></th>
+            <td>Insert <code>:</code></td>
+          </tr>
+          <tr>
+            <th><kbd>+</kbd>, <kbd>-</kbd>, <kbd>0</kbd>-<kbd>9</kbd></th>
+            <td>Insert number</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Commas and line breaks are inserted appropriately:</p>
+      <pre class="emacs"><code>[
+  [
+    <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span>
+  ]<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+]
+
+↓ <kbd>[</kbd>
+
+[
+  [
+    <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span>
+  ],
+  [
+    <span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+  ]
+]</code></pre>
+      <pre class="emacs"><code>[
+  [ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+]
+
+↓ <kbd>[</kbd>
+
+[
+  [ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ],
+  [<span class="point-container"><span class="point">|</span></span><span class="after-point">]</span>
+]
+
+↓ <kbd>1</kbd>
+
+[
+  [ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ],
+  [ <span class="constant">1</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>]
+]</code></pre>
+      <p>When the region is active, <kbd>[</kbd>, <kbd>{</kbd>, and <kbd>"</kbd> wrap the region. With <kbd>C-u</kbd> prefix, <kbd>"</kbd> unwrap the string.</p>
+    </section>
+
+    <section id="mark-and-delete">
+      <h2>Marking or deleting things</h2>
+      <p>When the region is active, <kbd>d</kbd> or <kbd>&lt;backspace&gt;</kbd> deletes the region.</p>
+      <p>When the region is not active, <kbd>d</kbd> + movement key marks members or values:</p>
+      <pre class="emacs"><code>[
+  <span class="constant">1</span><span class="point-container"><span class="point">|</span></span><span class="after-point">,</span>
+  <span class="constant">2</span>,
+  <span class="constant">3</span>,
+  <span class="constant">4</span>
+]
+
+↓ <kbd>d2j</kbd> (“mark the following two members”)
+
+[
+  <span class="constant">1</span><span class="point-container"><span class="point">|</span></span><span class="region after-point">,</span><span class="region">
+  </span><span class="region constant">2</span><span class="region">,
+  </span><span class="region constant">3</span><span class="mark">*</span>,
+  <span class="constant">4</span>
+]
+
+↓ <kbd>d</kbd>
+
+[
+  <span class="constant">1</span><span class="point-container"><span class="point">|</span></span><span class="after-point">,</span>
+  <span class="constant">4</span>
+]</code></pre>
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><kbd>dd</kbd></th>
+            <td>Mark the current member (key-value pair).</td>
+          </tr>
+          <tr>
+            <th><kbd>d.</kbd></th>
+            <td>Mark the current value or key.</td>
+          </tr>
+          <tr>
+            <th><kbd>dj</kbd></th>
+            <td>Mark the member following the point.</td>
+          </tr>
+          <tr>
+            <th><kbd>dk</kbd></th>
+            <td>Mark the member preceding the point.</td>
+          </tr>
+          <tr>
+            <th><kbd>dh</kbd></th>
+            <td>Mark the containing object/array (the point move before the parent).</td>
+          </tr>
+          <tr>
+            <th><kbd>dl</kbd></th>
+            <td>Mark the containing object/array (the point move after the parent).</td>
+          </tr>
+          <tr>
+            <th><kbd>da</kbd></th>
+            <td>Mark the key of the current key-value pair.</td>
+          </tr>
+          <tr>
+            <th><kbd>de</kbd> or <kbd>dv</kbd></th>
+            <td>Mark the value of the current key-value pair.</td>
+          </tr>
+          <tr>
+            <th><kbd>dA</kbd></th>
+            <td>Mark all members of the containing object/array (the point move before the first member).</td>
+          </tr>
+          <tr>
+            <th><kbd>dE</kbd></th>
+            <td>Mark all members of the containing object/array (the point move after the last member).</td>
+          </tr>
+          <tr>
+            <th><kbd>di</kbd></th>
+            <td>Mark all contents of the object/array/string before/after the point.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Pro tip: you can delete without marking by setting <var>json-par-action-when-deleting-value-or-member</var> to <code>delete</code>.</p>
+      <p><kbd>&lt;backspace&gt;</kbd> and <kbd>C-d</kbd> delete or mark things while keeping structures:</p>
+      <pre class="emacs"><code>[ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[ <span class="mark">*</span><span class="constant region">1</span><span class="region">, </span><span class="region constant">2</span><span class="region">, </span><span class="region constant">3</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>]</code></pre>
+      <pre class="emacs"><code>[]<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+<span class="mark">*</span><span class="region">[]</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span></code></pre>
+      <pre class="emacs"><code>[<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span><span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[ <span class="point-container"><span class="point">|</span></span><span class="constant after-point region">1</span><span class="region">, </span><span class="region constant">2</span><span class="region">, </span><span class="region constant">3</span><span class="mark">*</span> ]</code></pre>
+      <pre class="emacs"><code>[<span class="point-container"><span class="point">|</span></span><span class="after-point">]</span>
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+<span class="point-container"><span class="point">|</span></span><span class="region after-point">[</span><span class="region">]</span><span class="mark">*</span></code></pre>
+      <pre class="emacs"><code><span class="string">"Emacs"</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+<span class="string">"</span><span class="string mark">*</span><span class="string region">Emacs</span><span class="point-container"><span class="string point">|</span></span><span class="string after-point">"</span></code></pre>
+      <pre class="emacs"><code><span class="string">"</span><span class="point-container"><span class="string point">|</span></span><span class="string after-point">E</span><span class="string">macs"</span>
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+<span class="string">"</span><span class="point-container"><span class="string point">|</span></span><span class="string after-point">E</span><span class="string region">macs</span><span class="string mark">*</span><span class="string">"</span></code></pre>
+      <pre class="emacs"><code>[ <span class="constant">1</span>,<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span><span class="constant">2</span> ]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[ <span class="mark">*</span><span class="constant region">1</span><span class="region">,</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span><span class="constant">2</span> ]</code></pre>
+      <pre class="emacs"><code>{
+  <span class="keyword">"name"</span>:<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span><span class="string">"Emacs"</span>,
+  <span class="keyword">"website"</span>: <span class="string">"https://www.gnu.org/sotware/emacs/"</span>
+}
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+{
+  <span class="mark">*</span><span class="keyword region">"name"</span><span class="region">: </span><span class="region string">"Emacs"</span><span class="region">,
+  </span><span class="point-container"><span class="point">|</span></span><span class="after-point keyword">"</span><span class="keyword">website"</span>: <span class="string">"https://www.gnu.org/sotware/emacs/"</span>
+}</code></pre>
+      <details><summary>Pro tip: you can customize behaviors:</summary>
+        <ul>
+          <li><var>json-par-action-when-deleting-brackets-from-outside</var>
+            <ul>
+              <li><code>delete-outer</code>: delete whole object/array.</li>
+              <li><code>delete-inner</code>: delete contents of the object/array if not empty. Delete whole object/array otherwise.</li>
+              <li><code>mark-outer</code>: mark whole object/array.</li>
+              <li><code>mark-or-delete-outer</code>: mark whole object/array. If it is already marked, delete it.</li>
+              <li><code>mark-inner</code>: mark contents of the object/array if not empty. Mark whole object/array otherwise.</li>
+              <li><code>enter</code>: move the point into the object/array.</li>
+            </ul></li>
+          <li><var>json-par-action-when-deleting-brackets-from-inside</var>
+            <ul>
+              <li><code>delete-outer</code>: delete whole object/array.</li>
+              <li><code>delete-inner</code>: delete contents of the object/array if not empty. Delete whole object/array otherwise.</li>
+              <li><code>mark-outer</code>: mark whole object/array.</li>
+              <li><code>mark-inner</code>: mark contents of the object/array if not empty. Mark whole object/array otherwise.</li>
+              <li><code>mark-or-delete-inner</code>: mark contents of the object/array if empty. Mark whole object/array otherwise. If already marked, delete it.</li>
+              <li><code>exit</code>: move the point out of the object/array.</li>
+              <li><code>none</code>: do nothing.</li>
+            </ul></li>
+          <li><var>json-par-action-when-deleting-string-from-outside</var>
+            <ul>
+              <li>Same to the brackets</li>
+            </ul></li>
+          <li><var>json-par-action-when-deleting-string-from-inside</var>
+            <ul>
+              <li>Same to the brackets</li>
+            </ul></li>
+          <li><var>json-par-action-when-deleting-comma</var>
+            <ul>
+              <li><code>delete</code>: delete whole member (key-value pair) beyond the comma unconditionally.</li>
+              <li><code>mark-or-delete</code>: delete only if the whole member beyond the comma is marked.<br />
+                Otherwise, mark the whole member.</li>
+              <li><code>mark</code>: mark whole member beyond the comma unconditionally.</li>
+              <li><code>skip</code>: move the point to the opposite site.</li>
+            </ul></li>
+          <li><var>json-par-action-when-deleting-colon</var>
+            <ul>
+              <li><code>delete</code>: delete whole member (key-value pair) unconditionally.</li>
+              <li><code>mark-or-delete</code>: delete only if the whole member is marked. Otherwise, mark the whole member.</li>
+              <li><code>mark</code>: mark whole member unconditionally.</li>
+              <li><code>skip</code>: move the point to the opposite site.</li>
+            </ul></li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="delete-values">
+      <h2>Delete values of object/array</h2>
+      <p><kbd>v</kbd> (<code>json-par-delete-object-values</code>) deletes all values in the current object/array.</p>
+      <pre class="emacs"><code>{
+  <span class="keyword">"group"</span>: <span class="string">"group1"</span>,
+  <span class="keyword">"key"</span>: <span class="string">"foo"</span>,
+  <span class="keyword">"value"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point">[</span> <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+}
+
+↓ <kbd>V</kbd>
+
+{
+  <span class="keyword">"group"</span>: ,
+  <span class="keyword">"key"</span>: ,
+  <span class="keyword">"value"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+}</code></pre>
+    </section>
+
+    <section id="single-line-and-multiline">
+      <h2>Switching single-line and multiline</h2>
+      <p>Examples:</p>
+      <pre class="emacs"><code><span class="point-container"><span class="point">|</span></span><span class="after-point">[</span>
+  [
+    <span class="constant">1</span>,
+    <span class="constant">2</span>
+  ],
+  [
+    <span class="constant">3</span>,
+    <span class="constant">4</span>
+  ]
+]
+
+↓ <kbd>O</kbd> (‘json-par-oneline’) ↑ <kbd>M</kbd> (‘json-par-multiline’)
+
+<span class="point-container"><span class="point">|</span></span><span class="after-point">[</span> [ <span class="constant">1</span>, <span class="constant">2</span> ], [ <span class="constant">3</span>, <span class="constant">4</span> ] ]
+
+↓ <kbd>O</kbd>
+
+<span class="point-container"><span class="point">|</span></span><span class="after-point">[</span>[<span class="constant">1</span>,<span class="constant">2</span>],[<span class="constant">3</span>,<span class="constant">4</span>]]</code></pre>
+      <pre class="emacs"><code>{
+  <span class="keyword">"lyrics"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">Twinkle, twinkle, little star,
+How I wonder what you are!
+Up above the world so high,
+Like a diamond in the sky."</span>
+}
+
+↓ <kbd>O</kbd> (‘json-par-oneline’) ↑ <kbd>M</kbd> (‘json-par-multiline’)
+
+{
+  <span class="keyword">"lyrics"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">Twinkle, twinkle, little star,\nHow I wonder what you are!\nUp above the world so high,\nLike a diamond in the sky."</span>
+}</code></pre>
+      <details><summary>Advanced: with prefix arguments:</summary>
+        <p>With prefix arguments, you can limit depth of affected members:</p>
+        <pre class="emacs"><code><span class="point-container"><span class="point">|</span></span><span class="after-point">[</span>
+  [
+    <span class="constant">1</span>,
+    <span class="constant">2</span>
+  ],
+  [
+    <span class="constant">3</span>,
+    <span class="constant">4</span>
+  ]
+]
+
+↓ <kbd>C-1</kbd> <kbd>O</kbd> (convert members with levels more than one to oneline)
+
+<span class="point-container"><span class="point">|</span></span><span class="after-point">[</span>
+  [ <span class="constant">1</span>, <span class="constant">2</span> ],
+  [ <span class="constant">3</span>, <span class="constant">4</span> ]
+]
+
+↑ <kbd>C-1</kbd> <kbd>M</kbd> (insert line breaks after commas with levels less than or equal to one)
+
+<span class="point-container"><span class="point">|</span></span><span class="after-point">[</span> [ <span class="constant">1</span>, <span class="constant">2</span> ], [ <span class="constant">3</span>, <span class="constant">4</span> ] ]</code></pre>
+      </details>
+      <p>When a line break is inserted just inside brackets, line breaks are also inserted after every members.  When a line break just inside brackets is deleted, convert the object/array to the oneline:</p>
+      <pre class="emacs"><code>[<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>[ <span class="constant">1</span>, <span class="constant">2</span> ], [ <span class="constant">3</span>, <span class="constant">4</span> ] ]
+
+↓ <kbd>RET</kbd> ↑ <kbd>&lt;backspace&gt;</kbd>
+
+[
+  <span class="point-container"><span class="point">|</span></span><span class="after-point">[</span> <span class="constant">1</span>, <span class="constant">2</span> ],
+  [ <span class="constant">3</span>, <span class="constant">4</span> ]
+]</code></pre>
+      <details><summary>Pro tip: you can customize behaviors:</summary>
+        <ul>
+          <li><var>json-par-action-when-breaking-line-at-just-inside-brackets</var>
+            <p>Action when breaking a line at just inside brackets.</p>
+            <ul>
+              <li>
+                <p><code>break-inside-brackets</code>: break the lines at just inside brackets.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[ |1, 2, 3 ]
+
+↓ <kbd>RET</kbd>
+
+[
+  |1, 2, 3
+]</code></pre>
+              </li>
+              <li>
+                <p><code>break-each-member</code>: break lines after each members.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[ |1, 2, 3 ]
+
+↓ <kbd>RET</kbd>
+
+[
+  |1,
+  2,
+  3
+]</code></pre>
+              </li>
+            </ul>
+            <p>The default value is <code>break-each-member</code>.</p>
+          </li>
+          <li><var>json-par-action-when-breaking-line-after-first-member</var>
+            <p>Action when breaking a line after the first member.</p>
+            <ul>
+              <li>
+                <p><code>just-break</code>: just break the line.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[
+  1, |2, 3
+]
+
+↓ <kbd>RET</kbd>
+
+[
+  1,
+  |2, 3
+]</code></pre>
+              </li>
+              <li>
+                <p><code>break-each-member</code>: break lines after each members.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[
+  1, |2, 3
+]
+
+↓ <kbd>RET</kbd>
+
+[
+  1,
+  |2,
+  3
+]</code></pre>
+              </li>
+            </ul>
+            <p>The default value is <code>just-break</code>.</p>
+          </li>
+          <li><var>json-par-action-when-joining-non-empty-lines</var>
+            <p>Action when joining non-empty lines.</p>
+            <ul>
+              <li>
+                <p><code>just-delete</code>: just delete the line break.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[
+  1,
+|  2,
+  3
+]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[
+  1,|  2,
+  3
+]</code></pre>
+              </li>
+              <li>
+                <p><code>delete-line-breaks-between-members</code>: delete all line breaks between members (but not before/after members) only if the each members is on its own line.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[
+  1,
+|  2,
+  3
+]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[
+  1,|  2, 3
+]</code></pre>
+                <pre>[
+  1,
+|  2,
+  3, 4
+]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[
+  1,|  2,
+  3, 4
+]</code></pre>
+              </li>
+              <li>
+                <p><code>delete-line-breaks-inside-brackets</code>: delete all line breaks inside the current array/object, only if the each members is on its own line.</p>
+                <p>Example (‘|’ is the point):</p>
+                <pre>[
+  1,
+|  2,
+  3
+]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[ 1,|  2, 3 ]</code></pre>
+                  <pre>[
+  1,
+|  2,
+  3, 4
+]
+
+↓ <kbd>&lt;backspace&gt;</kbd>
+
+[
+  1,|  2,
+  3, 4
+]</code></pre>
+              </li>
+            </ul>
+            <p>The default value is <code>just-delete</code>.</p>
+          </li>
+        </ul>
+      </details>
+    </section>
+
+    <section id="cloning">
+      <h2>Cloning members</h2>
+      <p>Examples:</p>
+      <pre class="emacs"><code>{
+  <span class="keyword">"properties"</span>: {
+    <span class="keyword">"tags"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point">{</span>
+      <span class="keyword">"type"</span>: <span class="string">"array"</span>,
+      <span class="keyword">"items"</span>: {
+        <span class="keyword">"type"</span>: <span class="string">"string"</span>
+      }
+    }
+  }
+}
+
+↓ <kbd>cj</kbd> (‘json-par-clone-member-forward’: clone the current member after it)
+
+{
+  <span class="keyword">"properties"</span>: {
+    <span class="keyword">"tags"</span>: {
+      <span class="keyword">"type"</span>: <span class="string">"array"</span>,
+      <span class="keyword">"items"</span>: {
+        <span class="keyword">"type"</span>: <span class="string">"string"</span>
+      }
+    },
+    <span class="keyword">"</span><span class="point-container"><span class="keyword point">|</span></span><span class="keyword after-point">t</span><span class="keyword region">ags</span><span class="keyword mark">*</span><span class="keyword">"</span>: {
+      <span class="keyword">"type"</span>: <span class="string">"array"</span>,
+      <span class="keyword">"items"</span>: {
+        <span class="keyword">"type"</span>: <span class="string">"string"</span>
+      }
+    }
+  }
+}</code></pre>
+      <pre class="emacs"><code>[
+  {
+    <span class="keyword">"group"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">group1"</span>,
+    <span class="keyword">"key"</span>: <span class="string">"foo"</span>,
+    <span class="keyword">"value"</span>: [ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+  }
+]
+
+↓ <kbd>CJ</kbd> (‘json-par-clone-parent-forward-without-value’: clone the parent member after it without values)
+
+[
+  {
+    <span class="keyword">"group"</span>: <span class="string">"group1"</span>,
+    <span class="keyword">"key"</span>: <span class="string">"foo"</span>,
+    <span class="keyword">"value"</span>: [ <span class="constant">1</span>, <span class="constant">2</span>, <span class="constant">3</span> ]
+  },
+  {
+    <span class="keyword">"group"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point">,</span>
+    <span class="keyword">"key"</span>: ,
+    <span class="keyword">"value"</span>:
+  }
+]</code></pre>
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th><kbd>cj</kbd>, <kbd>cc</kbd></th>
+            <td>Clone the current member after it.</td>
+          </tr>
+          <tr>
+            <th><kbd>ck</kbd></th>
+            <td>Clone the current member before it.</td>
+          </tr>
+          <tr>
+            <th><kbd>cJ</kbd></th>
+            <td>Clone the parent member after it.</td>
+          </tr>
+          <tr>
+            <th><kbd>cK</kbd></th>
+            <td>Clone the parent member before it.</td>
+          </tr>
+          <tr>
+            <th><kbd>Cj</kbd>, <kbd>CC</kbd>, <kbd>cvj</kbd>, <kbd>cvc</kbd></th>
+            <td>Clone the current member after it without value.</td>
+          </tr>
+          <tr>
+            <th><kbd>Ck</kbd>, <kbd>cvk</kbd></th>
+            <td>Clone the current member before it without value.</td>
+          </tr>
+          <tr>
+            <th><kbd>CJ</kbd>, <kbd>cvJ</kbd></th>
+            <td>Clone the parent member after it without value.</td>
+          </tr>
+          <tr>
+            <th><kbd>CK</kbd>, <kbd>cvK</kbd></th>
+            <td>Clone the parent member before it without value.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Advanced: pressing <kbd>h</kbd> or <kbd>i</kbd> after <kbd>c</kbd> selects an ancestor to clone.</p>
+    </section>
+
+    <section id="completion">
+      <h2>Completion</h2>
+      <p><kbd>?</kbd> (<code>json-par-insert-guessed</code>) is a <code>dabbrev-expand</code> for JSON values or keys; insert a guessed value or key based on the context:</p>
+      <pre class="emacs"><code>{
+   <span class="keyword">"properties"</span>: {
+     <span class="keyword">"id"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     },
+     <span class="keyword">"name"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     },
+     <span class="keyword">"email"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+   }
+}
+
+↓ <kbd>?</kbd>
+
+{
+   <span class="keyword">"properties"</span>: {
+     <span class="keyword">"id"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     },
+     <span class="keyword">"name"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     },
+     <span class="keyword">"email"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     }<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+   }
+}
+
+↓ <kbd>?</kbd>
+
+{
+   <span class="keyword">"properties"</span>: {
+     <span class="keyword">"id"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     },
+     <span class="keyword">"name"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     },
+     <span class="keyword">"email"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     }<span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+   }
+}</code></pre>
+      <p>In the previous example, the command searches for the key <code>"email"</code> first in the current buffer and other JSON buffers.  Then, it searches for the key <code>"properties"</code> and picks its grandchildren.  <var>json-par-guess-max-ancestors</var> controls how many ancestors to search.</p>
+      <p>If the point is inside an object but not after a key, it completes a key:</p>
+      <pre class="emacs"><code>{
+   <span class="keyword">"properties"</span>: {
+     <span class="keyword">"id"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     },
+     <span class="keyword">"name"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     },
+     <span class="keyword">"email"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span><span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+     }
+   }
+}
+
+↓ <kbd>?</kbd>
+
+{
+   <span class="keyword">"properties"</span>: {
+     <span class="keyword">"id"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="constant">1</span>
+     },
+     <span class="keyword">"name"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>
+     },
+     <span class="keyword">"email"</span>: {
+       <span class="keyword">"type"</span>: <span class="string">"string"</span>,
+       <span class="keyword">"minLength"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point"> </span>
+     }
+   }
+}</code></pre>
+      <p>When guessing a key, it uses the ancestor keys (<code>"email"</code> then <code>"properties"</code>) and the sibling keys (<code>"type"</code>).</p>
+    </section>
+
+    <section id="transposing">
+      <h2>Transposing members</h2>
+<pre class="emacs"><code>{
+  <span class="keyword">"key"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">key1"</span>,
+  <span class="keyword">"value"</span>: <span class="string">"value1"</span>
+}
+
+↓ <kbd>s</kbd> (‘json-par-transpose-member-forward’) ↑ <kbd>w</kbd> (‘json-par-transpose-member-backward’)
+
+{
+  <span class="keyword">"value"</span>: <span class="string">"value1"</span>,
+  <span class="keyword">"key"</span>: <span class="point-container"><span class="point">|</span></span><span class="after-point string">"</span><span class="string">key1"</span>
+}</code></pre>
+    </section>
+
+    <section id="raising">
+      <h2>Raising member</h2>
+      <pre class="emacs"><code>{
+  <span class="string">"items"</span> {
+    <span class="keyword">"oneOf"</span>: [
+      <span class="point-container"><span class="point">|</span></span><span class="after-point">{</span> <span class="keyword">"$ref"</span>: <span class="string">"#/definitions/Foo"</span> },
+      { <span class="keyword">"$ref"</span>: <span class="string">"#/definitions/Bar"</span> }
+    ]
+  }
+}
+
+↓ <kbd>r</kbd> (‘json-par-raise-member’)
+
+{
+  <span class="string">"items"</span> {
+    <span class="point-container"><span class="point">|</span></span><span class="after-point">{</span> <span class="keyword">"$ref"</span>: <span class="string">"#/definitions/Foo"</span> }
+  }
+}</code></pre>
+    </section>
+
+    <section id="mark-narrow">
+      <h2>Mark/narrow DWIM</h2>
+      <p>Pressing <kbd>m</kbd> (<code>json-par-mark-more</code>) or <kbd>C-M-SPC</kbd> repeatedly expands the region.  With <kbd>C-u</kbd> prefix, undo an expansion.</p>
+      <p>Similarly, <kbd>N</kbd> (<code>json-par-narrow</code>) narrows to the current value or key, and expand the region if repeated.</p>
+    </section>
+
+    <section id="split-join">
+      <h2>Split/join</h2>
+      <p><kbd>S</kbd> (<code>json-par-split</code>) splits a string, object, or array at the point.  <kbd>F</kbd> (<code>json-par-join</code>) join two strings or arrays/objects.</p>
+    </section>
+  </body>
+</html>

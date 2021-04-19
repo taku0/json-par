@@ -1,0 +1,677 @@
+/// Test for commands relating to mark.
+
+// Each test consisits with “context” and “actions”.
+//
+// Context is a JSON text with annotations:
+//
+// - /*0*/ is the initial position.
+// - /*n*/ where n > 0 are expected positions after each action.
+// - /*0[|*/ and /*]0*/ or /*0[*/ and /*|]0*/ shows the initial region
+//   where “|” indicate the point.
+// - /*n[|*/ and /*]n*/ or /*n[*/ and /*|]n*/ where n > 0 shows
+//   expected regions after each action.
+//
+// Actions are members to be evaluated for each step.  It must be
+// a function (or macro) call.  Numbers after the members are just
+// a comment.
+
+/// Mark for the first time.
+
+//// Inside atom.
+
+// context-start
+[
+    true,
+    /*1[|*/fal/*0*/se/*]1*/,
+    null
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+{
+    "a": true,
+    "b": /*1[|*/fal/*0*/se/*]1*/,
+    "c": null
+}
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Inside string.
+
+// context-start
+[
+    "aaa",
+    "bbb b/*1[|*//*0*/bb/*]1*/ bbb",
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    "aaa",
+    /*1[|*/"/*0*/"/*]1*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Empty buffer.
+
+// context-start
+/*0*//*1[|*//*]1*/
+// context-end
+// action: (progn (delete-char 1) (json-par-mark-more-if-special)) // 1
+// test-end
+
+// context-start
+/*1[|*/
+
+/*0*/
+
+/*]1*/
+// context-end
+// action: (progn (save-excursion (end-of-buffer) (delete-char -1)) (json-par-mark-more-if-special)) // 1
+// test-end
+
+
+//// Inside empty bracket.
+
+// context-start
+[
+    [/*1[|*/ /*0*/ /*]1*/]
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Between commas.
+
+// context-start
+[
+    "aaa",
+    /*0*//*1[|*/,/*]1*/
+    "bbb"
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Between colon and comma.
+
+// context-start
+{
+    /*1[*/"a":/*|]1*/ /*0*/,
+    "b": "bbb"
+}
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Between colon and bracket.
+
+// context-start
+{ /*1[*/"a":/*|]1*/ /*0*/ }
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+{ /*1[|*//*0*/: "aaa"/*]1*/ }
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Between bracket and comma.
+
+// context-start
+[
+    /*0*//*1[|*/,/*]1*/
+    "aaa"
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+[ 1/*1[*/,/*|]1*//*0*/ ]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Before object-key.
+
+// context-start
+{ /*1[|*//*0*/"a"/*]1*/: "aaa" }
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Before colon.
+
+// context-start
+{ /*1[*/"a"/*0*//*|]1*/: "aaa" }
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Before value.
+
+// context-start
+[
+    "aaa",
+    /*0*//*1[|*/"bbb"/*]1*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*1[|*//*0*/"bbb"/*]1*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// After value.
+
+// context-start
+[
+    "aaa",
+    /*1[*/"bbb"/*0*//*|]1*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*1[*/"bbb"/*0*//*|]1*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+/// Extending backward.
+
+//// Inside atom.
+
+// context-start
+[
+    true,
+    /*1[*/fal/*0[*/s/*|]0*/e/*|]1*/,
+    null
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+{
+    "a": true,
+    "b": /*1[*/fal/*0[*/s/*|]0*/e/*|]1*/,
+    "c": null
+}
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Inside string.
+
+// context-start
+[
+    "aaa",
+    /*4[*/"/*3[*/  /*2[*//*1[*/bbb /*0[*/bbb/*|]0*//*|]1*/ bbb/*|]2*/  /*|]3*/"/*|]4*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// action: (json-par-mark-more 1 t) // 4
+// test-end
+
+
+//// After open bracket or comma and member is selected partially.
+
+// context-start
+[
+    true,
+    /*1[*//*0[*/fal/*|]0*/se/*|]1*/,
+    null
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+{
+    "a": true,
+    /*1[*//*0[*/"b": fal/*|]0*/se/*|]1*/,
+    "c": null
+}
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    "aaa",
+    /*1[*//*0[*/[ "bbb"/*|]0*/ ]/*|]1*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*1[*//*0[*/"b": [ "bbb"/*|]0*/ ]/*|]1*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Empty buffer.
+
+// context-start
+/*1[*/
+/*0[*/"aaa"/*|]0*/
+/*|]1*/
+// context-end
+// action: (progn (save-excursion (end-of-buffer) (delete-char -1)) (json-par-mark-more 1 t)) // 1
+// test-end
+
+
+//// After open bracket.
+
+// context-start
+[
+    /*3[*/[/*2[*/
+        /*0[*//*1[*/"aaa",/*|]0*/
+        "bbb",
+        "ccc"/*|]1*/
+    /*|]2*/]/*|]3*/
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// test-end
+
+// context-start
+[
+    /*3[*/{/*2[*/
+        /*0[*//*1[*/"a": "aaa",/*|]0*/
+        "b": "bbb",
+        "c": "ccc"/*|]1*/
+    /*|]2*/}/*|]3*/
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// test-end
+
+
+//// After colon.
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*1[*/"b": /*0[*/"bbb"/*|]0*//*|]1*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Member is selected.
+
+// context-start
+[
+    [
+        /*1[*/"aaa",
+        /*0[*/"bbb",/*|]0*//*|]1*/
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    [
+        "aaa"/*1[*/,
+        "bbb"/*0[*/,
+        "ccc"/*|]0*//*|]1*/
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        /*1[*/"a": "aaa",
+        /*0[*/"b": "bbb",/*|]0*//*|]1*/
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa"/*1[*/,
+        "b": "bbb"/*0[*/,
+        "c": "ccc"/*|]0*//*|]1*/
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Otherwise.
+
+// context-start
+[
+    [
+        "aaa"/*1[*/,
+        /*0[*/"bbb"/*|]0*//*|]1*/,
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    [
+        "aaa",
+        /*1[*/"bbb"/*0[*/,/*|]0*//*|]1*/
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*1[*/"b"/*0[*/: "bbb"/*|]0*//*|]1*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+/// Extending forward.
+
+//// Inside atom.
+
+// context-start
+[
+    true,
+    /*0[|*//*1[|*/fal/*]0*/se/*]1*/,
+    null
+]
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+// context-start
+{
+    "a": true,
+    "b": /*0[|*//*1[|*/fal/*]0*/se/*]1*/,
+    "c": null
+}
+// context-end
+// action: (json-par-mark-more-if-special) // 1
+// test-end
+
+
+//// Inside string.
+
+// context-start
+[
+    "aaa",
+    /*4[|*/"/*3[|*/  /*2[|*/bbb /*0[|*//*1[|*/bbb/*]0*/ bbb/*]1*//*]2*/  /*]3*/"/*]4*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// action: (json-par-mark-more 1 t) // 4
+// test-end
+
+
+//// Before close bracket or comma and member is selected partially.
+
+// context-start
+[
+    true,
+    /*1[|*/fal/*0[|*/se/*]0*//*]1*/,
+    null
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+{
+    "a": true,
+    /*1[|*/"b": fal/*0[|*/se/*]0*//*]1*/,
+    "c": null
+}
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    "aaa",
+    /*1[|*/[ /*0[|*/"bbb" ]/*]0*//*]1*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    /*1[|*/"b": [ /*0[|*/"bbb" ]/*]0*//*]1*/,
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Empty buffer.
+
+// context-start
+/*1[|*/
+/*0[|*/"aaa"/*]0*/
+/*]1*/
+// context-end
+// action: (progn (save-excursion (end-of-buffer) (delete-char -1)) (json-par-mark-more 1 t)) // 1
+// test-end
+
+
+//// Before close bracket.
+
+// context-start
+[
+    /*3[|*/[/*2[|*/
+        /*1[|*/"aaa",
+        "bbb",
+        /*0[|*/"ccc"/*]0*//*]1*/
+    /*]2*/]/*]3*/
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// test-end
+
+// context-start
+[
+    /*3[|*/{/*2[|*/
+        /*1[|*/"a": "aaa",
+        "b": "bbb",
+        /*0[|*/"c": "ccc"/*]0*//*]1*/
+    /*]2*/}/*]3*/
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more 1 t) // 2
+// action: (json-par-mark-more 1 t) // 3
+// test-end
+
+
+//// Before colon.
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*1[|*//*0[|*/"b"/*]0*/: "bbb"/*]1*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Member is selected.
+
+// context-start
+[
+    [
+        /*0[|*//*1[|*/"aaa",/*]0*/
+        "bbb",/*]1*/
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    [
+        "aaa"/*0[|*//*1[|*/,
+        "bbb"/*]0*/,
+        "ccc"/*]1*/
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        /*0[|*//*1[|*/"a": "aaa",/*]0*/
+        "b": "bbb",/*]1*/
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa"/*0[|*//*1[|*/,
+        "b": "bbb"/*]0*/,
+        "c": "ccc"/*]1*/
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+//// Otherwise.
+
+// context-start
+[
+    [
+        "aaa",
+        /*1[|*//*0[|*/"bbb"/*]0*/,/*]1*/
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    [
+        "aaa"/*1[|*//*0[|*/,/*]0*/
+        "bbb"/*]1*/,
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*1[|*//*0[|*/"b":/*]0*/ "bbb"/*]1*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end

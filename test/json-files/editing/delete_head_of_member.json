@@ -1,0 +1,80 @@
+/// Test for commands relating to deleting the head of members.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*|*/"bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-delete-head-of-member)
+// expected-start
+{
+    "a": "aaa",
+    "/*|*/": "bbb",
+    "c": "ccc"
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    "aaa",
+    "bbb"/*|*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-delete-head-of-member)
+// expected-start
+[
+    "aaa",
+    /*|*/,
+    "ccc"
+]
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "aaa",
+    "b": /*|*/"bbb",
+    "c": "ccc"
+}
+// context-end
+// action: (json-par-delete-head-of-member 'mark)
+// expected-start
+{
+    "a": "aaa",
+    "/*[*/b/*|]*/": "bbb",
+    "c": "ccc"
+}
+// expected-end
+// test-end
+
+// context-start
+[
+    "aaa",
+    "bbb"/*|*/,
+    "ccc"
+]
+// context-end
+// action: (json-par-delete-head-of-member 'mark)
+// expected-start
+[
+    "aaa",
+    /*[*/"bbb"/*|]*/,
+    "ccc"
+]
+// expected-end
+// test-end

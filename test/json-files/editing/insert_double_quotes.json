@@ -1,0 +1,1874 @@
+/// Test for commands relating to inserting double quotes.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Between open bracket and colon
+
+// context-start
+{ /*|*/: 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": 1 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/ : 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/" : 1 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/"
+    : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/: 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/"
+    : 1
+}
+// expected-end
+// test-end
+
+
+/// Between comma and colon
+
+// context-start
+{ "a": 1,/*|*/: 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/ : 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/" : 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+
+/// Between value (not key) and colon
+
+// context-start
+{ 1 /*|*/: 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ 1, "/*|*/": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ 1/*|*/ : 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ 1, "/*|*/": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1" /*|*/: 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "1", "/*|*/": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    1 /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    1, "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    1,
+    "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    1, "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    1
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    1,
+    "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1" /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "1", "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"
+    /*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "1",
+    "/*|*/": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"/*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "1", "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": "1"
+    /*|*/
+    : 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "1",
+    "/*|*/"
+    : 2
+}
+// expected-end
+// test-end
+
+
+/// Between colons
+
+// context-start
+{ :/*|*/: 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ : "/*|*/", : 1 }
+// expected-end
+// test-end
+
+// context-start
+{ : /*|*/: 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ : "/*|*/", : 1 }
+// expected-end
+// test-end
+
+// context-start
+{ :/*|*/ : 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ : "/*|*/", : 1 }
+// expected-end
+// test-end
+
+// context-start
+{
+    :/*|*/: 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    : "/*|*/", : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :
+    /*|*/: 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    :
+    "/*|*/", : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :/*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    : "/*|*/",
+    : 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    :
+    /*|*/
+    : 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    :
+    "/*|*/",
+    : 1
+}
+// expected-end
+// test-end
+
+
+/// Empty brackets
+
+// context-start
+{/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/ }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+
+/// After last comma
+
+// context-start
+{ "a": 1,/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,/*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+
+/// Between two commas
+
+// context-start
+{ "a": 1,/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1,/*|*/ , "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/, "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": , "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon without value
+
+// context-start
+{ "a":/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/" }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/ }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/" }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/, "b": false }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/", "b": false }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/, "b": false }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/", "b": false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "/*|*/"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/,
+    "b": false
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "/*|*/",
+    "b": false
+}
+// expected-end
+// test-end
+
+
+/// Between colon and next key (comma missing)
+
+// context-start
+{ "a": /*|*/ "b": false }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/", "b": false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+    "b": false
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "/*|*/",
+    "b": false
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+    "b": false
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a":
+    "/*|*/",
+    "b": false
+}
+// expected-end
+// test-end
+
+
+/// Between two colons (comma and key missing)
+
+// context-start
+{ "a": /*|*/ : false }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "/*|*/", : false }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/
+    : false
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": "/*|*/",
+    : false
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":
+    /*|*/
+    : false
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a":
+    "/*|*/",
+    : false
+}
+// expected-end
+// test-end
+
+
+/// Before colon
+
+// context-start
+{ "a"/*|*/: 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": , "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b"/*|*/: 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a"/*|*/: 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b"/*|*/: 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After colon (with value)
+
+// context-start
+{ "a":/*|*/ 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": , "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a":/*|*/ 1 }
+// context-end
+// action: (execute-kbd-macro "999")
+// expected-start
+{ "": 999/*|*/, "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": /*|*/1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": , "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b":/*|*/ 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, "b": /*|*/2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a":/*|*/ 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b":/*|*/ 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    "b": /*|*/2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+
+/// After last value
+
+// context-start
+{ "a": 1 /*|*/ }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1 /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+    /*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1
+/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3/*|*/
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3, "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    "c": 3
+/*|*/}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "c": 3,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+
+/// Before object key
+
+// context-start
+{ /*|*/"a": 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": , "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/ "a": 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": , "a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/"b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1, /*|*/ "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{/*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{ /*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/"a": 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/ "a": 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    /*|*/
+    "a": 1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "/*|*/": ,
+    "a": 1
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": , "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, /*|*/ "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": , "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/ "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/"b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+// context-start
+{
+    "a": 1,
+    /*|*/ "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,
+    /*|*/
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2,
+    /*|*/"c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "/*|*/": , "c": 3
+}
+// expected-end
+// test-end
+
+
+// context-start
+{
+    "a": 1, "b": 2,
+    /*|*/ "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2,
+    "/*|*/": , "c": 3
+}
+// expected-end
+// test-end
+
+
+// context-start
+{
+    "a": 1, "b": 2,/*|*/
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2, "/*|*/": ,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1,/*|*/
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": ,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Before value without key in object
+
+// context-start
+{/*|*/ "a" }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "/*|*/": "a" }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1",/*|*/ "2" }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "1", "/*|*/": "2" }
+// expected-end
+// test-end
+
+
+/// Inside a atom
+
+// context-start
+{ "a": t/*|*/rue }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": true, "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 11, "/*|*/":  }
+// expected-end
+// test-end
+
+// context-start
+{ "a": "1/*[|*/1/*]*/1" }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": "1/*|*/\"1\"1" }
+// expected-end
+// test-end
+
+// context-start
+{ "a/*[|*/a/*]*/a": 1 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a/*|*/\"a\"a": 1 }
+// expected-end
+// test-end
+
+// context-start
+{ "a": 1/*|*/1, "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 11, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 11,
+    "/*|*/": 
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1, "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 11, "/*|*/": , "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/1,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 11,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1, "b": 2,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 11, "/*|*/": , "b": 2,
+    "c": 3
+}
+// expected-end
+// test-end
+
+ // context-start
+{
+    "a": 1/*|*/1,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 11, "/*|*/": ,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Between value and comma
+
+// context-start
+{ "a": 1/*|*/, "b": 2 }
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{ "a": 1, "/*|*/": , "b": 2 }
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1,
+    "/*|*/": ,
+    "b": 2
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1, "b": 2/*|*/,
+    "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "b": 2, "/*|*/": ,
+    "c": 3
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": 1/*|*/,
+    "b": 2, "c": 3
+}
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+{
+    "a": 1, "/*|*/": ,
+    "b": 2, "c": 3
+}
+// expected-end
+// test-end
+
+
+/// Before double quotes
+
+// context-start
+[ /*|*/"abc" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "/*|*/", "abc" ]
+// expected-end
+// test-end
+
+// context-start
+[ "abc/*|*/" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "abc\"/*|*/" ]
+// expected-end
+// test-end
+
+
+/// Inside string
+
+// context-start
+[ "/*|*/abc" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "\"/*|*/abc" ]
+// expected-end
+// test-end
+
+
+/// Inside comment
+
+// context-start
+[
+    // /*|*/
+]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[
+    // "/*|*/
+]
+// expected-end
+// test-end
+
+
+/// After escape
+
+// context-start
+[ "abc\/*|*/" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "abc\"/*|*/" ]
+// expected-end
+// test-end
+
+// context-start
+[ "abc\\/*|*/" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "abc\\\"/*|*/" ]
+// expected-end
+// test-end
+
+// context-start
+[ "abc\\\/*|*/" ]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[ "abc\\\"/*|*/" ]
+// expected-end
+// test-end
+
+
+/// Region is active
+
+// context-start
+[
+    /*[|*/"abc",
+    "def"/*]*/
+]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[
+    /*|*/"\"abc\",\n    \"def\""
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*[*/"abc",
+    "def"/*|]*/
+]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[
+    "\"abc\",\n    \"def\""/*|*/
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    /*[|*/""\ 
+	😀/*]*/
+]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[
+    /*|*/"\"\"\\\u0000\b\f\n\r\t😀"
+]
+// expected-end
+// test-end
+
+
+/// With prefix args
+
+// context-start
+[
+    "\"a/*|*/bc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "a/*|*/bc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"a/*[|*/bc\",\n    \"def\"",
+    "\"g/*]*/hi\",\n    \"jkl\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "a/*|*/bc",
+    "def",
+    "ghi",
+    "jkl"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "/*|*/\"\"\\\/\u0000\b\f\n\r\t\uD83D\ude00"
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    /*|*/""\/ 
+	😀
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/"\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    /*|*/"abc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\""/*|*/
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "abc"/*|*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\""/*|*/"\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "\"abc\""/*|*/"abc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\"" /*|*/
+    "\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "abc" /*|*/
+    "\"abc\""
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\""
+    /*|*/ "\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "\"abc\""
+    /*|*/ "abc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\"" /*|*/ "\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "\"abc\"" /*|*/ "abc"
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    "\"abc\""
+    /*|*/
+    "\"abc\""
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "\"abc\""
+    /*|*/
+    "abc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "\"abc\""
+    /*|*/
+    1
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "abc"
+    /*|*/
+    1
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
+    // "a/*|*/bc"
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    // "a/*|*/bc"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "abc", 1, /*|*/ 2, "def"
+]
+// context-end
+// action: (json-par-insert-double-quotes t)
+// expected-start
+[
+    "abc", 1, /*|*/ 2, "def"
+]
+// expected-end
+// test-end
+
+
+/// With action-when-inserting-double-quotes-at-end parameter
+
+
+// context-start
+[
+    "abc/*|*/"
+]
+// context-end
+// action: (json-par-insert-double-quotes nil 'insert)
+// expected-start
+[
+    "abc\"/*|*/"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "abc/*|*/"
+]
+// context-end
+// action: (json-par-insert-double-quotes nil 'exit)
+// expected-start
+[
+    "abc"/*|*/
+]
+// expected-end
+// test-end

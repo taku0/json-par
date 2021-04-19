@@ -1,0 +1,186 @@
+/// Test for commands relating to deleting values of object.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Simple cases
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": ,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        "b"/*|*/: "bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b"/*|*/: ,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        "b": /*|*/"bbb",
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa",
+        "b": "bbb"/*|*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+
+/// Complex value
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": /*b*/
+        [
+            1,
+            2,
+            {
+                "bb": "bbb"
+            }
+        ]
+        /*c*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": ,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+
+/// Empty value
+
+// context-start
+[
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    }
+]
+// context-end
+// action: (json-par-delete-object-value)
+// expected-start
+[
+    {
+        "a": "aaa",
+        "b": /*|*/,
+        "c": "ccc"
+    }
+]
+// expected-end
+// test-end
+
+
+/// Delete all values
+
+// context-start
+[
+    {
+        "a": "aaa",
+        /*|*/"b": ,
+        "c": /*c*/
+        [
+            1,
+            2,
+            {
+                "cc": "ccc"
+            }
+        ]
+        /*c*/
+    }
+]
+// context-end
+// action: (json-par-delete-object-values)
+// expected-start
+[
+    {
+        "a": ,
+        /*|*/"b": ,
+        "c": 
+    }
+]
+// expected-end
+// test-end

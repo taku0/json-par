@@ -1,0 +1,6 @@
+*~
+/.eldev/
+*.elc
+/dist/
+json-par-autoloads.el
+json-par-pkg.el

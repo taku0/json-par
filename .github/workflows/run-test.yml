@@ -1,0 +1,46 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{matrix.version == 'snapshot'}}
+
+    strategy:
+      matrix:
+        version:
+          - '27.2'
+          - '27.1'
+          - '26.3'
+          - '26.2'
+          - '26.1'
+          - '25.3'
+          - '25.2'
+          - '25.1'
+          - '24.5'
+          - '24.4'
+          - 'snapshot'
+
+    env:
+      ELDEV_DIR: .eldev
+      ELDEV: .eldev/bin/eldev
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.version }}
+    - name: Install Eldev
+      run: |
+        mkdir -p $ELDEV_DIR/bin
+        curl -fsSL https://raw.github.com/doublep/eldev/master/bin/eldev > $ELDEV_DIR/bin/eldev
+        chmod a+x $ELDEV_DIR/bin/eldev
+    - name: Run linters
+      run: find ./*.el test/*.el '!' -name '*autoloads.el' -exec ${ELDEV} lint doc re elisp '{}' '+'
+    - name: Run tests
+      run: ./scripts/run_test.sh

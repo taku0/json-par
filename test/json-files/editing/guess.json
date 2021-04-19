@@ -1,0 +1,393 @@
+/// Test for commands relating to inserting colons.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// Search nearer
+
+// context-start
+[
+    {
+        "a": "aaa1"
+    },
+    {
+        "a": /*|*/
+    },
+    {
+        "b": "bbb",
+        "a": "aaa2"
+    }
+]
+// context-end
+// action: (json-par-insert-guessed)
+// expected-start
+[
+    {
+        "a": "aaa1"
+    },
+    {
+        "a": "aaa1"/*|*/
+    },
+    {
+        "b": "bbb",
+        "a": "aaa2"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": "aaa1",
+        "b": "bbb"
+    },
+    {
+        "a": /*|*/
+    },
+    {
+        "a": "aaa2"
+    }
+]
+// context-end
+// action: (json-par-insert-guessed)
+// expected-start
+[
+    {
+        "a": "aaa1",
+        "b": "bbb"
+    },
+    {
+        "a": "aaa2"/*|*/
+    },
+    {
+        "a": "aaa2"
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": [
+            "aaa1"
+        ]
+    },
+    {
+        "a": [
+            /*|*/
+        ]
+    },
+    {
+        "b": [
+            "bbb"
+        ],
+        "a": [
+            "aaa2"
+        ]
+    }
+]
+// context-end
+// action: (json-par-insert-guessed)
+// expected-start
+[
+    {
+        "a": [
+            "aaa1"
+        ]
+    },
+    {
+        "a": [
+            "aaa1"/*|*/
+        ]
+    },
+    {
+        "b": [
+            "bbb"
+        ],
+        "a": [
+            "aaa2"
+        ]
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "a": [
+            "aaa1"
+        ],
+        "b": [
+            "bbb"
+        ]
+    },
+    {
+        "a": [
+            /*|*/
+        ]
+    },
+    {
+        "a": [
+            "aaa2"
+        ]
+    }
+]
+// context-end
+// action: (json-par-insert-guessed)
+// expected-start
+[
+    {
+        "a": [
+            "aaa1"
+        ],
+        "b": [
+            "bbb"
+        ]
+    },
+    {
+        "a": [
+            "aaa2"/*|*/
+        ]
+    },
+    {
+        "a": [
+            "aaa2"
+        ]
+    }
+]
+// expected-end
+// test-end
+
+
+/// Guess key
+
+// context-start
+[
+    {
+        "a": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "a": {
+            "type": "array",
+            /*|*/
+        }
+    },
+    {
+        "a": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+]
+// context-end
+// action: (json-par-insert-guessed)
+// expected-start
+[
+    {
+        "a": {
+            "type": "object",
+            "properties": {}
+        }
+    },
+    {
+        "a": {
+            "type": "array",
+            "items": /*|*/
+        }
+    },
+    {
+        "a": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+]
+// expected-end
+// test-end
+
+
+/// Repeated invocation
+
+// context-start
+[
+    {
+        "a": "aaa1"
+    },
+    {
+        "a": /*|*/
+    },
+    {
+        "b": "bbb",
+        "a": "aaa2"
+    }
+]
+// context-end
+// action: (json-par-insert-guessed nil (json-par-insert-guessed))
+// expected-start
+[
+    {
+        "a": "aaa1"
+    },
+    {
+        "a": "aaa2"/*|*/
+    },
+    {
+        "b": "bbb",
+        "a": "aaa2"
+    }
+]
+// expected-end
+// test-end
+
+
+/// Using second ancestor
+
+// context-start
+[
+    {
+        "properties": {
+            "a": /*|*/
+        }
+    },
+    {
+        "properties": {
+            "b": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+]
+// context-end
+// action: (let ((json-par-friend-buffer-function (lambda (b) nil))) (json-par-insert-guessed 2))
+// expected-start
+[
+    {
+        "properties": {
+            "a": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }/*|*/
+        }
+    },
+    {
+        "properties": {
+            "b": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    {
+        "properties": {
+            "a": {
+                "type": "array",
+                /*|*/
+            }
+        }
+    },
+    {
+        "properties": {
+            "b": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+]
+// context-end
+// action: (let ((json-par-friend-buffer-function (lambda (b) nil))) (json-par-insert-guessed 2))
+// expected-start
+[
+    {
+        "properties": {
+            "a": {
+                "type": "array",
+                "items": /*|*/
+            }
+        }
+    },
+    {
+        "properties": {
+            "b": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+]
+// expected-end
+// test-end
+
+
+/// Indentation
+
+// context-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    [
+        11,
+        22,
+        33
+    ]/*|*/
+]
+// context-end
+// action: (json-par-insert-guessed nil (json-par-insert-guessed))
+// expected-start
+[
+    [
+        1,
+        2,
+        3
+    ],
+    [
+        11,
+        22,
+        33
+    ],
+    [
+        1,
+        2,
+        3
+    ]/*|*/
+]
+// expected-end
+// test-end
