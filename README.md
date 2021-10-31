@@ -84,7 +84,7 @@ Supporting comments with `jsonc-mode` is a hidden feature and intentionally undo
 
 - [lispy](https://github.com/abo-abo/lispy): `json-par` is a `lispy` for JSON.
 - [Paredit Mode](http://mumble.net/~campbell/emacs/paredit.el): “JSON Par mode” is named after Paredit Mode.
-- [Puni](https://github.com/AmaiKinono/puni): Generic structured editing for many modees.
+- [Puni](https://github.com/AmaiKinono/puni): Generic structured editing for many modes.
 - [Symex mode](https://github.com/countvajhula/symex.el): Structural editing for Lisp.
 
 
