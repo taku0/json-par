@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2021 taku0
 ;;
-;; Authors: taku0 (http://github.com/taku0)
+;; Author: taku0 (http://github.com/taku0)
 ;; URL: https://github.com/taku0/json-par
 
 ;; This file is not part of GNU Emacs.
