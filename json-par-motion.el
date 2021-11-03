@@ -47,6 +47,16 @@ This affects `json-par-up-backward' and `json-par-up-forward'."
   :group 'json-par
   :safe 'booleanp)
 
+(defcustom json-par-place-after-down-into-object 'value
+  "Target place after invoking `json-par-down' before an object.
+
+- `value': before the value of the key-value pair.
+- `member': before the whole key-value pair."
+  :type '(choice (const :tag "Before value" 'value)
+                 (const :tag "Before member" 'member))
+  :group 'json-par
+  :safe 'symbolp)
+
 
 ;;; forward-sexp-function
 
@@ -334,7 +344,7 @@ repeatedly, and the region is not active, push a mark first."
    (list
     (not (eq last-command 'json-par-beginning-of-list))))
   (json-par-up-backward 1 push-mark)
-  (json-par-down))
+  (json-par-down nil 'member))
 
 (defun json-par-end-of-list (&optional push-mark)
   "Move the point after last the member of the current array/object.
@@ -345,7 +355,7 @@ repeatedly, and the region is not active, push a mark first."
    (list
     (not (eq last-command 'json-par-end-of-list))))
   (json-par-up-forward 1 push-mark)
-  (json-par-down))
+  (json-par-down nil 'member))
 
 (defun json-par--find-member (p)
   "Find a member satisfying a predicate P.
@@ -1470,17 +1480,26 @@ Assuming the point is not inside a string, an number, or a constants."
             parent-token
           (json-par-backward-token))))))
 
-(defun json-par-down (&optional push-mark)
+(defun json-par-down (&optional push-mark place)
   "Move the point inside the current value/key.
 
 If the point is before or after a string/bracket, move the point to inside the
 string/bracket, then skip spaces unless the string/bracket contains only spaces.
 
-Otherwise, keep the position.
+If the point is before a square bracket and PLACE is a symbol `value', go before
+the value of the first key-value pair.  The default value is `value' when called
+from Lisp program, or the value of `json-par-place-after-down-into-object'.
+
+If the point is not before or after a string/bracket, keep the position.
 
 If PUSH-MARK is non-nil or called interactively, the resulting position is not
 same to the original position, and the region is not active, push a mark first."
-  (interactive "p")
+  (interactive
+   (list
+    t
+    json-par-place-after-down-into-object))
+  (unless place
+    (setq place 'value))
   (let* ((string-like-beginning-position
           (json-par--string-like-beginning-position))
          (current-atom (json-par--current-atom))
@@ -1554,6 +1573,8 @@ same to the original position, and the region is not active, push a mark first."
            ((json-par-token-open-bracket-p next-token)
             (save-excursion
               (goto-char (json-par-token-end next-token))
+              (when (eq place 'value)
+                (json-par-beginning-of-object-value))
               (skip-chars-forward "\s\t\n")
               (when (memq (char-after) '(nil ?\] ?\) ?}))
                 (goto-char (json-par-token-end next-token)))

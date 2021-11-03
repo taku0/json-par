@@ -2374,7 +2374,7 @@ interactively.
                        ((eq action 'delete) 'delete-inner)
                        ((eq action 'mark-or-delete) 'mark-or-delete-inner)
                        ((eq action 'mark) 'mark-inner))))
-    (json-par-down)
+    (json-par-down nil 'member)
     (cond
      ((< pos (point))
       (goto-char pos)
