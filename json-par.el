@@ -133,7 +133,8 @@ Call `json-par--post-newline' after line break."
     (json-par-define-special-key map "e" #'json-par-end-of-member
                                  #'json-par--special-for-e-p)
     (json-par-define-special-key map "A" #'json-par-beginning-of-list)
-    (json-par-define-special-key map "E" #'json-par-end-of-list)
+    (json-par-define-special-key map "E" #'json-par-end-of-list
+                                 #'json-par--special-for-e-p)
     (json-par-define-special-key map "v" #'json-par-beginning-of-object-value)
     (json-par-define-special-key map "V" #'json-par-delete-object-values)
     (json-par-define-special-key map "b" #'pop-to-mark-command)

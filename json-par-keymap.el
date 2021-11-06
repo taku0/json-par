@@ -141,7 +141,8 @@ If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
      (or
       (not (json-par-token-number-p current-atom))
       (eq (json-par-token-start current-atom) (point))
-      (cl-find ?e (json-par-token-text-no-properties current-atom))))))
+      (cl-find ?e (json-par-token-text-no-properties current-atom))
+      (cl-find ?E (json-par-token-text-no-properties current-atom))))))
 
 (defvar-local json-par--prefix-prompt nil
   "The prompt for the temporary keymap of `json-par-prefix-command'.")
