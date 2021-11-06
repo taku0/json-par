@@ -3,7 +3,7 @@
 ;; Copyright (C) 2021 taku0
 ;;
 ;; Author: taku0 (http://github.com/taku0)
-;; Version: 2.0.0
+;; Version: 2.0.1
 ;; Package-Requires: ((emacs "24.4") (json-mode "1.7.0"))
 ;; Keywords: abbrev, convenience, files
 ;; URL: https://github.com/taku0/json-par
