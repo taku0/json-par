@@ -37,7 +37,7 @@ See the [manual](https://www.tatapa.org/~takuo/json-par/manual.html) for details
 
 ## Installation
 
-Install `json-par` package from MELPA (coming soon).
+Install `json-par` package from MELPA.
 
 To install without MELPA, download [latest release](https://github.com/taku0/json-par/releases) and execute `M-x package-install-file` for the .tar archive.
 
