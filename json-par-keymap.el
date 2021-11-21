@@ -275,6 +275,58 @@ Otherwise, signal `undefined' error."
    (t
     (undefined))))
 
+(cl-defun json-par--menu-item (command &key label help prefixes)
+  "Return a menu item for COMMAND suitable for `easy-menu-define'.
+
+LABEL and HELP are used as the label and help if given.
+
+If LABEL is omitted, the name of the COMMAND without the \"json-par-\" prefix
+is used.
+
+If HELP is omitted, the first line of the docstring is used.
+
+If PREFIXES is given, it should be a list of pairs (PREFIX-COMMAND
+. PREFIX-KEYMAP) and PREFIX-COMMAND is a prefix command like
+`json-par-clone-prefix-command' and PREFIX-KEYMAP is a prefix keymap like
+`json-par-clone-prefix-map'.  It is used to show key sequence on the menu item."
+  (unless label
+    (setq label (mapconcat
+                 (lambda (word)
+                   (if (member word '("of" "or" "in" "to"))
+                       word
+                     (capitalize word)))
+                 (split-string
+                  (replace-regexp-in-string
+                   "json-par-"
+                   ""
+                   (symbol-name command))
+                  "-")
+                 " ")))
+  (unless help
+    (setq help (car (split-string (documentation command) "\n"))))
+  (let* ((special-key-command
+          (intern (concat (symbol-name command) "-if-special")))
+         (prefix-key-string (mapconcat
+                             (lambda (prefix)
+                               (let ((prefix-command (car prefix))
+                                     (prefix-keymap (cdr prefix)))
+                                 (concat
+                                  "\\["
+                                  (symbol-name prefix-command)
+                                  "]"
+                                  "\\<"
+                                  (symbol-name prefix-keymap)
+                                  ">")))
+                             prefixes
+                             ""))
+         (keys (concat prefix-key-string
+                       "\\["
+                       (symbol-name (if (fboundp special-key-command)
+                                        special-key-command
+                                      command))
+                       "]")))
+    (vector label command :help help :keys keys)))
+
 (defun json-par--format-command-help (keymap)
   "Return description of KEYMAP.
 

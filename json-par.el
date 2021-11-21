@@ -61,6 +61,7 @@
 
 ;;; Code:
 
+(require 'easymenu)
 (require 'json-mode)
 (require 'json-par-utils)
 (require 'json-par-keymap)
@@ -122,6 +123,22 @@ Call `json-par--post-newline' after line break."
 
 (defvar json-par-mode-map
   (let ((map (make-sparse-keymap)))
+    (json-par-define-special-key map "t" #'json-par-insert-true)
+    (json-par-define-special-key map "f" #'json-par-insert-false)
+    (json-par-define-special-key map "n" #'json-par-insert-null)
+    (json-par-define-special-key map "[" #'json-par-insert-square-brackets)
+    (json-par-define-special-key map "]" #'json-par-up-forward)
+    (json-par-define-special-key map "{" #'json-par-insert-curly-brackets)
+    (json-par-define-special-key map "}" #'json-par-up-forward)
+    (define-key map "\"" #'json-par-insert-double-quotes)
+    (json-par-define-special-key map "," #'json-par-insert-comma)
+    (json-par-define-special-key map ":" #'json-par-insert-colon)
+    (dolist (key (list "-" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
+      (json-par-define-special-key
+       map
+       key
+       #'json-par-insert-self-as-number
+       #'json-par--special-but-not-number-p))
     (json-par-define-special-key map "j" #'json-par-forward-member)
     (json-par-define-special-key map "k" #'json-par-backward-member)
     (json-par-define-special-key map "J" #'json-par-forward-record)
@@ -139,22 +156,6 @@ Call `json-par--post-newline' after line break."
     (json-par-define-special-key map "V" #'json-par-delete-object-values)
     (json-par-define-special-key map "b" #'pop-to-mark-command)
     (json-par-define-special-key map "g" #'json-par-goto-key)
-    (json-par-define-special-key map "t" #'json-par-insert-true)
-    (json-par-define-special-key map "f" #'json-par-insert-false)
-    (json-par-define-special-key map "n" #'json-par-insert-null)
-    (json-par-define-special-key map "[" #'json-par-insert-square-brackets)
-    (json-par-define-special-key map "]" #'json-par-up-forward)
-    (json-par-define-special-key map "{" #'json-par-insert-curly-brackets)
-    (json-par-define-special-key map "}" #'json-par-up-forward)
-    (define-key map "\"" #'json-par-insert-double-quotes)
-    (json-par-define-special-key map "," #'json-par-insert-comma)
-    (json-par-define-special-key map ":" #'json-par-insert-colon)
-    (dolist (key (list "-" "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
-      (json-par-define-special-key
-       map
-       key
-       #'json-par-insert-self-as-number
-       #'json-par--special-but-not-number-p))
     (json-par-define-special-key map "M" #'json-par-multiline)
     (json-par-define-special-key map "O" #'json-par-oneline)
     (define-key
@@ -192,6 +193,177 @@ Call `json-par--post-newline' after line break."
     (define-key map "\t" #'json-par-tab)
     (define-key map '[backtab] #'json-par-mark-head-of-member)
     (define-key map (kbd "S-TAB") #'json-par-mark-head-of-member)
+    (easy-menu-define json-par-menu map "Show a menu for JSON Par mode."
+      `("JSON Par"
+        :help "Structural editing of JSON"
+        ("Movement"
+         :help "Moving the point"
+         ,(json-par--menu-item #'json-par-backward-member)
+         ,(json-par--menu-item #'json-par-forward-member)
+         ,(json-par--menu-item #'json-par-up-backward)
+         ,(json-par--menu-item #'json-par-up-forward)
+         ,(json-par--menu-item #'json-par-down)
+         ,(json-par--menu-item #'json-par-beginning-of-member)
+         ,(json-par--menu-item #'json-par-end-of-member)
+         ,(json-par--menu-item #'json-par-beginning-of-object-value)
+         ,(json-par--menu-item #'json-par-backward-record)
+         ,(json-par--menu-item #'json-par-forward-record)
+         ,(json-par--menu-item #'json-par-beginning-of-list)
+         ,(json-par--menu-item #'json-par-end-of-list)
+         ,(json-par--menu-item #'json-par-tab)
+         ,(json-par--menu-item #'json-par-goto-key)
+         ,(json-par--menu-item #'json-par-goto-index)
+         ,(json-par--menu-item
+           #'pop-to-mark-command
+           :label "Pop to Mark"
+           :help "Move the point to the mark and pop the mark ring."))
+        ,(json-par--menu-item #'json-par-disable-temporary)
+        ,(json-par--menu-item #'json-par-quit)
+        ("Inserting values"
+         :help "Inserting values and balanced brackets"
+         ,(json-par--menu-item #'json-par-insert-true)
+         ,(json-par--menu-item #'json-par-insert-false)
+         ,(json-par--menu-item #'json-par-insert-null)
+         ,(json-par--menu-item #'json-par-insert-square-brackets)
+         ,(json-par--menu-item #'json-par-insert-curly-brackets)
+         ,(json-par--menu-item #'json-par-insert-double-quotes)
+         ,(json-par--menu-item #'json-par-insert-comma)
+         ,(json-par--menu-item #'json-par-insert-colon))
+        ("Marking/deleting"
+         :help "Marking or deleting things"
+         ,(json-par--menu-item
+           #'json-par-delete-prefix-command
+           :label "Mark/delete...")
+         ,(json-par--menu-item
+           #'json-par-delete-current-member
+           :label "Mark/delete Current Member"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-current-value-or-key
+           :label "Mark/delete Current Value or Key"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-backward-member
+           :label "Mark/delete Backward Member"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-forward-member
+           :label "Mark/delete Forward Member"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-backward-parent
+           :label "Mark/delete Backward Parent"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-forward-parent
+           :label "Mark/delete Forward Parent"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-head-of-member
+           :label "Mark/delete Head of Member"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-object-value
+           :label "Mark/delete Object Value"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-backward-inside-of-parent
+           :label "Mark/delete Backward Inside of Parent"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-forward-inside-of-parent
+           :label "Mark/delete Forward Inside of Parent"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-inner
+           :label "Mark/delete Inner"
+           :prefixes '((json-par-delete-prefix-command-if-special
+                        . json-par-delete-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-delete-backward-char
+           :label "Mark/delete Backward Char")
+         ,(json-par--menu-item
+           #'json-par-delete-forward-char
+           :label "Mark/delete Forward Char")
+         ,(json-par--menu-item
+           #'json-par-delete-backward-token-or-list
+           :label "Mark/delete Backward Token or List")
+         ,(json-par--menu-item
+           #'json-par-delete-forward-token-or-list
+           :label "Mark/delete Forward Token or List")
+         ,(json-par--menu-item
+           #'json-par-delete-object-values
+           :label "Mark/delete Object Values"))
+        ,(json-par--menu-item #'json-par-oneline :label "To Oneline")
+        ,(json-par--menu-item #'json-par-multiline :label "To Multiline")
+        ("Cloning"
+         :help "Cloning members"
+         ,(json-par--menu-item
+           #'json-par-clone-prefix-command
+           :label "Clone...")
+         ,(json-par--menu-item
+           #'json-par-clone-without-value-prefix-command
+           :label "Clone without value...")
+         ,(json-par--menu-item
+           #'json-par-clone-member-backward
+           :prefixes
+           '((json-par-clone-prefix-command-if-special
+              . json-par-clone-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-member-forward
+           :prefixes
+           '((json-par-clone-prefix-command-if-special
+              . json-par-clone-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-parent-backward
+           :prefixes
+           '((json-par-clone-prefix-command-if-special
+              . json-par-clone-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-parent-forward
+           :prefixes
+           '((json-par-clone-prefix-command-if-special
+              . json-par-clone-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-member-backward-without-value
+           :prefixes
+           '((json-par-clone-without-value-prefix-command-if-special
+              . json-par-clone-without-value-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-member-forward-without-value
+           :prefixes
+           '((json-par-clone-without-value-prefix-command-if-special
+              . json-par-clone-without-value-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-parent-backward-without-value
+           :prefixes
+           '((json-par-clone-without-value-prefix-command-if-special
+              . json-par-clone-without-value-prefix-map)))
+         ,(json-par--menu-item
+           #'json-par-clone-parent-forward-without-value
+           :prefixes
+           '((json-par-clone-without-value-prefix-command-if-special
+              . json-par-clone-without-value-prefix-map))))
+        ,(json-par--menu-item
+          #'json-par-insert-guessed
+          :label "Insert Guessed Value or Key")
+        ,(json-par--menu-item #'json-par-transpose-member-backward)
+        ,(json-par--menu-item #'json-par-transpose-member-forward)
+        ,(json-par--menu-item #'json-par-raise-member)
+        ,(json-par--menu-item #'json-par-mark-more)
+        ,(json-par--menu-item #'json-par-narrow)
+        ,(json-par--menu-item #'json-par-split)
+        ,(json-par--menu-item #'json-par-join)))
     map)
   "Keymap for JSON Par mode.")
 

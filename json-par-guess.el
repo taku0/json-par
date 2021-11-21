@@ -371,7 +371,7 @@ If RESULT is given, the positions are prepended to it."
       result)))
 
 (defun json-par-insert-guessed (&optional max-ancestors last-state save-state)
-  "Insert a guessed value/members like `dabbrev-expand'.
+  "Insert a guessed value/key like `dabbrev-expand'.
 
 If the point is after a key and colon, and the value is missing, guess a value
 from the key.  Otherwise, guess a key (if inside an object) or member (if inside
