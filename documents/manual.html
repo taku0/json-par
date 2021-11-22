@@ -29,6 +29,7 @@
           <li><a href="#raising">Raising member</a></li>
           <li><a href="#mark-narrow">Mark/narrow DWIM</a></li>
           <li><a href="#split-join">Split/join</a></li>
+          <li><a href="#show-ancestors">Show ancestors out of the window</a></li>
         </ul>
       </nav>
     </section>
@@ -906,6 +907,33 @@ Like a diamond in the sky."</span>
     <section id="split-join">
       <h2>Split/join</h2>
       <p><kbd>S</kbd> (<code>json-par-split</code>) splits a string, object, or array at the point.  <kbd>F</kbd> (<code>json-par-join</code>) join two strings or arrays/objects.</p>
+    </section>
+
+    <section id="#show-ancestors">
+      <h2>Show ancestors out of the window</h2>
+      <p>Setting custom variables shows ancestors out of the window:</p>
+      <ul>
+        <li><var>json-par-show-ancestors-out-of-window</var>: if non-nil, show ancestors out of window.</li>
+        <li><var>json-par-highlight-ancestors</var>: if non-nil, highlight ancestors of the member under the point.</li>
+        <li><var>json-par-highlight-ancestors</var>: if non-nil, highlight the member under the point.</li>
+      </ul>
+      <figure>
+        <img src="images/show_ancestors.svg" alt=""/>
+      </figure>
+      <p>Ancestors are displayed with the following faces:</p>
+      <ul>
+        <li><var>json-par-ancestor-out-of-window-face</var></li>
+        <li><var>json-par-ancestor-face</var></li>
+        <li><var>json-par-current-member-face</var></li>
+      </ul>
+      <p>You can also prepend a char before ancestors or current member:</p>
+      <ul>
+        <li><var>json-par-char-before-ancestor</var>: if non-nil, show this character before ancestors.</li>
+        <li><var>json-par-char-before-current-member</var>: if non-nil, show this character before the member under the point.</li>
+      </ul>
+      <figure>
+        <img src="images/show_ancestors_with_char.png" alt=""/>
+      </figure>
     </section>
   </body>
 </html>

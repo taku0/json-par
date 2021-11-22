@@ -77,6 +77,7 @@
 (require 'json-par-transpose)
 (require 'json-par-guess)
 (require 'json-par-indent)
+(require 'json-par-ancestor-overlay)
 
 
 ;;; Customizations
@@ -363,7 +364,19 @@ Call `json-par--post-newline' after line break."
         ,(json-par--menu-item #'json-par-mark-more)
         ,(json-par--menu-item #'json-par-narrow)
         ,(json-par--menu-item #'json-par-split)
-        ,(json-par--menu-item #'json-par-join)))
+        ,(json-par--menu-item #'json-par-join)
+        ["Show ancestors out of window"
+         json-par-toggle-ancestors-out-of-window-overlay
+         :style toggle
+         :selected json-par-show-ancestors-out-of-window]
+        ["Highlight ancestors"
+         json-par-toggle-ancestor-overlays
+         :style toggle
+         :selected json-par-highlight-ancestors]
+        ["Highlight current member"
+         json-par-toggle-current-member-overlay
+         :style toggle
+         :selected json-par-highlight-current-member]))
     map)
   "Keymap for JSON Par mode.")
 
@@ -406,7 +419,13 @@ It is restored when JSON Par mode is disabled.")
         (setq-local indent-region-function #'json-par-indent-region)
         (add-hook 'post-self-insert-hook #'json-par--post-self-insert nil t)
         (json-par--add-install-advice-to-deferred-hook-functions-to-hooks)
-        (json-par--install-advice-to-deferred-hook-functions))
+        (json-par--install-advice-to-deferred-hook-functions)
+        (json-par-enable-ancestors-out-of-window-overlay
+         json-par-show-ancestors-out-of-window)
+        (json-par-enable-ancestor-overlays
+         json-par-highlight-ancestors)
+        (json-par-enable-current-member-overlay
+         json-par-highlight-current-member))
     (when (eq forward-sexp-function #'json-par-forward-sexp)
       (setq-local forward-sexp-function json-par-old-forward-sexp-function))
     (when (eq indent-line-function #'json-par-indent-line)
@@ -414,7 +433,13 @@ It is restored when JSON Par mode is disabled.")
     (when (eq indent-region-function #'json-par-indent-region)
       (setq-local indent-region-function json-par-old-indent-region-function))
     (remove-hook 'post-self-insert-hook #'json-par--post-self-insert t)
-    (json-par--remove-advice-from-deferred-hook-functions)))
+    (json-par--remove-advice-from-deferred-hook-functions)
+    (json-par-enable-ancestors-out-of-window-overlay nil)
+    (json-par-enable-ancestor-overlays nil)
+    (json-par-enable-current-member-overlay nil)
+    (kill-local-variable 'json-par-show-ancestors-out-of-window)
+    (kill-local-variable 'json-par-highlight-ancestors)
+    (kill-local-variable 'json-par-highlight-current-member)))
 
 (provide 'json-par)
 
