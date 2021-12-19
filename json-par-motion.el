@@ -649,7 +649,7 @@ nil."
     (unless found
       (goto-char pos)
       (when (called-interactively-p 'interactive)
-        (warn "key not found")))
+        (message "Key not found")))
     found))
 
 (defun json-par-goto-index (index &optional push-mark)
@@ -670,7 +670,7 @@ nil."
     (unless found
       (goto-char pos)
       (when (called-interactively-p 'interactive)
-        (warn "index out of bound")))
+        (message "Index out of bound")))
     found))
 
 (defun json-par-goto-path (path &optional push-mark)
@@ -730,7 +730,7 @@ nil."
 
        ;; Invalid step
        (t
-        (error (concat "invalid step" (prin1-to-string step)))))
+        (error "Invalid step: %S" step)))
       (when path
         (json-par-beginning-of-object-value)
         (if (memq (char-after) '(?\[ ?{))
@@ -739,7 +739,7 @@ nil."
     (unless found
       (goto-char pos)
       (when (called-interactively-p 'interactive)
-        (warn "not found")))
+        (message "Not found")))
     found))
 
 (defun json-par--multiple-members-on-same-line-around-point-p (count)
