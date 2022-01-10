@@ -774,19 +774,19 @@ comma or a value."
       (json-par-beginning-of-member)
       (push (point) positions)
       (dotimes (_ count)
-        (json-par-backward-member)
-        (when (eq (char-after) ?\,)
-          (forward-char))
-        (json-par-beginning-of-member)
-        (push (point) positions)))
+        (when (zerop (json-par-backward-member))
+          (when (eq (char-after) ?\,)
+            (forward-char))
+          (json-par-beginning-of-member)
+          (push (point) positions))))
     (save-excursion
       (json-par-beginning-of-member)
       (dotimes (_ count)
-        (json-par-forward-member)
-        (when (eq (char-before) ?\,)
-          (backward-char))
-        (json-par-beginning-of-member)
-        (push (point) positions)))
+        (when (zerop (json-par-forward-member))
+          (when (eq (char-before) ?\,)
+            (backward-char))
+          (json-par-beginning-of-member)
+          (push (point) positions))))
     (not (cl-every #'json-par--beginning-of-line-or-list-p positions))))
 
 (defun json-par--multiple-members-on-same-line-p ()
@@ -814,17 +814,19 @@ Examples:
 
 This function affects `json-par--join-line-backward' and
 `json-par--join-line-forward'."
-  (let ((result nil))
+  (let ((result nil)
+        (end-of-list nil))
     (save-excursion
       (json-par-up-backward)
       (forward-char)
       (while (and (not result)
+                  (not end-of-list)
                   (progn
                     (json-par--forward-spaces)
                     (not (memq (char-after) '(nil ?\] ?\) ?})))))
         (unless (json-par--beginning-of-line-or-list-p)
           (setq result t))
-        (json-par-forward-member)))
+        (setq end-of-list (not (zerop (json-par-forward-member))))))
     result))
 
 (defun json-par--all-members-on-same-line-after-point-p ()
@@ -846,16 +848,18 @@ Examples (`|' is the point):
   ]
 
 This function affects `json-par--post-newline'."
-  (let ((result t))
+  (let ((result t)
+        (end-of-list nil))
     (save-excursion
-      (json-par-forward-member)
+      (setq end-of-list (not (zerop (json-par-forward-member))))
       (while (and result
+                  (not end-of-list)
                   (progn
                     (json-par--forward-spaces)
                     (not (memq (char-after) '(nil ?\] ?\) ?})))))
         (when (json-par--beginning-of-line-or-list-p)
           (setq result nil))
-        (json-par-forward-member)))
+        (setq end-of-list (not (zerop (json-par-forward-member))))))
     result))
 
 (defun json-par--beginning-of-line-or-list-p (&optional pos)
@@ -936,18 +940,27 @@ Keep position in a member after movement.
 
 This function treats a key-value pair in an object as one member while
 `json-par-forward-sexp' treats it as multiple tokens (key, colon, value, and
-optional comma)."
+optional comma).
+
+Return ARG minus the count of movement."
   (interactive "p")
   (unless arg
     (setq arg 1))
   (if (< arg 0)
       (json-par-backward-member (- arg))
-    (dotimes (_ arg)
-      (json-par--forward-member-1))))
+    (while (and (not (zerop arg))
+                (json-par--forward-member-1))
+      (setq arg (1- arg)))
+    (when (and (not (zerop arg))
+               (called-interactively-p 'interactive))
+      (message "End of list"))
+    arg))
 
 (defun json-par--forward-member-1 ()
-  "Move the point forward to the next member."
-  (json-par--out-comment)
+  "Move the point forward to the next member.
+
+If the point is on the last member, keep position and return nil.  Return t
+otherwise."
   (let* ((pos (point))
          ;; If `skip-following-spaces' is non-nil, skip forward following
          ;; spaces after moving.  If it is nil, skip backward.
@@ -959,11 +972,14 @@ optional comma)."
          next-is-same-line
          position-in-member
          parsed-next-member)
+    (json-par--out-comment)
     (json-par--out-atom)
     (setq next-token (save-excursion (json-par-forward-token)))
     (if (or (json-par-token-close-bracket-p next-token)
             (json-par-token-outside-of-buffer-p next-token))
-        (goto-char pos)
+        (progn
+          (goto-char pos)
+          nil)
       (setq position-in-member
             (json-par--position-in-member))
       (when (eq position-in-member 'empty-member)
@@ -1093,18 +1109,22 @@ optional comma)."
              ;; ]
              (t
               nil)))
-      (json-par--goto-beginning-of-next-member)
-      (setq parsed-next-member (json-par--parse-member-forward))
-      (json-par--goto-position-in-parsed-member
-       position-in-member
-       parsed-next-member)
-      (when (and (or (json-par-token-colon-p previous-token)
-                     (json-par-token-colon-p next-token))
-                 (null (gethash :colon-token parsed-next-member)))
-        (setq skip-following-spaces t))
-      (json-par--skip-spaces-after-forward-member
-       skip-following-spaces
-       pos))))
+      (if (json-par--goto-beginning-of-next-member)
+          (progn
+            (setq parsed-next-member (json-par--parse-member-forward))
+            (json-par--goto-position-in-parsed-member
+             position-in-member
+             parsed-next-member)
+            (when (and (or (json-par-token-colon-p previous-token)
+                           (json-par-token-colon-p next-token))
+                       (null (gethash :colon-token parsed-next-member)))
+              (setq skip-following-spaces t))
+            (json-par--skip-spaces-after-forward-member
+             skip-following-spaces
+             pos)
+            t)
+        (goto-char pos)
+        nil))))
 
 (defun json-par--goto-beginning-of-next-member ()
   "Move the point to the beginning of the next member.
@@ -1159,18 +1179,28 @@ With ARG, repeat that times.  If ARG is negative, move forward.
 Keep position in a member after movement.
 
 This function treats a key-value pair in an object as one member while
-`json-par-forward-sexp' treats it as three tokens (key, colon, and value)."
+`json-par-forward-sexp' treats it as three tokens (key, colon, and value).
+
+Return ARG minus the count of movement."
   (interactive "p")
   (unless arg
     (setq arg 1))
   (if (< arg 0)
       (json-par-forward-member (- arg))
-    (dotimes (_ arg)
-      (json-par--backward-member-1))))
+    (let ((end-of-list nil))
+      (while (and (not (zerop arg))
+                  (json-par--backward-member-1))
+        (setq arg (1- arg))))
+    (when (and (not (zerop arg))
+               (called-interactively-p 'interactive))
+      (message "Beginning of list"))
+    arg))
 
 (defun json-par--backward-member-1 ()
-  "Move the point backward to the previous member."
-  (json-par--out-comment)
+  "Move the point backward to the previous member.
+
+If the point is on the first member, keep position and return nil.  Return t
+otherwise."
   (let ((pos (point))
         ;; If `skip-preceding-spaces' is non-nil, skip backward preceding
         ;; spaces after moving.  If it is nil, skip forward.
@@ -1182,11 +1212,14 @@ This function treats a key-value pair in an object as one member while
         previous-is-same-line
         position-in-member
         parsed-previous-member)
+    (json-par--out-comment)
     (json-par--out-atom)
     (setq previous-token (save-excursion (json-par-backward-token)))
     (if (or (json-par-token-open-bracket-p previous-token)
             (json-par-token-outside-of-buffer-p previous-token))
-        (goto-char pos)
+        (progn
+          (goto-char pos)
+          nil)
       (setq position-in-member (json-par--position-in-member))
       (when (eq position-in-member 'empty-member)
         (setq position-in-member 'before-member))
@@ -1300,14 +1333,18 @@ This function treats a key-value pair in an object as one member while
              ;; ]
              (t
               nil)))
-      (json-par--goto-end-of-previous-member)
-      (setq parsed-previous-member (json-par--parse-member-backward))
-      (json-par--goto-position-in-parsed-member
-       position-in-member
-       parsed-previous-member)
-      (json-par--skip-spaces-after-backward-member
-       skip-preceding-spaces
-       pos))))
+      (if (json-par--goto-end-of-previous-member)
+          (progn
+            (setq parsed-previous-member (json-par--parse-member-backward))
+            (json-par--goto-position-in-parsed-member
+             position-in-member
+             parsed-previous-member)
+            (json-par--skip-spaces-after-backward-member
+             skip-preceding-spaces
+             pos)
+            t)
+        (goto-char pos)
+        nil))))
 
 (defun json-par--goto-end-of-previous-member ()
   "Move the point to the end of the previous member.
