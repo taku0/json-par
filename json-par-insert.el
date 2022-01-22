@@ -43,7 +43,7 @@
   :group 'json-par
   :safe 'symbolp)
 
-(defcustom json-par-default-brackets-style 'multiline-with-blank-line
+(defcustom json-par-default-brackets-style 'multiline
   "Whether or not to insert line breaks when inserting an empty array or object.
 
 This value is used only if the style cannot be guessed from the context.
@@ -351,12 +351,14 @@ for details."
            (not previous-is-brackets)
            (not next-is-brackets)
            ;; If the parent is one-line, this should be one-line too.
-           (/= (save-excursion
-                 (json-par-up-backward)
-                 (line-beginning-position))
-               (save-excursion
-                 (json-par-up-forward)
-                 (line-beginning-position)))
+           (or
+            (json-par-token-outside-of-buffer-p previous-value)
+            (/= (save-excursion
+                  (json-par-up-backward)
+                  (line-beginning-position))
+                (save-excursion
+                  (json-par-up-forward)
+                  (line-beginning-position))))
            (not (eq default-brackets-style 'one-line)))))))
 
 (defun json-par-insert-square-brackets (&optional default-brackets-style)
