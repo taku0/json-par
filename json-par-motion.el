@@ -37,6 +37,8 @@
                   "json-par-oneline-multiline"
                   (&optional min-level))
 
+(defvar-local json-par--dwim-function nil)
+
 ;;; Customizations
 
 (defcustom json-par-collapse-when-exit-from-empty-brackets t
@@ -428,11 +430,14 @@ If INCLUDE-COUSIN is non-nil, also search cousin members."
        (prog1 (json-par--goto-end-of-previous-member)
          (json-par-beginning-of-member))))))
 
-(defun json-par--goto-beginning-of-next-member-or-cousin ()
+(defun json-par--goto-beginning-of-next-member-or-cousin
+    (&optional include-empty)
   "Move the point to the beginning of the next member.
 
 If the point is on the last member, move to the first member of the
 sibling/cousin array/object.
+
+If INCLUDE-EMPTY is non-nil, stop inside an empty brackets with the same depth.
 
 If a member is found, return t.  Return nil otherwise."
   (or (json-par--goto-beginning-of-next-member)
@@ -448,16 +453,19 @@ If a member is found, return t.  Return nil otherwise."
            ((json-par-token-open-bracket-p token)
             (setq depth (1- depth))))
           (json-par--forward-spaces)
-          (when (memq (char-after) '(?\] ?\) ?}))
+          (when (and (not include-empty)
+                     (memq (char-after) '(?\] ?\) ?})))
             (setq token (json-par-forward-token))
             (setq depth (1+ depth))))
         (zerop depth))))
 
-(defun json-par--goto-end-of-previous-member-or-cousin ()
+(defun json-par--goto-end-of-previous-member-or-cousin (&optional include-empty)
   "Move the point to the end of the previous member.
 
 If the point is on the first member, move to the last member of the
 sibling/cousin array/object.
+
+If INCLUDE-EMPTY is non-nil, stop inside an empty brackets with the same depth.
 
 If a member is found, return t.  Return nil otherwise."
   (or (json-par--goto-end-of-previous-member)
@@ -473,7 +481,8 @@ If a member is found, return t.  Return nil otherwise."
            ((json-par-token-close-bracket-p token)
             (setq depth (1- depth))))
           (json-par--backward-spaces)
-          (when (memq (char-before) '(?\[ ?\( ?{))
+          (when (and (not include-empty)
+                     (memq (char-before) '(?\[ ?\( ?{)))
             (setq token (json-par-backward-token))
             (setq depth (1+ depth))))
         (zerop depth))))
@@ -951,16 +960,31 @@ Return ARG minus the count of movement."
     (while (and (not (zerop arg))
                 (json-par--forward-member-1))
       (setq arg (1- arg)))
-    (when (and (not (zerop arg))
-               (called-interactively-p 'interactive))
-      (message "End of list"))
+    (when (not (zerop arg))
+      (setq json-par--dwim-function
+            (lambda ()
+              (when (zerop (json-par-goto-next-cousin))
+                (json-par-forward-member (1- arg)))))
+      (when (called-interactively-p 'interactive)
+        (message
+         "End of list.  Press %s to move to cousin"
+         (substitute-command-keys
+          (if (fboundp 'json-par-dwim-if-special)
+              "\\[json-par-dwim-if-special]"
+            "\\[json-par-dwim]")))))
     arg))
 
-(defun json-par--forward-member-1 ()
+(defun json-par--forward-member-1 (&optional goto-beginning-of-next-member)
   "Move the point forward to the next member.
 
 If the point is on the last member, keep position and return nil.  Return t
-otherwise."
+otherwise.
+
+If GOTO-BEGINNING-OF-NEXT-MEMBER is given, it is used instead of
+`json-par--goto-beginning-of-next-member'."
+  (unless goto-beginning-of-next-member
+    (setq goto-beginning-of-next-member
+          #'json-par--goto-beginning-of-next-member))
   (let* ((pos (point))
          ;; If `skip-following-spaces' is non-nil, skip forward following
          ;; spaces after moving.  If it is nil, skip backward.
@@ -975,8 +999,7 @@ otherwise."
     (json-par--out-comment)
     (json-par--out-atom)
     (setq next-token (save-excursion (json-par-forward-token)))
-    (if (or (json-par-token-close-bracket-p next-token)
-            (json-par-token-outside-of-buffer-p next-token))
+    (if (json-par-token-outside-of-buffer-p next-token)
         (progn
           (goto-char pos)
           nil)
@@ -1005,7 +1028,61 @@ otherwise."
              ;;   1,|
              ;;   2
              ;; ]
+             ;;
+             ;; [
+             ;; |  1,
+             ;;   2
+             ;; ]
+             ;; ↓
+             ;; [
+             ;;   1,
+             ;;   |2
+             ;; ]
              ((json-par-token-open-bracket-p previous-token)
+              just-before-next-token)
+
+             ;; Before close bracket
+             ;;
+             ;; [
+             ;;   [
+             ;;     1,
+             ;;     2
+             ;;   |],
+             ;;   [
+             ;;     1
+             ;;   ]
+             ;; ]
+             ;; ↓
+             ;; [
+             ;;   [
+             ;;     1,
+             ;;     2
+             ;;   ],
+             ;;   [
+             ;;     1
+             ;;   |]
+             ;; ]
+             ;;
+             ;; [
+             ;;   [
+             ;;     1,
+             ;;     2|
+             ;;   ],
+             ;;   [
+             ;;     1
+             ;;   ]
+             ;; ]
+             ;; ↓
+             ;; [
+             ;;   [
+             ;;     1,
+             ;;     2
+             ;;   ],
+             ;;   [
+             ;;     1|
+             ;;   ]
+             ;; ]
+             ((json-par-token-close-bracket-p next-token)
               just-before-next-token)
 
              ;; After ":"
@@ -1058,12 +1135,14 @@ otherwise."
              ;;
              ;; [
              ;;   1,|
-             ;;   2
+             ;;   2,
+             ;;   3
              ;; ]
              ;; ↓
              ;; [
              ;;   1,
-             ;;   2|
+             ;;   2,|
+             ;;   3
              ;; ]
              (just-after-previous-token
               nil)
@@ -1086,12 +1165,14 @@ otherwise."
              ;;
              ;; [
              ;;   1,  |
-             ;;   2
+             ;;   2,
+             ;;   3
              ;; ]
              ;; ↓
              ;; [
              ;;   1,
-             ;;   2|
+             ;;   2,|
+             ;;   3
              ;; ]
              ;;
              ;; [
@@ -1109,7 +1190,7 @@ otherwise."
              ;; ]
              (t
               nil)))
-      (if (json-par--goto-beginning-of-next-member)
+      (if (funcall goto-beginning-of-next-member)
           (progn
             (setq parsed-next-member (json-par--parse-member-forward))
             (json-par--goto-position-in-parsed-member
@@ -1157,16 +1238,10 @@ nil.  Return t otherwise."
     (go-forward original-position)
   "Adjust the point after forwarding a member.
 
-If GO-FORWARD is non-nil, skip spaces forward.  If it hits a close bracket, go
-back.
+If GO-FORWARD is non-nil, skip spaces forward.
 If GO-FORWARD is nil, skip spaces backward but not go beyond ORIGINAL-POSITION."
   (if go-forward
-      (progn
-        (json-par--forward-spaces)
-        (when (memq (char-after) '(?} ?\) ?\]))
-          (json-par--skip-spaces-after-forward-member
-           nil
-           original-position)))
+      (json-par--forward-spaces)
     (json-par--backward-spaces)
     (when (< (point) original-position)
       (goto-char original-position))))
@@ -1187,20 +1262,33 @@ Return ARG minus the count of movement."
     (setq arg 1))
   (if (< arg 0)
       (json-par-forward-member (- arg))
-    (let ((end-of-list nil))
-      (while (and (not (zerop arg))
-                  (json-par--backward-member-1))
-        (setq arg (1- arg))))
-    (when (and (not (zerop arg))
-               (called-interactively-p 'interactive))
-      (message "Beginning of list"))
+    (while (and (not (zerop arg))
+                (json-par--backward-member-1))
+      (setq arg (1- arg)))
+    (when (not (zerop arg))
+      (setq json-par--dwim-function
+            (lambda ()
+              (when (zerop (json-par-goto-previous-cousin))
+                (json-par-backward-member (1- arg)))))
+      (when (called-interactively-p 'interactive)
+        (message
+         "Beginning of list.  Press %s to move to cousin"
+         (substitute-command-keys
+          (if (fboundp 'json-par-dwim-if-special)
+              "\\[json-par-dwim-if-special]"
+            "\\[json-par-dwim]")))))
     arg))
 
-(defun json-par--backward-member-1 ()
+(defun json-par--backward-member-1 (&optional goto-end-of-previous-member)
   "Move the point backward to the previous member.
 
 If the point is on the first member, keep position and return nil.  Return t
-otherwise."
+otherwise.
+
+If GOTO-END-OF-PREVIOUS-MEMBER is given, it is used instead of
+`json-par--goto-end-of-previous-member'."
+  (unless goto-end-of-previous-member
+    (setq goto-end-of-previous-member #'json-par--goto-end-of-previous-member))
   (let ((pos (point))
         ;; If `skip-preceding-spaces' is non-nil, skip backward preceding
         ;; spaces after moving.  If it is nil, skip forward.
@@ -1215,8 +1303,7 @@ otherwise."
     (json-par--out-comment)
     (json-par--out-atom)
     (setq previous-token (save-excursion (json-par-backward-token)))
-    (if (or (json-par-token-open-bracket-p previous-token)
-            (json-par-token-outside-of-buffer-p previous-token))
+    (if (json-par-token-outside-of-buffer-p previous-token)
         (progn
           (goto-char pos)
           nil)
@@ -1246,11 +1333,56 @@ otherwise."
              ;;   2
              ;; ]
              ((json-par-token-close-bracket-p next-token)
-              t)
+              (not just-before-next-token))
+
+             ;; After open bracket
+             ;;
+             ;; [
+             ;;   [
+             ;;     1
+             ;;   ],
+             ;;   [|
+             ;;     1,
+             ;;     2
+             ;;   ]
+             ;; ]
+             ;; ↓
+             ;; [
+             ;;   [|
+             ;;     1
+             ;;   ],
+             ;;   [
+             ;;     1,
+             ;;     2
+             ;;   ]
+             ;; ]
+             ;;
+             ;; [
+             ;;   [
+             ;;     1
+             ;;   ],
+             ;;   [
+             ;;     |1,
+             ;;     2
+             ;;   ]
+             ;; ]
+             ;; ↓
+             ;; [
+             ;;   [
+             ;;     |1
+             ;;   ],
+             ;;   [
+             ;;     1,
+             ;;     2
+             ;;   ]
+             ;; ]
+             ((json-par-token-open-bracket-p previous-token)
+              just-after-previous-token)
 
              ;; Before ":"
              ((json-par-token-colon-p next-token)
-              (not just-before-next-token))
+              (or just-after-previous-token
+                  (not just-before-next-token)))
 
              ;; After ":"
              ((json-par-token-colon-p previous-token)
@@ -1258,7 +1390,8 @@ otherwise."
 
              ;; Before ","
              ((json-par-token-comma-p next-token)
-              (not just-before-next-token))
+              (or just-after-previous-token
+                  (not just-before-next-token)))
 
              ;; Just after previous token
              ;;
@@ -1333,7 +1466,7 @@ otherwise."
              ;; ]
              (t
               nil)))
-      (if (json-par--goto-end-of-previous-member)
+      (if (funcall goto-end-of-previous-member)
           (progn
             (setq parsed-previous-member (json-par--parse-member-backward))
             (json-par--goto-position-in-parsed-member
@@ -1371,17 +1504,89 @@ return nil.  Return t otherwise."
     (go-backward original-position)
   "Adjust the point after backwarding a member.
 
-If GO-BACKWARD is non-nil, skip spaces backward.  If it hits an open bracket, go
-forward.
+If GO-BACKWARD is non-nil, skip spaces backward.
 If GO-BACKWARD is nil, skip spaces forward but not go beyond ORIGINAL-POSITION."
   (if go-backward
-      (progn
-        (json-par--backward-spaces)
-        (when (memq (char-before) '(?{ ?\( ?\[))
-          (json-par--skip-spaces-after-backward-member nil original-position)))
+      (json-par--backward-spaces)
     (json-par--forward-spaces)
     (when (< original-position (point))
       (goto-char original-position))))
+
+(defun json-par-goto-next-cousin (&optional arg)
+  "Move the point to the first member of the following sibling of the parent.
+
+If the following sibling of the parent is empty, go inside it.
+
+If the parent has no following siblings, move to the 2nd cousin, and so on.
+
+If ARG is given, repeat that times.  If ARG is negative, move backward.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (unless arg
+    (setq arg 1))
+  (if (< arg 0)
+      (json-par-goto-previous-cousin (- arg))
+    (while (and
+            (< 0 arg)
+            (json-par--goto-next-cousin-1))
+      (setq arg (1- arg))))
+  (when (and (not (zerop arg))
+             (called-interactively-p 'interactive))
+    (message "End of list"))
+  arg)
+
+(defun json-par--goto-next-cousin-1 ()
+  "Move the point to the beginning of the following sibling of the parent.
+
+If the following sibling of the parent is empty, go inside it.
+
+If the parent has no following siblings, move to the 2nd cousin, and so on.
+
+If a nth cousin is found, return t.  Otherwise, keep the position and return
+nil."
+  (json-par--forward-member-1
+   (lambda ()
+     (json-par-end-of-list)
+     (json-par--goto-beginning-of-next-member-or-cousin t))))
+
+(defun json-par-goto-previous-cousin (&optional arg)
+  "Move the point to the last member of the preceding sibling of the parent.
+
+If the preceding sibling of the parent is empty, go inside it.
+
+If the parent has no preceding siblings, move to the 2nd cousin, and so on.
+
+If ARG is given, repeat that times.  If ARG is negative, move backward.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (unless arg
+    (setq arg 1))
+  (if (< arg 0)
+      (json-par-goto-next-cousin (- arg))
+    (while (and
+            (< 0 arg)
+            (json-par--goto-previous-cousin-1))
+      (setq arg (1- arg))))
+  (when (and (not (zerop arg))
+             (called-interactively-p 'interactive))
+    (message "Beginning of list"))
+  arg)
+
+(defun json-par--goto-previous-cousin-1 ()
+  "Move the point to the last member of the preceding sibling of the parent.
+
+If the preceding sibling of the parent is empty, go inside it.
+
+If the parent has no preceding siblings, move to the 2nd cousin, and so on.
+
+If a nth cousin is found, return t.  Otherwise, keep the position and return
+nil."
+  (json-par--backward-member-1
+   (lambda ()
+     (json-par-beginning-of-list)
+     (json-par--goto-end-of-previous-member-or-cousin t))))
 
 (defun json-par-up-forward (&optional arg push-mark collapse-if-empty)
   "Move the point to the end of the surrounding brackets.

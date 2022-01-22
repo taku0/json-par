@@ -104,6 +104,15 @@ KEYWORDS can be a symbol rather than a list."
     (cdr result)))
 
 
+(defvar-local json-par--dwim-function nil
+  "Function to be called by `json-par-dwim'.")
+
+(defun json-par-dwim ()
+  "Do what the user means for the previous command."
+  (interactive)
+  (when json-par--dwim-function
+    (funcall json-par--dwim-function)))
+
 (provide 'json-par-utils)
 
 ;;; json-par-utils.el ends here

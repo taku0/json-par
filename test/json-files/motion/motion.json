@@ -112,8 +112,8 @@
 // test-end
 
 // context-start
-{
-    /*1*/1,
+{/*1*/
+    1,
     ""/*0*/: ""
 }
 // context-end
@@ -173,8 +173,8 @@
 // test-end
 
 // context-start
-{
-    /*1*/1,
+{/*1*/
+    1,
     "":/*0*/ ""
 }
 // context-end
@@ -1131,4 +1131,232 @@
 }
 // context-end
 // action: (execute-kbd-macro "\t") // 1
+// test-end
+
+
+/// goto-next-cousin
+
+// context-start
+[
+    {
+        /*0*/"a": 1,
+        "b": 2
+    },
+    {
+        /*1*//*2*/"a": 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {/*0*/
+        "a": 1,
+        "b": 2
+    },
+    {/*1*//*2*/
+        "a": 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2
+    /*0*/},
+    {
+        "a": 1
+    /*1*//*2*/}
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a"/*0*/: 1,
+        "b": 2
+    },
+    {
+        "a"/*1*//*2*/: 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a":/*0*/ 1,
+        "b": 2
+    },
+    {
+        "a":/*1*//*2*/ 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1/*0*/,
+        "b": 2
+    },
+    {
+        "a": 1/*1*//*2*/,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// action: (json-par-goto-next-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        /*0*//*1*/"b": 2
+    },
+    {
+        /*2*/"a": 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-forward-member-if-special) // 1
+// action: (json-par-dwim-if-special) // 2
+// test-end
+
+
+/// goto-previous-cousin
+
+// context-start
+[
+    {
+        "a": 1,
+        /*1*//*2*/"b": 2
+    },
+    {
+        "a": 1,
+        /*0*/"b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {/*1*//*2*/
+        "a": 1
+    },
+    {/*0*/
+        "a": 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2
+    /*1*//*2*/},
+    {
+        "a": 1,
+        "b": 2
+    /*0*/}
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b"/*1*//*2*/: 2
+    },
+    {
+        "a": 1,
+        "b"/*0*/: 2
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b":/*1*//*2*/ 2
+    },
+    {
+        "a": 1,
+        "b":/*0*/ 2
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        "b": 2/*1*//*2*/
+    },
+    {
+        "a": 1,
+        "b": 2/*0*/
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// action: (json-par-goto-previous-cousin) // 2
+// test-end
+
+// context-start
+[
+    {
+        "a": 1,
+        /*2*/"b": 2
+    },
+    {
+        /*0*//*1*/"a": 1,
+        "b": 2
+    }
+]
+// context-end
+// action: (json-par-backward-member-if-special) // 1
+// action: (json-par-dwim-if-special) // 2
 // test-end
