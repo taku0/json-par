@@ -707,7 +707,7 @@ PATH is a list of following elements:
 
 Example:
 
-  When the point is at (*1) below, (json-par-goto-path '(\"a\" * \"b\" 1))
+  When the point is at (*1) below, (json-par-goto-path \\='(\"a\" * \"b\" 1))
   move the point to (*2).
 
   {
