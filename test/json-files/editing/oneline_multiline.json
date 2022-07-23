@@ -937,6 +937,37 @@ bbb\"ccc"
 
 // context-start
 [
+    /*|*/{ "a": 1, "b": 2, "c": 3 }
+]
+// context-end
+// action: (json-par-oneline)
+// expected-start
+[
+    /*|*/{"a":1,"b":2,"c":3}
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/{"a":1,"b":2,"c":3}
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    /*|*/{
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }
+]
+// expected-end
+// test-end
+
+
+// context-start
+[
     /*|*/"aaa
 bbb\"ccc"
 ]

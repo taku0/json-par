@@ -198,7 +198,9 @@ in the string to line breaks.
 If the member contains objects/arrays as values, recursively process the values,
 up to MAX-LEVEL depth.
 
-If MAX-LEVEL is omitted, it is considered as infinity."
+If MAX-LEVEL is omitted, it is considered as infinity.
+
+Insert a space after colon if not exists."
   (interactive "P")
   (setq max-level
         (if (null max-level) 1.0e+INF (prefix-numeric-value max-level)))
@@ -224,7 +226,9 @@ If MAX-LEVEL is omitted, it is considered as infinity."
   "Ensure at most one member for each lines in the object/array after the point.
 
 If the object/array contains objects/arrays as values, recursively process the
-values, iPod MAX-LEVEL depth."
+values, up to MAX-LEVEL depth.
+
+Insert a space after colon if not exists."
   (let (token)
     (if (<= max-level 0)
         (progn
@@ -247,6 +251,11 @@ values, iPod MAX-LEVEL depth."
          ;; Comma
          ((json-par-token-comma-p token)
           (json-par--newline-and-indent-unless-end-of-line))
+
+         ;; Colon
+         ((json-par-token-colon-p token)
+          (unless (memq (char-after) '(?\s ?\t ?\n nil))
+            (insert-char ?\s)))
 
          ;; Nested array/object
          ((json-par-token-open-bracket-p token)
