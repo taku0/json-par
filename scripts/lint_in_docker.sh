@@ -2,16 +2,19 @@
 
 # Run linter in Docker.  Used in Makefile.
 
-for version in 27 26 25 24
+for version in 28 27 26 25 24
 do
+    rm -f *.elc
     docker \
         run \
         --rm \
         --volume="$(pwd)":/src \
-        --user "$(id -u):$(id -g)" \
+        --user="$(id -u):$(id -g)" \
+        --workdir="/src" \
+        --env=ELDEV_DIR=/src/.eldev \
+        --env=HOME=/tmp \
         silex/emacs:${version}-ci-eldev \
-        bash -c \
-        "cd /src && ELDEV_DIR=/src/.eldev HOME=/tmp ./scripts/run_linter.sh" \
+        bash -c "./scripts/run_linter.sh" \
         || exit 1
 done
 
