@@ -382,7 +382,7 @@ P is called with the index of the member, starting from zero."
     (json-par--free-marker point-marker)
     found))
 
-(defun json-par--find-member-forward (p &optional include-cousin)
+(defun json-par--find-member-forward (p &optional max-cousin-depth)
   "Find a member satisfying a predicate P after the point.
 
 Move the point to the start of the current member, call P, and if it return nil,
@@ -397,14 +397,18 @@ Otherwise, move the point to the original position and return nil.
 P is called with the index of the member relative the starting member, starting
 from zero.
 
-If INCLUDE-COUSIN is non-nil, also search cousin members."
+If MAX-COUSIN-DEPTH is non-nil, also search cousin members, upto
+MAX-COUSIN-DEPTHth cousin.  If MAX-COUSIN-DEPTH is t, it is infinite."
+  (unless max-cousin-depth
+    (setq max-cousin-depth 0))
+  (when (eq max-cousin-depth t)
+    (setq max-cousin-depth nil))
   (json-par--find-member-from-here
    p
-   (if include-cousin
-       #'json-par--goto-beginning-of-next-member-or-cousin
-     #'json-par--goto-beginning-of-next-member)))
+   (lambda ()
+     (json-par--goto-beginning-of-next-member-or-cousin nil max-cousin-depth))))
 
-(defun json-par--find-member-backward (p &optional include-cousin)
+(defun json-par--find-member-backward (p &optional max-cousin-depth)
   "Find a member satisfying a predicate P before the point.
 
 Move the point to the start of the current member, call P, and if it return nil,
@@ -419,19 +423,22 @@ Otherwise, move the point to the original position and return nil.
 P is called with the index of the member relative the starting member, starting
 from zero and increasing.
 
-If INCLUDE-COUSIN is non-nil, also search cousin members."
+If MAX-COUSIN-DEPTH is non-nil, also search cousin members, upto
+MAX-COUSIN-DEPTHth cousin.  If MAX-COUSIN-DEPTH is t, it is infinite."
+  (unless max-cousin-depth
+    (setq max-cousin-depth 0))
+  (when (eq max-cousin-depth t)
+    (setq max-cousin-depth nil))
   (json-par--find-member-from-here
    p
-   (if include-cousin
-       (lambda ()
-         (prog1 (json-par--goto-end-of-previous-member-or-cousin)
-           (json-par-beginning-of-member)))
-     (lambda ()
-       (prog1 (json-par--goto-end-of-previous-member)
-         (json-par-beginning-of-member))))))
+   (lambda ()
+     (prog1 (json-par--goto-end-of-previous-member-or-cousin
+             nil
+             max-cousin-depth)
+       (json-par-beginning-of-member)))))
 
 (defun json-par--goto-beginning-of-next-member-or-cousin
-    (&optional include-empty)
+    (&optional include-empty max-depth)
   "Move the point to the beginning of the next member.
 
 If the point is on the last member, move to the first member of the
@@ -439,12 +446,15 @@ sibling/cousin array/object.
 
 If INCLUDE-EMPTY is non-nil, stop inside an empty brackets with the same depth.
 
+If MAX-DEPTH is non-nil, search only up to MAX-DEPTHth cousin.
+
 If a member is found, return t.  Return nil otherwise."
   (or (json-par--goto-beginning-of-next-member)
       (let ((depth 1)
             (token (json-par-forward-token)))
         (while (and
                 (not (zerop depth))
+                (or (null max-depth) (<= depth max-depth))
                 (not (json-par-token-outside-of-buffer-p token)))
           (setq token (json-par-forward-token))
           (cond
@@ -459,7 +469,8 @@ If a member is found, return t.  Return nil otherwise."
             (setq depth (1+ depth))))
         (zerop depth))))
 
-(defun json-par--goto-end-of-previous-member-or-cousin (&optional include-empty)
+(defun json-par--goto-end-of-previous-member-or-cousin
+    (&optional include-empty max-depth)
   "Move the point to the end of the previous member.
 
 If the point is on the first member, move to the last member of the
@@ -467,12 +478,15 @@ sibling/cousin array/object.
 
 If INCLUDE-EMPTY is non-nil, stop inside an empty brackets with the same depth.
 
+If MAX-DEPTH is non-nil, search only up to MAX-DEPTHth cousin.
+
 If a member is found, return t.  Return nil otherwise."
   (or (json-par--goto-end-of-previous-member)
       (let ((depth 1)
             (token (json-par-backward-token)))
         (while (and
                 (not (zerop depth))
+                (or (null max-depth) (<= depth max-depth))
                 (not (json-par-token-outside-of-buffer-p token)))
           (setq token (json-par-backward-token))
           (cond
