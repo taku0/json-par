@@ -38,8 +38,8 @@
 
 - `insert': insert an escaped double quote.
 - `exit': move the point after the string."
-  :type '(choice (const :tag "Insert escaped double quotes" 'insert)
-                 (const :tag "Exit from the string" 'exit))
+  :type '(choice (const :tag "Insert escaped double quotes" insert)
+                 (const :tag "Exit from the string" exit))
   :group 'json-par
   :safe 'symbolp)
 
@@ -56,8 +56,8 @@ This value is used only if the style cannot be guessed from the context.
   [
     |
   ]"
-  :type '(choice (const :tag "Single line" 'one-line)
-                 (const :tag "Multiline" 'multiline))
+  :type '(choice (const :tag "Single line" one-line)
+                 (const :tag "Multiline" multiline))
   :group 'json-par
   :safe 'symbolp)
 

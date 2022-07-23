@@ -54,8 +54,8 @@ This affects `json-par-up-backward' and `json-par-up-forward'."
 
 - `value': before the value of the key-value pair.
 - `member': before the whole key-value pair."
-  :type '(choice (const :tag "Before value" 'value)
-                 (const :tag "Before member" 'member))
+  :type '(choice (const :tag "Before value" value)
+                 (const :tag "Before member" member))
   :group 'json-par
   :safe 'symbolp)
 

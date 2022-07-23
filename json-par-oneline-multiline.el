@@ -62,9 +62,9 @@
 
 This affects functions invoking `post-self-insert-hook', including `newline'."
   :type '(choice (const :tag "Break just inside brackets"
-                        'break-inside-brackets)
+                        break-inside-brackets)
                  (const :tag "Break lines after each members"
-                        'break-each-member))
+                        break-each-member))
   :group 'json-par
   :safe 'symbolp)
 
@@ -101,9 +101,9 @@ This affects functions invoking `post-self-insert-hook', including `newline'."
 
 This affects functions invoking `post-self-insert-hook', including `newline'."
   :type '(choice (const :tag "Just break the line"
-                        'just-break)
+                        just-break)
                  (const :tag "Break lines after each members"
-                        'break-each-member))
+                        break-each-member))
   :group 'json-par
   :safe 'symbolp)
 
@@ -180,9 +180,9 @@ and `json-par-join-line'."
   :type '(choice
           (const :tag "Just delete" 'just-delete)
           (const :tag "Delete all line breaks between members"
-                 'delete-line-breaks-between-members)
+                 delete-line-breaks-between-members)
           (const :tag "Delete line breaks inside the current array/object"
-                 'delete-line-breaks-inside-brackets))
+                 delete-line-breaks-inside-brackets))
   :group 'json-par
   :safe 'symbolp)
 
