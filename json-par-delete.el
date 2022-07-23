@@ -63,9 +63,9 @@ affected."
 
 This affects `json-par-delete-backward-char', `json-par-delete-forward-char',
 and `json-par-join-line'."
-  :type '(choice (const :tag "Just delete one line" 'delete-one)
-                 (const :tag "Leave one and delete the rest" 'leave-one)
-                 (const :tag "Delete all lines" 'delete-all))
+  :type '(choice (const :tag "Just delete one line" delete-one)
+                 (const :tag "Leave one and delete the rest" leave-one)
+                 (const :tag "Delete all lines" delete-all))
   :group 'json-par
   :safe 'symbolp)
 
@@ -80,9 +80,9 @@ and `json-par-join-line'."
 
 This affects `json-par-delete-backward-char', `json-par-delete-forward-char',
 and `json-par-join-line'."
-  :type '(choice (const :tag "Just delete one line" 'delete-one)
-                 (const :tag "Leave one and delete the rest" 'leave-one)
-                 (const :tag "Delete all lines" 'delete-all))
+  :type '(choice (const :tag "Just delete one line" delete-one)
+                 (const :tag "Leave one and delete the rest" leave-one)
+                 (const :tag "Delete all lines" delete-all))
   :group 'json-par
   :safe 'symbolp)
 
