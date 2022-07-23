@@ -178,7 +178,7 @@ This affects functions invoking `post-self-insert-hook', including `newline'."
 This affects `json-par-delete-backward-char', `json-par-delete-forward-char',
 and `json-par-join-line'."
   :type '(choice
-          (const :tag "Just delete" 'just-delete)
+          (const :tag "Just delete" just-delete)
           (const :tag "Delete all line breaks between members"
                  delete-line-breaks-between-members)
           (const :tag "Delete line breaks inside the current array/object"
