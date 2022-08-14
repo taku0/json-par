@@ -354,11 +354,19 @@ If any ancestors don't have a key, return a list (nil DEPTH)."
 (defun json-par--locate-all-members (depth &optional result)
   "Return a list of the positions of descendants those are DEPTH levels away.
 
-If the DEPTH is 0, the current position is returned.
+If the DEPTH is 0, the current position is returned if the buffer is not empty.
+If the buffer is empty, return an empty list.
 
 If RESULT is given, the positions are prepended to it."
   (if (zerop depth)
-      (cons (point) result)
+      (if (and (save-excursion
+                 (json-par--backward-spaces)
+                 (bobp))
+               (save-excursion
+                 (json-par--forward-spaces)
+                 (eobp)))
+          result
+        (cons (point) result))
     (json-par-beginning-of-object-value)
     (if (memq (char-after) '(?\[ ?\( ?{))
         (progn
@@ -507,8 +515,7 @@ If no value/key/member is found, return nil."
             (setq done t))))
       result)))
 
-(defun json-par--guess-find-candidates
-    (last-state pos extract-candidates)
+(defun json-par--guess-find-candidates (last-state pos extract-candidates)
   "Find the candidates from LAST-STATE and return the updated state.
 
 POS is the point where the searching is started.
@@ -553,7 +560,13 @@ For details of EXTRACT-CANDIDATES, see `json-par--guess-next'."
       (cond
        ((and (null key)
              (or (< (point-min) searched-start)
-                 (= searched-end (point-min))))
+                 (= searched-end (point-min)))
+             (not (and (save-excursion
+                         (json-par--backward-spaces)
+                         (bobp))
+                       (save-excursion
+                         (json-par--forward-spaces)
+                         (eobp)))))
         (goto-char (point-min))
         (json-par--guess-state-updated
          last-state
@@ -639,16 +652,16 @@ See `json-par--guess-next' for details."
           (json-par-beginning-of-object-value)
           (setq value-token (json-par-forward-token-or-list))
           (unless (json-par--guess-eligible-value-p value-token seen-values)
-            (setq value-token nil))))
-      (when value-token
-        (setq text (json-par--normalize-guessed-text
-                    (json-par-token-text-no-properties value-token)))
-        (list
-         text
-         (json-par--guess-state-updated
-          last-state
-          :candidates candidates
-          :seen-values (cons text seen-values)))))))
+            (setq value-token nil)))
+        (when value-token
+          (setq text (json-par--normalize-guessed-text
+                      (json-par-token-text-no-properties value-token)))
+          (list
+           text
+           (json-par--guess-state-updated
+            last-state
+            :candidates candidates
+            :seen-values (cons text seen-values))))))))
 
 (defun json-par--guess-eligible-value-p (value-token seen-values)
   "Return non-nil if the VALUE-TOKEN is an eligible value for guessing.
