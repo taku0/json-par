@@ -340,6 +340,7 @@ If any ancestors don't have a key, return a list (nil DEPTH)."
   (save-excursion
     (let ((key-token nil)
           (depth 0))
+      (json-par--backward-spaces)
       (while (and (null key-token)
                   (not (bobp)))
         (setq depth (1+ depth))
