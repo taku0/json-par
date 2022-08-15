@@ -329,7 +329,9 @@ type `outside-of-buffer'."
 
    ;; String
    ((eq (char-after) ?\")
-    (let ((pos-after-spaces (point)))
+    (let ((pos-after-spaces (point))
+          (syntax-propertize-extend-region-functions nil)
+          (syntax-propertize-function nil))
       (condition-case nil
           (goto-char (scan-sexps (point) 1))
         (scan-error (goto-char (point-max))))
@@ -376,7 +378,8 @@ type `outside-of-buffer'."
 
    ;; String
    ((eq (char-before) ?\")
-    (let ((pos-before-spaces (point)))
+    (let ((pos-before-spaces (point))
+          (json-par--already-out-of-atom nil))
       (backward-char)
       (when (json-par--string-like-beginning-position)
         (goto-char (json-par--string-like-beginning-position)))
@@ -414,7 +417,9 @@ Return the token skipped."
   (let* ((previous-token (json-par-backward-token))
          (previous-type (json-par-token-type previous-token))
          (previous-start (json-par-token-start previous-token))
-         (previous-end (json-par-token-end previous-token)))
+         (previous-end (json-par-token-end previous-token))
+         (syntax-propertize-extend-region-functions nil)
+         (syntax-propertize-function nil))
     (cond
      ;; List
      ((memq previous-type '(} ?\) \]))
@@ -446,7 +451,9 @@ Return the token skipped."
   (let* ((next-token (json-par-forward-token))
          (next-type (json-par-token-type next-token))
          (next-start (json-par-token-start next-token))
-         (next-end (json-par-token-end next-token)))
+         (next-end (json-par-token-end next-token))
+         (syntax-propertize-extend-region-functions nil)
+         (syntax-propertize-function nil))
     (cond
      ;; List
      ((memq next-type '({ \( \[))
@@ -517,35 +524,36 @@ Return the token skipped."
 
 If PARSER-STATE is given, it is used instead of (syntax-ppss).
 If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
-  (save-excursion
-    (when (number-or-marker-p parser-state)
-      (goto-char parser-state))
-    (when (or (null parser-state) (number-or-marker-p parser-state))
-      (setq parser-state (save-excursion (syntax-ppss parser-state))))
-    (cond
-     ;; inside a string
-     ((nth 3 parser-state)
-      (nth 8 parser-state))
+  (unless (and json-par--already-out-of-atom json-par--already-out-of-comment)
+    (save-excursion
+      (when (number-or-marker-p parser-state)
+        (goto-char parser-state))
+      (when (or (null parser-state) (number-or-marker-p parser-state))
+        (setq parser-state (save-excursion (syntax-ppss parser-state))))
+      (cond
+       ;; inside a string
+       ((nth 3 parser-state)
+        (nth 8 parser-state))
 
-     ;; inside a comment, JSON has no comments though
-     ((nth 4 parser-state)
-      (nth 8 parser-state))
+       ;; inside a comment, JSON has no comments though
+       ((nth 4 parser-state)
+        (nth 8 parser-state))
 
-     ;; between //, JSON has no comments though
-     ((and (eq (char-before) ?/)
-           (eq (char-after) ?/)
-           (save-excursion
-             (backward-char)
-             (not (nth 4 (syntax-ppss)))))
-      (1- (point)))
+       ;; between //, JSON has no comments though
+       ((and (eq (char-before) ?/)
+             (eq (char-after) ?/)
+             (save-excursion
+               (backward-char)
+               (not (nth 4 (syntax-ppss)))))
+        (1- (point)))
 
-     ;; between /*, JSON has no comments though
-     ((and (eq (char-before) ?/)
-           (eq (char-after) ?*)
-           (save-excursion
-             (backward-char)
-             (not (nth 4 (syntax-ppss)))))
-      (1- (point))))))
+       ;; between /*, JSON has no comments though
+       ((and (eq (char-before) ?/)
+             (eq (char-after) ?*)
+             (save-excursion
+               (backward-char)
+               (not (nth 4 (syntax-ppss)))))
+        (1- (point)))))))
 
 (defun json-par--next-comment-region ()
   "Return region of the next comment.
@@ -558,7 +566,7 @@ Assuming the point is not in a comment.
 If the point is not before a comment, return nil."
   (save-excursion
     (skip-chars-forward "\s\t\n")
-    (when (save-excursion (forward-comment 1))
+    (when (and (looking-at "/[/*]") (save-excursion (forward-comment 1)))
       (cons
        (point)
        (progn (forward-comment 1) (point))))))
@@ -593,27 +601,29 @@ If the point is not after a comment, return nil."
   "Skip whitespaces, newlines and comments forward.
 
 If KEEP-LINE is non-nil, don't skip newlines except inside comments."
-  (if keep-line
-      (progn
-        (skip-chars-forward "\s\t")
-        (while (and (eq (char-after) ?/)
-                    (eq (char-after (1+ (point))) ?*)
-                    (forward-comment 1))
-          (skip-chars-forward "\s\t")))
-    (forward-comment (point-max))))
+  (let ((space-chars (if keep-line "\s\t" "\s\t\n"))
+        (syntax-propertize-extend-region-functions nil)
+        (syntax-propertize-function nil))
+    (skip-chars-forward space-chars)
+    (while (and (eq (char-after) ?/)
+                (eq (char-after (1+ (point))) ?*)
+                (forward-comment 1))
+      (skip-chars-forward space-chars))))
 
 (defun json-par--backward-spaces (&optional keep-line)
   "Skip whitespaces, newlines and comments backward.
 
 If KEEP-LINE is non-nil, don't skip newlines except inside comments."
-  (if keep-line
-      (progn
-        (skip-chars-backward "\s\t")
-        (while (and (eq (char-before) ?/)
-                    (eq (char-before (1- (point))) ?*)
-                    (forward-comment -1))
-          (skip-chars-backward "\s\t")))
-    (forward-comment (- (point)))))
+  (let ((syntax-propertize-extend-region-functions nil)
+        (syntax-propertize-function nil))
+    (if keep-line
+        (progn
+          (skip-chars-backward "\s\t")
+          (while (and (eq (char-before) ?/)
+                      (eq (char-before (1- (point))) ?*)
+                      (forward-comment -1))
+            (skip-chars-backward "\s\t")))
+      (forward-comment (- (point))))))
 
 (defvar-local json-par--already-out-of-comment nil
   "Non-nil if the point is already out of comment.

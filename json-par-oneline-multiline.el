@@ -31,6 +31,7 @@
 (require 'json-par-insert)
 (require 'json-par-delete)
 (require 'json-par-indent)
+(require 'json-par-utils)
 
 ;;; Customizations
 
@@ -206,17 +207,22 @@ Insert a space after colon if not exists."
         (if (null max-level) 1.0e+INF (prefix-numeric-value max-level)))
   (save-excursion
     (json-par-beginning-of-object-value)
-    (let ((next-token (json-par-forward-token)))
-      (cond
-       ;; Before an array or an object
-       ((json-par-token-open-bracket-p next-token)
-        (goto-char (json-par-token-start next-token))
-        (json-par--multiline-after max-level))
+    (let* ((next-token (json-par-forward-token-or-list))
+           (json-par--already-out-of-comment t)
+           (json-par--already-out-of-atom t)
+           (start (json-par-token-start next-token))
+           (end (json-par-token-end next-token)))
+      (goto-char start)
+      (json-par--huge-edit start end
+        (cond
+         ;; Before an array or an object
+         ((json-par-token-matching-brackets-p next-token)
+          (json-par--multiline-after max-level)
+          (json-par-indent-region start (point)))
 
-       ;; Before string
-       ((json-par-token-string-p next-token)
-        (goto-char (json-par-token-start next-token))
-        (let ((end (copy-marker (json-par-token-end next-token))))
+         ;; Before string
+         ((json-par-token-string-p next-token)
+          (setq end (copy-marker end))
           (while (and (< (point) end)
                       (search-forward "\\n" end t))
             (replace-match "\n"))
@@ -238,19 +244,15 @@ Insert a space after colon if not exists."
             (goto-char (point-max))))
       ;; Insert newline after the open bracket.
       (json-par-forward-token)
-      (json-par--newline-and-indent-unless-end-of-line)
+      (json-par--newline-unless-end-of-line)
       (while (progn
-               (skip-chars-forward "\s\t\n")
-               (skip-chars-backward "\s\t")
-               (when (bolp)
-                 (json-par-indent-line))
                (setq token (json-par-forward-token))
                (not (or (json-par-token-close-bracket-p token)
                         (json-par-token-outside-of-buffer-p token))))
         (cond
          ;; Comma
          ((json-par-token-comma-p token)
-          (json-par--newline-and-indent-unless-end-of-line))
+          (json-par--newline-unless-end-of-line))
 
          ;; Colon
          ((json-par-token-colon-p token)
@@ -265,17 +267,16 @@ Insert a space after colon if not exists."
       (save-excursion
         (goto-char (json-par-token-start token))
         (json-par--backward-spaces)
-        (json-par--newline-and-indent-unless-end-of-line)))))
+        (json-par--newline-unless-end-of-line)))))
 
-(defun json-par--newline-and-indent-unless-end-of-line ()
-  "Insert line break, then indent unless the point is at the end of a line.
+(defun json-par--newline-unless-end-of-line ()
+  "Insert line break unless the point is at the end of a line.
 
 Move to the end of the line."
   (json-par--forward-spaces t)
   (unless (or (eolp) (looking-at "//"))
     (delete-horizontal-space t)
-    (newline)
-    (json-par-indent-line)))
+    (insert-char ?\n)))
 
 (defun json-par-oneline (&optional min-level)
   "Delete line breaks in the current member.
@@ -295,36 +296,41 @@ between tokens."
   (setq min-level (if (null min-level) 0 (prefix-numeric-value min-level)))
   (save-excursion
     (json-par-beginning-of-member)
-    (let* ((parent-token (json-par--parent-token))
+    (let* ((parsed (json-par--parse-member-forward))
+           (parent-token (json-par--parent-token))
            (inside-object (json-par-token-open-curly-bracket-p parent-token))
+           (json-par--already-out-of-comment t)
+           (json-par--already-out-of-atom t)
+           (start (gethash :start-of-member parsed))
+           (end (gethash :end-of-member parsed))
+           object-value-start
            next-token)
-      (when inside-object
-        (let ((start (point))
-              end)
-          (json-par-beginning-of-object-value)
+      (json-par--huge-edit start end
+        (when inside-object
+          (json-par-beginning-of-object-value nil parsed)
           (when (zerop min-level)
             ;; Delete line breaks around the key and colon.
-            (setq end (point-marker))
+            (setq object-value-start (point-marker))
             (goto-char start)
             (while (progn
                      (setq next-token (json-par-forward-token))
-                     (< (point) end))
+                     (< (point) object-value-start))
               (when (and (json-par-token-colon-p next-token)
                          (eq (char-after) ?\n))
                 (insert-char ?\s))
               (json-par--delete-newline-and-following-spaces))
-            (goto-char (json-par--free-marker end)))))
-      (setq next-token (json-par-forward-token))
-      (cond
-       ;; Before an array or an object
-       ((json-par-token-open-bracket-p next-token)
-        (goto-char (json-par-token-start next-token))
-        (json-par--oneline-after min-level nil t))
+            (goto-char (json-par--free-marker object-value-start))))
+        (setq next-token (json-par-forward-token))
+        (cond
+         ;; Before an array or an object
+         ((json-par-token-open-bracket-p next-token)
+          (goto-char (json-par-token-start next-token))
+          (json-par--oneline-after min-level nil t))
 
-       ;; Before string
-       ((json-par-token-string-p next-token)
-        (goto-char (json-par-token-start next-token))
-        (let ((end (copy-marker (json-par-token-end next-token))))
+         ;; Before string
+         ((json-par-token-string-p next-token)
+          (goto-char (json-par-token-start next-token))
+          (setq end (copy-marker (json-par-token-end next-token)))
           (while (and (< (point) end)
                       (search-forward "\n" end t))
             (replace-match "\\n" t t))
@@ -445,7 +451,7 @@ Examples (`|' is the point):
            (json-par--all-members-on-same-line-after-point-p))
       (save-excursion
         (json-par-up-backward)
-        (json-par--multiline-after 1)))
+        (json-par-multiline 1)))
 
      ;; Just inside brackets and the array/object was single line.
      ((and (eq json-par-action-when-breaking-line-at-just-inside-brackets
@@ -476,7 +482,7 @@ Examples (`|' is the point):
                          (line-beginning-position))))))
       (save-excursion
         (json-par-up-backward)
-        (json-par--multiline-after 1)))
+        (json-par-multiline 1)))
 
      ;; [
      ;;   |1, 2, 3 ]

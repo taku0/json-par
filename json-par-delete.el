@@ -2031,7 +2031,7 @@ Spaces and line breaks in strings are not affected."
                           (skip-chars-forward "\s\t\n")
                           (point))))
     (while (< (point) end)
-      (while (forward-comment 1)
+      (while (and (looking-at "/[*/]") (forward-comment 1))
         (delete-region (point)
                        (min end
                             (save-excursion

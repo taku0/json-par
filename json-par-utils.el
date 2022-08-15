@@ -103,6 +103,56 @@ KEYWORDS can be a symbol rather than a list."
       (setq plist (cddr plist)))
     (cdr result)))
 
+(defmacro json-par--huge-edit (start end &rest body)
+  "Evaluate form BODY with optimizations for huge edits.
+
+Run the change hooks just once like `combine-change-calls'.
+
+Create undo entries as if the contents from START to END are replaced at once.
+
+BODY must not modify buffer outside the region (START END), nor move any markers
+out of the region."
+  (declare (debug (form form def-body)) (indent 2))
+  (let ((start-value (make-symbol "start"))
+        (end-value (make-symbol "end")))
+    `(let ((,start-value ,start)
+           (,end-value ,end))
+       (,(if (fboundp 'combine-change-calls)
+             'combine-change-calls
+           'combine-after-change-calls)
+        ,start-value
+        ,end-value
+        (json-par--huge-edit-1 ,start-value ,end-value (lambda () ,@body))))))
+
+(defun json-par--huge-edit-1 (start end body)
+  "Evaluate a function BODY with optimizations for huge edits.
+
+Create undo entries as if the contents from START to END are replaced at once.
+
+BODY must not modify buffer outside the region (START END), nor move any markers
+out of the region."
+  (let ((old-undo-list buffer-undo-list)
+        (undo-inhibit-record-point t)
+        deletion-undo-list)
+    (buffer-disable-undo)
+    (buffer-enable-undo)
+    (unwind-protect
+        (atomic-change-group
+          (delete-region start end)
+          (setq deletion-undo-list buffer-undo-list)
+          (primitive-undo (length deletion-undo-list) deletion-undo-list))
+      (setq buffer-undo-list old-undo-list))
+    (setq start (copy-marker start))
+    (setq end (copy-marker end))
+    (buffer-disable-undo)
+    (unwind-protect
+        (funcall body)
+      (setq buffer-undo-list
+            (append (cons
+                     (cons (json-par--free-marker start)
+                           (json-par--free-marker end))
+                     deletion-undo-list)
+                    old-undo-list)))))
 
 (defvar-local json-par--dwim-function nil
   "Function to be called by `json-par-dwim'.")
