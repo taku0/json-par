@@ -28,6 +28,7 @@
 
 (require 'json-mode)
 (require 'json-par)
+(require 'json-par-test)
 
 (defun json-par-run-test-editing
     (&optional error-buffer error-counts progress-reporter)
@@ -45,7 +46,6 @@ PROGRESS-REPORTER is the progress-reporter."
           (context-start 0)
           (context-end 0)
           (context-text nil)
-          (expected-start-line 0)
           (expected-start 0)
           (expected-end 0)
           (expected-text nil)
@@ -121,7 +121,6 @@ EXPECTED-TEXT is the expected text after applying ACTIONS.
 ERROR-BUFFER is the buffer to output errors."
   (let ((status 'ok)
         initial-point
-        expected-point
         actual-point
         actual-text
         reversed)
@@ -194,7 +193,6 @@ ERROR-BUFFER is the buffer to output errors."
       (setq actual-text (buffer-string))
       (when (not (equal expected-text actual-text))
         (setq status 'error)
-        (setq i 0)
         (json-par-show-error
          error-buffer json-file line
          "error"

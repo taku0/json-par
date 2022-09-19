@@ -28,11 +28,9 @@
 
 ;; (add-to-list 'load-path (file-name-directory (or load-file-name buffer-file-name)))
 
-(require 'json-par-test-motion)
-(require 'json-par-test-editing)
-
 (defvar json-par-test-basedir
-  (file-name-directory (or load-file-name buffer-file-name)))
+  (file-name-directory (if (fboundp 'macroexp-file-name) (macroexp-file-name)
+                         (or load-file-name buffer-file-name))))
 
 (defvar json-par-test-running nil)
 
@@ -46,13 +44,18 @@ Return the error-buffer"
   (erase-buffer)
   (current-buffer))
 
-(defvar json-par-tests
-  '(json-par-run-test-motion json-par-run-test-editing))
-
 (defun json-par-run-test (&optional tests)
   "Run TESTS for `json-par-mode'."
   (interactive)
-  (setq tests (or tests json-par-tests))
+  (unless tests
+    (dolist (test-source (directory-files json-par-test-basedir
+                                          t "json-par-test-.*.el"))
+      (load (file-name-sans-extension test-source) nil 'nomsg))
+    (mapatoms (lambda (sym)
+                (and (fboundp sym)
+                     (string-match "\\`json-par-run-test-"
+                                   (symbol-name sym))
+                     (push sym tests)))))
   (let ((error-buffer
          (if noninteractive nil (json-par-setup-error-buffer)))
         (error-counts (list

@@ -52,7 +52,7 @@
 affected."
   :type 'boolean
   :group 'json-par
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (defcustom json-par-action-when-deleting-successive-empty-lines 'leave-one
   "Action when deleting successive empty lines.
@@ -67,7 +67,7 @@ and `json-par-join-line'."
                  (const :tag "Leave one and delete the rest" leave-one)
                  (const :tag "Delete all lines" delete-all))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-joining-non-empty-lines 'just-delete
   "Action when joining non-empty lines.
@@ -84,7 +84,7 @@ and `json-par-join-line'."
                  (const :tag "Leave one and delete the rest" leave-one)
                  (const :tag "Delete all lines" delete-all))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-value-or-member 'mark-or-delete
   "Action for deleting a value or member.
@@ -104,7 +104,7 @@ This affects the following commands:
                  (const :tag "Mark or delete" mark-or-delete)
                  (const :tag "Mark" mark))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-brackets-from-inside
   'mark-or-delete-inner
@@ -139,7 +139,7 @@ This affects the following commands:
                  (const :tag "Exit" exit)
                  (const :tag "None" none))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-brackets-from-outside 'mark-inner
   "Action for deleting a bracket from outside.
@@ -169,7 +169,7 @@ This affects the following commands:
                  (const :tag "Mark inner" mark-inner)
                  (const :tag "Enter" enter))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-string-from-inside
   'mark-or-delete-inner
@@ -198,7 +198,7 @@ This affects the following commands:
                  (const :tag "Exit" exit)
                  (const :tag "None" none))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-string-from-outside 'mark-inner
   "Action for deleting a double quote from outside of a string.
@@ -224,7 +224,7 @@ This affects the following commands:
                  (const :tag "Mark inner" mark-inner)
                  (const :tag "Enter" enter))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-colon 'mark-or-delete
   "Action for deleting a colon.
@@ -246,7 +246,7 @@ This affects the following commands:
                  (const :tag "Mark member" mark)
                  (const :tag "Skip" skip))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-deleting-comma 'mark-or-delete
   "Action for deleting a comma.
@@ -269,7 +269,7 @@ This affects the following commands:
                  (const :tag "Mark member" mark)
                  (const :tag "Skip" skip))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 
 ;;; Functions

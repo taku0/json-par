@@ -47,7 +47,7 @@
 This affects `json-par-up-backward' and `json-par-up-forward'."
   :type 'boolean
   :group 'json-par
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (defcustom json-par-place-after-down-into-object 'value
   "Target place after invoking `json-par-down' before an object.
@@ -57,7 +57,7 @@ This affects `json-par-up-backward' and `json-par-up-forward'."
   :type '(choice (const :tag "Before value" value)
                  (const :tag "Before member" member))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 
 ;;; forward-sexp-function

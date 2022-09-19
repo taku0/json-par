@@ -28,6 +28,18 @@
 
 (require 'json)
 
+(defvar-local json-par--already-out-of-atom nil
+  "Non-nil if the point is already out of comment.
+
+`json-par--out-atom' is often a bottleneck, so using this may improve
+performance.")
+
+(defvar-local json-par--already-out-of-comment nil
+  "Non-nil if the point is already out of comment.
+
+`json-par--out-comment' is often a bottleneck, so using this may improve
+performance.")
+
 ;; Token is a tuple consists of:
 ;;
 ;; - Token type
@@ -625,12 +637,6 @@ If KEEP-LINE is non-nil, don't skip newlines except inside comments."
             (skip-chars-backward "\s\t")))
       (forward-comment (- (point))))))
 
-(defvar-local json-par--already-out-of-comment nil
-  "Non-nil if the point is already out of comment.
-
-`json-par--out-comment' is often a bottleneck, so using this may improve
-performance.")
-
 (defun json-par--out-comment (&optional parser-state)
   "Move before a comment if the point is inside a comment.
 
@@ -680,12 +686,6 @@ If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
                    (eq (json-par-token-start next-token) (point)))
               (goto-char (json-par-token-end next-token))
               (json-par-backward-token)))))))))
-
-(defvar-local json-par--already-out-of-atom nil
-  "Non-nil if the point is already out of comment.
-
-`json-par--out-atom' is often a bottleneck, so using this may improve
-performance.")
 
 (defun json-par--out-atom (&optional skip-comma)
   "Move after an atom if the point is inside an atom.

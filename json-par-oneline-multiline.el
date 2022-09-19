@@ -67,7 +67,7 @@ This affects functions invoking `post-self-insert-hook', including `newline'."
                  (const :tag "Break lines after each members"
                         break-each-member))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-breaking-line-after-first-member
   'break-each-member
@@ -106,7 +106,7 @@ This affects functions invoking `post-self-insert-hook', including `newline'."
                  (const :tag "Break lines after each members"
                         break-each-member))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-action-when-joining-non-empty-lines 'just-delete
   "Action when joining non-empty lines.
@@ -185,7 +185,7 @@ and `json-par-join-line'."
           (const :tag "Delete line breaks inside the current array/object"
                  delete-line-breaks-inside-brackets))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 
 ;;; Functions

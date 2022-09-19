@@ -41,7 +41,7 @@
   :type '(choice (const :tag "Insert escaped double quotes" insert)
                  (const :tag "Exit from the string" exit))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 (defcustom json-par-default-brackets-style 'multiline
   "Whether or not to insert line breaks when inserting an empty array or object.
@@ -59,7 +59,7 @@ This value is used only if the style cannot be guessed from the context.
   :type '(choice (const :tag "Single line" one-line)
                  (const :tag "Multiline" multiline))
   :group 'json-par
-  :safe 'symbolp)
+  :safe #'symbolp)
 
 
 ;;; Functions

@@ -3,6 +3,8 @@
 (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa)
 
+(eldev-add-loading-roots 'test "test")
+
 (eldev-add-extra-dependencies 'emacs 'json-mode)
 (eldev-add-extra-dependencies 'eval 'json-mode)
 (eldev-add-extra-dependencies 'test 'json-mode)

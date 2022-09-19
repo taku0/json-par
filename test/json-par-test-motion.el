@@ -28,6 +28,7 @@
 
 (require 'json-mode)
 (require 'json-par)
+(require 'json-par-test)
 
 (defun json-par-run-test-motion
     (&optional error-buffer error-counts progress-reporter)

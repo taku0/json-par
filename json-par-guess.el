@@ -57,7 +57,7 @@ below are searched in buffers.
 }"
   :type 'integer
   :group 'json-par
-  :safe 'integerp)
+  :safe #'integerp)
 
 (defcustom json-par-friend-buffer-function nil
   "A function to limit buffers searched by `json-par-insert-guessed'.

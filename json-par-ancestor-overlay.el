@@ -86,7 +86,7 @@ To set the value from Lisp code, call
 `json-par-enable-ancestors-out-of-window-overlay' to set buffer local value."
   :type 'boolean
   :group 'json-par
-  :safe 'booleanp
+  :safe #'booleanp
   :set #'json-par-set-show-ancestors-out-of-window)
 
 ;; :local is available only from 27.
@@ -115,7 +115,7 @@ To set the value from Lisp code, call
 `json-par-enable-ancestor-overlays' to set buffer local value."
   :type 'boolean
   :group 'json-par
-  :safe 'booleanp
+  :safe #'booleanp
   :set #'json-par-set-highlight-ancestors)
 
 ;; :local is available only from 27.
@@ -153,7 +153,7 @@ To set the value from Lisp code, call
 `json-par-enable-current-member-overlay' to set buffer local value."
   :type 'boolean
   :group 'json-par
-  :safe 'booleanp
+  :safe #'booleanp
   :set #'json-par-set-highlight-current-member)
 
 ;; :local is available only from 27.

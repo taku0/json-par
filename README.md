@@ -56,10 +56,10 @@ If you feel JSON Par mode officious, you can just pick a few functions and bind 
 ```elisp
 (require 'json-mode)
 (require 'json-par-mode)
-(define-key json-mode-map (kbd "M-/") 'json-par-insert-guessed)
-(define-key json-mode-map (kbd "C-c a") 'json-par-beginning-of-member)
-(define-key json-mode-map (kbd "C-c e") 'json-par-end-of-member)
-(define-key json-mode-map (kbd "C-c c") 'json-par-clone-member-forward)
+(define-key json-mode-map (kbd "M-/") #'json-par-insert-guessed)
+(define-key json-mode-map (kbd "C-c a") #'json-par-beginning-of-member)
+(define-key json-mode-map (kbd "C-c e") #'json-par-end-of-member)
+(define-key json-mode-map (kbd "C-c c") #'json-par-clone-member-forward)
 ```
 
 
