@@ -31,6 +31,9 @@
 (require 'json-par-lexer)
 (require 'json-par-motion)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
 (defun json-par--calculate-indent
     (&optional previous-indentation parent-indentation)
   "Return indentation column of the current line.
@@ -115,6 +118,8 @@ Lightweight alternative to `js-indent-function'."
       ;; Keeps current relative position.
       (save-excursion (indent-line-to indentation-column)))))
 
+(push #'json-par-indent-line json-par--fixup-adviced-functions)
+
 (defun json-par-indent-region (start end)
   "Indent the region from START to END."
   (interactive "r")
@@ -160,6 +165,8 @@ Lightweight alternative to `js-indent-function'."
          ((json-par-token-close-bracket-p next-token)
           (pop indentations)))))
     (json-par--free-marker end)))
+
+(push #'json-par-indent-region json-par--fixup-adviced-functions)
 
 (provide 'json-par-indent)
 

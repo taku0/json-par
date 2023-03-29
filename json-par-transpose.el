@@ -29,6 +29,9 @@
 (require 'json-par-lexer)
 (require 'json-par-motion)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
 (defun json-par-transpose-member-backward (&optional arg)
   "Interchange the current member with the previous one.
 
@@ -43,6 +46,8 @@ If the current member is the first one, do nothing."
     (dotimes (_ arg)
       (json-par--transpose-member-backward-1))))
 
+(push #'json-par-transpose-member-backward json-par--fixup-adviced-functions)
+
 (defun json-par-transpose-member-forward (&optional arg)
   "Interchange the current member with the next one.
 
@@ -56,6 +61,8 @@ If the current member is the last one, do nothing."
       (json-par-transpose-member-backward (- arg))
     (dotimes (_ arg)
       (json-par--transpose-member-forward-1))))
+
+(push #'json-par-transpose-member-forward json-par--fixup-adviced-functions)
 
 (defun json-par--transpose-member-backward-1 ()
   "Interchange the current member with the previous one.

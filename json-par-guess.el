@@ -33,6 +33,8 @@
 (require 'json-par-motion)
 (require 'json-par-insert)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
 
 ;;; Customizations
 
@@ -474,6 +476,8 @@ invocation."
       (when save-state
         (setq json-par--last-state nil))
       nil)))
+
+(push #'json-par-insert-guessed json-par--fixup-adviced-functions)
 
 (defun json-par--guess-next
     (last-state guess-from-candidates &optional extract-candidates)

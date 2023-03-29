@@ -44,6 +44,8 @@ element is the start position the parent member.")
 (defvar-local json-par--clone-level-overlay nil
   "Overlay to indicate the member to be cloned.")
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
 
 ;;; Functions
 
@@ -93,6 +95,8 @@ interactively, mark the contents of the key."
          'forward
          t)))))
 
+(push #'json-par-clone-member-forward json-par--fixup-adviced-functions)
+
 (defun json-par-clone-member-backward
     (&optional arg level delete-values mark-key)
   "Clone the current member and insert before the current member.
@@ -138,6 +142,8 @@ interactively, mark the contents of the key."
          'mark-inner
          'forward
          t)))))
+
+(push #'json-par-clone-member-backward json-par--fixup-adviced-functions)
 
 (defun json-par--clone-member-1 (forward level delete-values)
   "Clone the current member and insert before/after the current member.
@@ -189,8 +195,8 @@ Return the location after the cloned member."
               (goto-char after-cloned)
               (when (member (char-before) '(?} ?\]))
                 (backward-char)
-                (json-par-delete-object-values)))
-          (json-par-delete-object-values))))
+                (json-par-delete-object-values t)))
+          (json-par-delete-object-values t))))
     (json-par--free-marker after-cloned)))
 
 (defun json-par-clone-member-forward-without-value
@@ -218,6 +224,9 @@ interactively, mark the contents of the key."
     t))
   (json-par-clone-member-forward arg level t mark-key))
 
+(push #'json-par-clone-member-forward-without-value
+      json-par--fixup-adviced-functions)
+
 (defun json-par-clone-member-backward-without-value
     (&optional arg level mark-key)
   "Clone the current member and insert before it without values inside.
@@ -242,6 +251,9 @@ interactively, mark the contents of the key."
     (length json-par--clone-level-locations)
     t))
   (json-par-clone-member-backward arg level t mark-key))
+
+(push #'json-par-clone-member-backward-without-value
+      json-par--fixup-adviced-functions)
 
 (defun json-par-clone-parent-forward
     (&optional arg level delete-values mark-key)
@@ -268,6 +280,8 @@ interactively, mark the contents of the key."
     t))
   (json-par-clone-member-forward arg (1+ (or level 0)) delete-values mark-key))
 
+(push #'json-par-clone-parent-forward json-par--fixup-adviced-functions)
+
 (defun json-par-clone-parent-backward
     (&optional arg level delete-values mark-key)
   "Clone the containing object/array and insert before it.
@@ -293,6 +307,8 @@ interactively, mark the contents of the key."
     t))
   (json-par-clone-member-backward arg (1+ (or level 0)) delete-values mark-key))
 
+(push #'json-par-clone-parent-backward json-par--fixup-adviced-functions)
+
 (defun json-par-clone-parent-forward-without-value
     (&optional arg level mark-key)
   "Clone the containing object/array and insert after it without values.
@@ -314,6 +330,9 @@ interactively, mark the contents of the key."
     t))
   (json-par-clone-parent-forward arg level t mark-key))
 
+(push #'json-par-clone-parent-forward-without-value
+      json-par--fixup-adviced-functions)
+
 (defun json-par-clone-parent-backward-without-value
     (&optional arg level mark-key)
   "Clone the containing object/array and insert before it without values.
@@ -334,6 +353,9 @@ interactively, mark the contents of the key."
     (length json-par--clone-level-locations)
     t))
   (json-par-clone-parent-backward arg level t mark-key))
+
+(push #'json-par-clone-parent-backward-without-value
+      json-par--fixup-adviced-functions)
 
 
 ;;; Keymaps

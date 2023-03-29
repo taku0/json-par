@@ -143,7 +143,7 @@
 // action: (json-par-delete-forward-token-or-list)
 // expected-start
 [
-    [ /*|*/, 2, 3 ]
+    [ /*|*/2, 3 ]
 ]
 // expected-end
 // test-end
@@ -156,7 +156,7 @@
 // action: (json-par-delete-current-value-or-key)
 // expected-start
 [
-    [ /*|*/, 2, 3 ]
+    [ /*|*/2, 3 ]
 ]
 // expected-end
 // test-end
@@ -200,7 +200,6 @@
 // expected-start
 [
     [/*|*/
-        ,
         2,
         3
     ]
@@ -221,8 +220,7 @@
 // expected-start
 [
     [
-        /*|*/,
-        2,
+        /*|*/2,
         3
     ]
 ]
@@ -383,7 +381,7 @@
 // action: (json-par-delete-forward-token-or-list)
 // expected-start
 [
-    [ 1, /*|*/, 3 ]
+    [ 1, /*|*/3 ]
 ]
 // expected-end
 // test-end
@@ -396,7 +394,7 @@
 // action: (json-par-delete-current-value-or-key)
 // expected-start
 [
-    [ 1, /*|*/, 3 ]
+    [ 1, /*|*/3 ]
 ]
 // expected-end
 // test-end
@@ -441,7 +439,6 @@
 [
     [
         1,/*|*/
-        ,
         3
     ]
 ]
@@ -462,8 +459,7 @@
 [
     [
         1,
-        /*|*/,
-        3
+        /*|*/3
     ]
 ]
 // expected-end
@@ -759,7 +755,7 @@
 // action: (json-par-delete-backward-token-or-list)
 // expected-start
 [
-    [ /*|*/, 2, 3 ]
+    [ /*|*/2, 3 ]
 ]
 // expected-end
 // test-end
@@ -785,7 +781,7 @@
 // action: (json-par-delete-current-value-or-key)
 // expected-start
 [
-    [ /*|*/, 2, 3 ]
+    [ /*|*/2, 3 ]
 ]
 // expected-end
 // test-end
@@ -840,7 +836,7 @@
 // action: (json-par-delete-backward-token-or-list)
 // expected-start
 [
-    [ 1, 2, /*|*/ ]
+    [ 1, 2/*|*/ ]
 ]
 // expected-end
 // test-end
@@ -864,7 +860,7 @@
 // action: (json-par-delete-current-value-or-key)
 // expected-start
 [
-    [ 1, 2, /*|*/ ]
+    [ 1, 2/*|*/ ]
 ]
 // expected-end
 // test-end
@@ -910,8 +906,7 @@
 [
     [
         1,
-        2,
-        /*|*/
+        2/*|*/
     ]
 ]
 // expected-end
@@ -931,8 +926,7 @@
 [
     [
         1,
-        2,
-        
+        2
     /*|*/]
 ]
 // expected-end
@@ -1122,7 +1116,7 @@
 // action: (json-par-delete-backward-token-or-list)
 // expected-start
 [
-    [ "aaa", /*|*/, "ccc" ]
+    [ "aaa", /*|*/"ccc" ]
 ]
 // expected-end
 // test-end
@@ -1135,7 +1129,7 @@
 // action: (json-par-delete-forward-token-or-list)
 // expected-start
 [
-    [ "aaa", /*|*/, "ccc" ]
+    [ "aaa", /*|*/"ccc" ]
 ]
 // expected-end
 // test-end
@@ -1148,7 +1142,7 @@
 // action: (json-par-delete-current-value-or-key)
 // expected-start
 [
-    [ "aaa", /*|*/, "ccc" ]
+    [ "aaa", /*|*/"ccc" ]
 ]
 // expected-end
 // test-end
@@ -1294,7 +1288,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark)
 // expected-start
 [
-    [/*[*/ 1 /*|]*/]
+    [ /*[*/1/*|]*/ ]
 ]
 // expected-end
 // test-end
@@ -1321,7 +1315,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark)
 // expected-start
 [
-    [/*[|*/ 1 /*]*/]
+    [ /*[|*/1/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1869,7 +1863,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark)
 // expected-start
 [
-    { "a": 1, /*[|*/: 2, /*]*/"c": 3 }
+    { "a": 1, /*[|*/: 2/*]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -1882,7 +1876,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
 // expected-start
 [
-    { "a": 1, /*[|*/"b": 2, /*]*/"c": 3 }
+    { "a": 1, /*[|*/"b": 2/*]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -1922,7 +1916,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'delete)
 // expected-start
 [
-    { "a": 1/*|*/, "c": 3 }
+    { "a": 1, /*|*/"c": 3 }
 ]
 // expected-end
 // test-end
@@ -1936,7 +1930,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark)
 // expected-start
 [
-    { "a": 1/*[*/, "b": /*|]*/, "c": 3 }
+    { "a": 1, /*[*/"b": /*|]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -1949,7 +1943,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
 // expected-start
 [
-    { "a": 1/*[*/, "b": 2/*|]*/, "c": 3 }
+    { "a": 1, /*[*/"b": 2/*|]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -1963,7 +1957,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-colon 'mark-or-delete)
 // expected-start
 [
-    { "a": 1/*|*/, "c": 3 }
+    { "a": 1, /*|*/"c": 3 }
 ]
 // expected-end
 // test-end
@@ -2005,7 +1999,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark)
 // expected-start
 [
-    { "a": 1/*[|*/, "b": 2/*]*/, "c": 3 }
+    { "a": 1, "/*[|*/b/*]*/": 2, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -2018,7 +2012,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
 // expected-start
 [
-    { "a": 1/*[|*/, "b": 2/*]*/, "c": 3 }
+    { "a": 1, /*[|*/"b": 2/*]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -2032,7 +2026,7 @@
 // action: (json-par-delete-forward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
 // expected-start
 [
-    { "a": 1/*|*/, "c": 3 }
+    { "a": 1, "/*[|*/b/*]*/": 2, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -2072,7 +2066,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark)
 // expected-start
 [
-    { "a": 1, /*[*/"b": 2, /*|]*/"c": 3 }
+    { "a": 1, "b": /*[*/2/*|]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -2085,7 +2079,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
 // expected-start
 [
-    { "a": 1, /*[*/"b": 2, /*|]*/"c": 3 }
+    { "a": 1, /*[*/"b": 2/*|]*/, "c": 3 }
 ]
 // expected-end
 // test-end
@@ -2099,7 +2093,7 @@
 // action: (json-par-delete-backward-token-or-list 'mark :action-when-deleting-comma 'mark-or-delete)
 // expected-start
 [
-    { "a": 1, /*|*/"c": 3 }
+    { "a": 1, "b": /*[*/2/*|]*/, "c": 3 }
 ]
 // expected-end
 // test-end

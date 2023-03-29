@@ -26,8 +26,7 @@
 // expected-start
 [
     1,
-    /*|*/,
-    2
+    /*|*/2
 ]
 // expected-end
 // test-end
@@ -47,8 +46,7 @@
 // expected-start
 [
     1,
-    /*|*/,
-    2
+    /*|*/2
 ]
 // expected-end
 // test-end
@@ -110,9 +108,9 @@
 // context-end
 // action: (json-par-delete-backward-parent 1 'mark)
 // expected-start
-[/*[*/
-    [ 1 ]
-/*|]*/]
+[
+    /*[*/[ 1 ]/*|]*/
+]
 // expected-end
 // test-end
 
@@ -123,9 +121,9 @@
 // context-end
 // action: (json-par-delete-forward-parent 1 'mark)
 // expected-start
-[/*[|*/
-    [ 1 ]
-/*]*/]
+[
+    /*[|*/[ 1 ]/*]*/
+]
 // expected-end
 // test-end
 
@@ -141,11 +139,11 @@
 // action: (json-par-delete-backward-parent 2 'mark)
 // expected-start
 [
-    [/*[*/
-        [
+    [
+        /*[*/[
             [ 1 ]
-        ]
-    /*|]*/]
+        ]/*|]*/
+    ]
 ]
 // expected-end
 // test-end
@@ -162,11 +160,11 @@
 // action: (json-par-delete-forward-parent 2 'mark)
 // expected-start
 [
-    [/*[|*/
-        [
+    [
+        /*[|*/[
             [ 1 ]
-        ]
-    /*]*/]
+        ]/*]*/
+    ]
 ]
 // expected-end
 // test-end
@@ -183,11 +181,11 @@
 // action: (json-par-delete-backward-parent -2 'mark)
 // expected-start
 [
-    [/*[|*/
-        [
+    [
+        /*[|*/[
             [ 1 ]
-        ]
-    /*]*/]
+        ]/*]*/
+    ]
 ]
 // expected-end
 // test-end
@@ -204,11 +202,11 @@
 // action: (json-par-delete-forward-parent -2 'mark)
 // expected-start
 [
-    [/*[*/
-        [
+    [
+        /*[*/[
             [ 1 ]
-        ]
-    /*|]*/]
+        ]/*|]*/
+    ]
 ]
 // expected-end
 // test-end

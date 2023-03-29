@@ -39,8 +39,7 @@
 // expected-start
 [
     "aaa",
-    /*|*/,
-    "ccc"
+    /*|*/"ccc"
 ]
 // expected-end
 // test-end

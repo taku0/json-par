@@ -431,7 +431,7 @@
 // action: (json-par-delete-forward-member 1)
 // expected-start
 [
-    [ 1, /*|*/ ]
+    [ 1/*|*/ ]
 ]
 // expected-end
 // test-end
@@ -603,7 +603,7 @@
 // action: (json-par-delete-forward-member 1)
 // expected-start
 [
-    [ 1, /*|*/ ]
+    [ 1/*|*/ ]
 ]
 // expected-end
 // test-end
@@ -1385,7 +1385,7 @@
 // action: (json-par-delete-backward-member 1)
 // expected-start
 [
-    [ "aaa"/*|*/, "ccc" ]
+    [ "aaa", /*|*/"ccc" ]
 ]
 // expected-end
 // test-end
@@ -1424,7 +1424,7 @@
 // action: (json-par-delete-backward-member 1)
 // expected-start
 [
-    { "a": "aaa"/*|*/, "c": "ccc" }
+    { "a": "aaa", /*|*/"c": "ccc" }
 ]
 // expected-end
 // test-end
@@ -1463,7 +1463,7 @@
 // action: (json-par-delete-backward-member 1)
 // expected-start
 [
-    { "a": "aaa"/*|*/, "c": "ccc" }
+    { "a": "aaa", /*|*/"c": "ccc" }
 ]
 // expected-end
 // test-end
@@ -1506,7 +1506,7 @@
 // action: (json-par-delete-current-member 1 'mark)
 // expected-start
 [
-    [/*[|*/ 1 /*]*/]
+    [ /*[|*/1/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1519,7 +1519,7 @@
 // action: (json-par-delete-current-member 1 'mark-or-delete)
 // expected-start
 [
-    [/*[|*/ 1 /*]*/]
+    [ /*[|*/1/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1547,7 +1547,7 @@
 // action: (json-par-delete-forward-member 1 'mark)
 // expected-start
 [
-    [/*[|*/ 1 /*]*/]
+    [ /*[|*/1/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1560,7 +1560,7 @@
 // action: (json-par-delete-forward-member 1 'mark-or-delete)
 // expected-start
 [
-    [/*[|*/ 1 /*]*/]
+    [ /*[|*/1/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1588,7 +1588,7 @@
 // action: (json-par-delete-backward-member 1 'mark)
 // expected-start
 [
-    [/*[*/ 1 /*|]*/]
+    [ /*[*/1/*|]*/ ]
 ]
 // expected-end
 // test-end
@@ -1601,7 +1601,7 @@
 // action: (json-par-delete-backward-member 1 'mark-or-delete)
 // expected-start
 [
-    [/*[*/ 1 /*|]*/]
+    [ /*[*/1/*|]*/ ]
 ]
 // expected-end
 // test-end
@@ -1629,7 +1629,7 @@
 // action: (json-par-delete-current-member 1 'mark)
 // expected-start
 [
-    [ /*[|*/1, /*]*/2 ]
+    [ /*[|*/1/*]*/, 2 ]
 ]
 // expected-end
 // test-end
@@ -1642,7 +1642,7 @@
 // action: (json-par-delete-current-member 1 'mark)
 // expected-start
 [
-    [ 1/*[|*/, 2/*]*/ ]
+    [ 1, /*[|*/2/*]*/ ]
 ]
 // expected-end
 // test-end
@@ -1655,7 +1655,7 @@
 // action: (json-par-delete-current-member 1 'mark)
 // expected-start
 [
-    [ 1, /*[|*/2, /*]*/3 ]
+    [ 1, /*[|*/2/*]*/, 3 ]
 ]
 // expected-end
 // test-end
@@ -1668,7 +1668,7 @@
 // action: (json-par-delete-forward-member 1 'mark)
 // expected-start
 [
-    [ 1, 2/*[|*/, 3/*]*/, 4 ]
+    [ 1, 2, /*[|*/3/*]*/, 4 ]
 ]
 // expected-end
 // test-end
@@ -1681,7 +1681,7 @@
 // action: (json-par-delete-backward-member 1 'mark)
 // expected-start
 [
-    [ 1, /*[*/2, /*|]*/3, 4 ]
+    [ 1, /*[*/2/*|]*/, 3, 4 ]
 ]
 // expected-end
 // test-end
@@ -1701,8 +1701,8 @@
 [
     [
         1,
-        2/*[|*/,
-        3/*]*/,
+        2,
+        /*[|*/3/*]*/,
         4
     ]
 ]
@@ -1724,8 +1724,8 @@
 [
     [
         1,
-        /*[*/2,
-        /*|]*/3,
+        /*[*/2/*|]*/,
+        3,
         4
     ]
 ]
@@ -2209,8 +2209,8 @@
     [
         1,
         /*[|*/2,
-        3,
-        /*]*/4
+        3/*]*/,
+        4
     ]
 ]
 // expected-end
@@ -2254,8 +2254,8 @@
     [
         1,
         /*[*/2,
-        3,
-        /*|]*/4
+        3/*|]*/,
+        4
     ]
 ]
 // expected-end
@@ -2299,8 +2299,8 @@
     [
         1,
         /*[|*/2,
-        3,
-        /*]*/4
+        3/*]*/,
+        4
     ]
 ]
 // expected-end
@@ -2320,8 +2320,8 @@
 // expected-start
 [
     [
-        1/*[*/,
-        2,
+        1,
+        /*[*/2,
         3/*|]*/,
         4
     ]
@@ -2332,7 +2332,7 @@
 // context-start
 [
     [
-        1, 2, /*|*/3,
+        1, 2, "3/*|*/3",
         4, 5, 6
     ]
 ]
@@ -2341,7 +2341,7 @@
 // expected-start
 [
     [
-        1, 2,/*[|*/ 3,/*]*/
+        1, 2, /*[|*/"33"/*]*/,
         4, 5, 6
     ]
 ]
@@ -2351,7 +2351,7 @@
 // context-start
 [
     [
-        1, 2, /*|*/3,
+        1, 2, "3/*|*/3",
         4, 5, 6
     ]
 ]
@@ -2360,7 +2360,7 @@
 // expected-start
 [
     [
-        1, 2/*[*/, 3/*|]*/,
+        1, 2, /*[*/"33"/*|]*/,
         4, 5, 6
     ]
 ]
@@ -2371,7 +2371,7 @@
 [
     [
         1, 2, 3,
-        /*|*/4, 5, 6
+        "4/*|*/4", 5, 6
     ]
 ]
 // context-end
@@ -2380,7 +2380,7 @@
 [
     [
         1, 2, 3,
-        /*[|*/4, /*]*/5, 6
+        /*[|*/"44"/*]*/, 5, 6
     ]
 ]
 // expected-end
@@ -2390,7 +2390,7 @@
 [
     [
         1, 2, 3,
-        4/*|*/, 5, 6
+        "4/*|*/4", 5, 6
     ]
 ]
 // context-end
@@ -2399,7 +2399,7 @@
 [
     [
         1, 2, 3,
-        /*[*/4, /*|]*/5, 6
+        /*[*/"44"/*|]*/, 5, 6
     ]
 ]
 // expected-end
@@ -2417,8 +2417,8 @@
 // expected-start
 [
     [
-        1, 2, 3/*[|*/,
-        4, 5, 6/*]*/
+        1, 2, 3,
+        /*[|*/4, 5, 6/*]*/
     ]
 ]
 // expected-end
@@ -2436,8 +2436,8 @@
 // expected-start
 [
     [
-        /*[*/1, 2, 3,
-        /*|]*/4, 5, 6
+        /*[*/1, 2, 3/*|]*/,
+        4, 5, 6
     ]
 ]
 // expected-end
@@ -2454,10 +2454,10 @@
 // action: (json-par-delete-current-member 6 'mark-or-delete)
 // expected-start
 [
-    [/*[|*/
-        1, 2, 3,
-        4, 5, 6
-    /*]*/]
+    [
+        /*[|*/1, 2, 3,
+        4, 5, 6/*]*/
+    ]
 ]
 // expected-end
 // test-end
@@ -2473,10 +2473,10 @@
 // action: (json-par-delete-current-member -6 'mark-or-delete)
 // expected-start
 [
-    [/*[*/
-        1, 2, 3,
-        4, 5, 6
-    /*|]*/]
+    [
+        /*[*/1, 2, 3,
+        4, 5, 6/*|]*/
+    ]
 ]
 // expected-end
 // test-end

@@ -311,7 +311,7 @@
 // context-end
 // action: (json-par-insert-double-quotes)
 // expected-start
-{ : "/*|*/", : 1 }
+{ : "/*|*/", "": 1 }
 // expected-end
 // test-end
 
@@ -320,7 +320,7 @@
 // context-end
 // action: (json-par-insert-double-quotes)
 // expected-start
-{ : "/*|*/", : 1 }
+{ : "/*|*/", "": 1 }
 // expected-end
 // test-end
 
@@ -329,7 +329,7 @@
 // context-end
 // action: (json-par-insert-double-quotes)
 // expected-start
-{ : "/*|*/", : 1 }
+{ : "/*|*/", "": 1 }
 // expected-end
 // test-end
 
@@ -341,7 +341,7 @@
 // action: (json-par-insert-double-quotes)
 // expected-start
 {
-    : "/*|*/", : 1
+    : "/*|*/", "": 1
 }
 // expected-end
 // test-end
@@ -355,8 +355,8 @@
 // action: (json-par-insert-double-quotes)
 // expected-start
 {
-    :
-    "/*|*/", : 1
+    : ,
+    "/*|*/": 1
 }
 // expected-end
 // test-end
@@ -371,7 +371,7 @@
 // expected-start
 {
     : "/*|*/",
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -388,7 +388,7 @@
 {
     :
     "/*|*/",
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -497,7 +497,8 @@
 // action: (json-par-insert-double-quotes)
 // expected-start
 {
-    "a": 1, "/*|*/": 
+    "a": 1,
+    "/*|*/": 
 }
 // expected-end
 // test-end
@@ -741,7 +742,7 @@
 // context-end
 // action: (json-par-insert-double-quotes)
 // expected-start
-{ "a": "/*|*/", : false }
+{ "a": "/*|*/", "": false }
 // expected-end
 // test-end
 
@@ -755,7 +756,7 @@
 // expected-start
 {
     "a": "/*|*/",
-    : false
+    "": false
 }
 // expected-end
 // test-end
@@ -772,7 +773,7 @@
 {
     "a":
     "/*|*/",
-    : false
+    "": false
 }
 // expected-end
 // test-end
@@ -970,7 +971,8 @@
 // action: (json-par-insert-double-quotes)
 // expected-start
 {
-    "a": 1, "/*|*/": 
+    "a": 1,
+    "/*|*/": 
 }
 // expected-end
 // test-end
@@ -1693,8 +1695,8 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    /*|*/""\/ 
-	😀
+    /*|*/"", \, /,  , , 
+,	😀
 ]
 // expected-end
 // test-end
@@ -1733,7 +1735,8 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    "\"abc\""/*|*/"abc"
+    "\"abc\"",/*|*/
+    "abc"
 ]
 // expected-end
 // test-end
@@ -1747,7 +1750,7 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    "abc" /*|*/
+    "abc", /*|*/
     "\"abc\""
 ]
 // expected-end
@@ -1762,7 +1765,7 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    "\"abc\""
+    "\"abc\"",
     /*|*/ "abc"
 ]
 // expected-end
@@ -1770,13 +1773,15 @@
 
 // context-start
 [
-    "\"abc\"" /*|*/ "\"abc\""
+    "\"abc\"", /*|*/ "\"abc\""
 ]
 // context-end
 // action: (json-par-insert-double-quotes t)
+// FIXME: should the point be adjusted?
 // expected-start
 [
-    "\"abc\"" /*|*/ "abc"
+    "\"abc\"",
+ /*|*/   "abc"
 ]
 // expected-end
 // test-end
@@ -1792,7 +1797,7 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    "\"abc\""
+    "\"abc\"",
     /*|*/
     "abc"
 ]
@@ -1809,7 +1814,7 @@
 // action: (json-par-insert-double-quotes t)
 // expected-start
 [
-    "abc"
+    "abc",
     /*|*/
     1
 ]

@@ -33,6 +33,9 @@
 (require 'json-par-indent)
 (require 'json-par-utils)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
 ;;; Customizations
 
 (defcustom json-par-action-when-breaking-line-at-just-inside-brackets
@@ -235,6 +238,8 @@ Insert a space after colon if not exists."
             (replace-match "\n"))
           (json-par--free-marker end)))))))
 
+(push #'json-par-multiline json-par--fixup-adviced-functions)
+
 (defun json-par--multiline-after (max-level)
   "Ensure at most one member for each lines in the object/array after the point.
 
@@ -342,6 +347,8 @@ between tokens."
                       (search-forward "\n" end t))
             (replace-match "\\n" t t))
           (json-par--free-marker end)))))))
+
+(push #'json-par-oneline json-par--fixup-adviced-functions)
 
 (defun json-par--oneline-after
     (min-level &optional keep-newlines-around-brackets delete-spaces-if-oneline)

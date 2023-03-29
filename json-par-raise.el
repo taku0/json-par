@@ -29,6 +29,9 @@
 (require 'json-par-utils)
 (require 'json-par-motion)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
 (defun json-par-raise-member (&optional arg)
   "Replace the parent member with the current member or selection.
 
@@ -62,6 +65,8 @@ If ARG is given, repeat that time."
     (goto-char (- start-of-parent (- end start)))
     (delete-region (json-par--free-marker start-of-parent)
                    (json-par--free-marker end-of-parent))))
+
+(push #'json-par-raise-member json-par--fixup-adviced-functions)
 
 
 (provide 'json-par-raise)

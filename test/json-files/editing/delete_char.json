@@ -902,7 +902,7 @@
 // action: (json-par-delete-backward-char 1)
 // expected-start
 {
-    "a": 1, /*|*/: 2
+    "a": 1, /*|*/"": 2
 }
 // expected-end
 // test-end
@@ -915,7 +915,7 @@
 // action: (json-par-delete-forward-char 1)
 // expected-start
 {
-    "a": 1,/*|*/ : 2
+    "a": 1,/*|*/ "": 2
 }
 // expected-end
 // test-end
@@ -928,7 +928,7 @@
 // action: (json-par-delete-backward-char 1)
 // expected-start
 {
-    "a": /*|*/: 2
+    "a": ,/*|*/ "": 2
 }
 // expected-end
 // test-end
@@ -941,7 +941,7 @@
 // action: (json-par-delete-forward-char 1)
 // expected-start
 {
-    "a":/*|*/ : 2
+    "a": ,/*|*/ "": 2
 }
 // expected-end
 // test-end
@@ -951,7 +951,7 @@
 // context-end
 // action: (json-par-delete-backward-char 1)
 // expected-start
-{ /*|*/: "": 2 }
+{ /*|*/"": "": 2 }
 // expected-end
 // test-end
 
@@ -960,7 +960,7 @@
 // context-end
 // action: (json-par-delete-forward-char 1)
 // expected-start
-{/*|*/ : "": 2 }
+{/*|*/ "": "": 2 }
 // expected-end
 // test-end
 
@@ -1745,9 +1745,9 @@
 // context-end
 // action: (json-par-delete-forward-char 1 :action-when-deleting-string-from-inside 'mark-outer)
 // expected-start
-[/*[*/
-    " abc "
-/*|]*/]
+[
+    /*[*/" abc "/*|]*/
+]
 // expected-end
 // test-end
 
@@ -2050,9 +2050,9 @@
 // context-end
 // action: (json-par-delete-backward-char 1 :action-when-deleting-string-from-inside 'mark-outer)
 // expected-start
-[/*[|*/
-    " abc "
-/*]*/]
+[
+    /*[|*/" abc "/*]*/
+]
 // expected-end
 // test-end
 
@@ -2569,9 +2569,9 @@
 // context-end
 // action: (json-par-delete-forward-char 1 :action-when-deleting-string-from-outside 'mark-outer)
 // expected-start
-[/*[|*/
-    " abc "
-/*]*/]
+[
+    /*[|*/" abc "/*]*/
+]
 // expected-end
 // test-end
 

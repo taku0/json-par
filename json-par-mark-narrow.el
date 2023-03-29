@@ -60,7 +60,8 @@ backward if not.  See `json-par--region-to-extend-backward' or
   (interactive
    (list
     current-prefix-arg
-    (eq last-command 'json-par-mark-more)))
+    (or (eq last-command 'json-par-mark-more)
+        (use-region-p))))
   (when (consp arg)
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
@@ -258,8 +259,6 @@ Return a cons of the start and end positions."
                 (point)))))
       (cons start end))))
 
-
-
 (defun json-par--region-to-extend-backward (point mark)
   "Return a region to extend the active region backward.
 
@@ -286,17 +285,12 @@ The current region is represented with POINT and MARK.
 
 - If the point is after a colon, return the region of the whole member.
 
-- If one or more whole members including commas are marked, return the region of
-  the preceding member and comma.
-
-- Otherwise, return the region of the preceding token or object/array."
+- Otherwise, return the region of the next member."
   (save-excursion
     (goto-char point)
     (let (string-like-beginning-position
           current-atom
           previous-token
-          point-is-after-comma
-          mark-is-before-comma
           mark-is-after-comma
           extended-region
           start
@@ -311,13 +305,6 @@ The current region is represented with POINT and MARK.
                  (not current-atom))
         (setq previous-token
               (save-excursion (json-par-backward-token-or-list-or-comment)))
-        (setq point-is-after-comma
-              (save-excursion
-                (goto-char point)
-                (json-par-token-comma-p (json-par-backward-token))))
-        (setq mark-is-before-comma
-              (save-excursion
-                (json-par-token-comma-p (json-par-forward-token))))
         (setq mark-is-after-comma
               (save-excursion
                 (json-par-token-comma-p (json-par-backward-token)))))
@@ -389,17 +376,20 @@ The current region is represented with POINT and MARK.
                     (json-par-end-of-member)
                     (point))))
 
-       ;; One or more member is marked.
-       ((or (and mark-is-before-comma (not point-is-after-comma))
-            (and mark-is-after-comma point-is-after-comma))
+       ;; One or more members are marked.  Case 1.
+       ;; Mark one more member.
+       (mark-is-after-comma
         (setq end (point))
-        (json-par-backward-member)
+        (json-par-backward-token)
+        (json-par-beginning-of-member)
         (setq start (point)))
 
-       ;; Otherwise.
+       ;; One or more members are marked.  Case 2.
+       ;; Mark one more member.
        (t
-        (setq start (json-par-token-start previous-token))
-        (setq end (json-par-token-end previous-token))))
+        (setq end (point))
+        (json-par-beginning-of-member)
+        (setq start (point))))
       (cons start end))))
 
 (defun json-par--region-to-extend-forward (point mark)
@@ -428,19 +418,14 @@ The current region is represented with POINT and MARK.
 
 - If the point is before a colon, return the region of the whole member.
 
-- If one or more whole members including commas are marked, return the region of
-  the following member and comma.
-
-- Otherwise, return the region of the following token or object/array."
+- Otherwise, return the region of the next member."
   (save-excursion
     (goto-char point)
     (let* (string-like-beginning-position
            string-like-end-position
            current-atom
            next-token
-           point-is-before-comma
            mark-is-before-comma
-           mark-is-after-comma
            extended-region
            start
            end)
@@ -454,16 +439,9 @@ The current region is represented with POINT and MARK.
                  (not current-atom))
         (setq next-token
               (save-excursion (json-par-forward-token-or-list-or-comment)))
-        (setq point-is-before-comma
-              (save-excursion
-                (goto-char point)
-                (json-par-token-comma-p (json-par-forward-token))))
         (setq mark-is-before-comma
               (save-excursion
-                (json-par-token-comma-p (json-par-forward-token))))
-        (setq mark-is-after-comma
-              (save-excursion
-                (json-par-token-comma-p (json-par-backward-token)))))
+                (json-par-token-comma-p (json-par-forward-token)))))
       (cond
        ;; Inside a string or a comment.
        (string-like-beginning-position
@@ -538,17 +516,20 @@ The current region is represented with POINT and MARK.
                     (json-par-end-of-member)
                     (point))))
 
-       ;; Member is marked.
-       ((or (and mark-is-after-comma (not point-is-before-comma))
-            (and mark-is-before-comma point-is-before-comma))
+       ;; One or more members are marked.  Case 1.
+       ;; Mark one more.
+       (mark-is-before-comma
         (setq start (point))
-        (json-par-forward-member)
+        (json-par-forward-token)
+        (json-par-end-of-member)
         (setq end (point)))
 
-       ;; Otherwise.
+       ;; One or more members are marked.  Case 2.
+       ;; Mark one more.
        (t
-        (setq start (json-par-token-start next-token))
-        (setq end (json-par-token-end next-token))))
+        (setq start (point))
+        (json-par-end-of-member)
+        (setq end (point))))
       (cons start end))))
 
 (defun json-par--extended-region-inside-string-like

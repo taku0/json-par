@@ -42,6 +42,8 @@
  "json-par-oneline-multiline"
  (&optional min-level))
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
 
 ;;; Customizations
 
@@ -611,6 +613,9 @@ Otherwise, delete/mark the preceding value."
        action
        'backward)))))
 
+(push #'json-par-delete-backward-token-or-list
+      json-par--fixup-adviced-functions)
+
 (cl-defun json-par-delete-forward-token-or-list
     (&optional
      (action 'delete)
@@ -768,6 +773,9 @@ Otherwise, delete/mark the preceding value."
        action
        'forward)))))
 
+(push #'json-par-delete-forward-token-or-list
+      json-par--fixup-adviced-functions)
+
 (defun json-par-delete-current-value-or-key
     (&optional pos keep-member-if-empty preferred-comma action mark-direction)
   "Delete or mark the current value or key.
@@ -913,6 +921,8 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
          end-position
          action
          mark-direction))))))
+
+(push #'json-par-delete-current-value-or-key json-par--fixup-adviced-functions)
 
 (defun json-par--delete-key (token keep-member-if-empty action mark-direction)
   "Delete a object key TOKEN.
@@ -1098,6 +1108,8 @@ interactively."
          'preceding
          'backward)))))))
 
+(push #'json-par-delete-backward-member json-par--fixup-adviced-functions)
+
 (cl-defun json-par-delete-forward-member
     (n
      &optional
@@ -1200,6 +1212,8 @@ interactively."
          (point)
          'following
          'forward)))))))
+
+(push #'json-par-delete-forward-member json-par--fixup-adviced-functions)
 
 (defun json-par-delete-current-member
     (&optional n action pos preferred-comma mark-direction)
@@ -1348,6 +1362,11 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
            start-of-region
            end-of-region)
       (cond
+       ;; Current member is not empty
+       ((not (eq start-of-member end-of-member))
+        (setq start-of-region start-of-member)
+        (setq end-of-region end-of-member))
+
        ;; Deleting the sole member of an array/object
        ((and is-first-member is-last-member)
         (setq start-of-region (save-excursion
@@ -1414,7 +1433,8 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
               (setq end-of-region end-of-member))
           (setq start-of-region start-of-member)
           (setq end-of-region start-of-next-member))))
-      (when (and (save-excursion
+      (when (and (eq action 'delete)
+                 (save-excursion
                    (goto-char start-of-region)
                    (json-par--backward-spaces)
                    (memq (char-before) '(nil ?\[ ?\( ?{)))
@@ -1434,6 +1454,8 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
                                        end-of-region
                                        action
                                        mark-direction))))
+
+(push #'json-par-delete-current-member json-par--fixup-adviced-functions)
 
 (cl-defun json-par-delete-backward-char
     (n
@@ -1561,6 +1583,8 @@ OPTIONS holds keywords arguments."
        action-when-joining-non-empty-lines
        options))))
 
+(push #'json-par-delete-backward-char json-par--fixup-adviced-functions)
+
 (cl-defun json-par-delete-forward-char
     (n
      &rest options
@@ -1683,6 +1707,8 @@ OPTIONS holds keywords arguments."
        action-when-deleting-successive-empty-lines
        action-when-joining-non-empty-lines
        options))))
+
+(push #'json-par-delete-forward-char json-par--fixup-adviced-functions)
 
 (defun json-par--delete-backward-char-1
     (hungry-delete
@@ -2273,13 +2299,33 @@ interactively.
    nil
    action))
 
-(defun json-par-delete-object-values ()
-  "Delete the object values of the current object."
+(push #'json-par-delete-object-value json-par--fixup-adviced-functions)
+
+(defun json-par-delete-object-values (&optional protect-commas)
+  "Delete the object values of the current object.
+
+If PROTECT-COMMAS is non-nil, add markers protecting commas to
+`json-par--protection-markers'."
   (interactive)
   (json-par--find-member
    (lambda (_)
      (json-par-delete-object-value)
-     nil)))
+     nil))
+  (when protect-commas
+    (save-excursion
+      (let ((parent-token (json-par--parent-token))
+            current-token)
+        (goto-char (json-par-token-start parent-token))
+        (json-par--add-protection-marker)
+        (while (progn
+                 (setq current-token (json-par-forward-token))
+                 (and (not (json-par-token-close-bracket-p current-token))
+                      (not (json-par-token-outside-of-buffer-p current-token))))
+          (when (json-par-token-comma-p current-token)
+            (json-par--add-protection-marker
+             (json-par-token-start current-token))))))))
+
+(push #'json-par-delete-object-values json-par--fixup-adviced-functions)
 
 (defun json-par-delete-backward-parent (n &optional action)
   "Delete or mark the N th parent array/object containing the point.
@@ -2315,6 +2361,8 @@ interactively.
      action
      'backward))))
 
+(push #'json-par-delete-backward-parent json-par--fixup-adviced-functions)
+
 (defun json-par-delete-forward-parent (n &optional action)
   "Delete or mark the N th parent array/object containing the point.
 
@@ -2348,6 +2396,8 @@ interactively.
      'following
      action
      'forward))))
+
+(push #'json-par-delete-forward-parent json-par--fixup-adviced-functions)
 
 (defun json-par-delete-inner (&optional action)
   "Delete or mark contents of the current value/key.
@@ -2406,6 +2456,8 @@ interactively.
          'backward
          t))))))
 
+(push #'json-par-delete-inner json-par--fixup-adviced-functions)
+
 (defun json-par-delete-head-of-member (&optional action)
   "Delete or mark the key of the current member if any, or the value otherwise.
 
@@ -2431,6 +2483,8 @@ interactively.
    action
    'forward))
 
+(push #'json-par-delete-head-of-member json-par--fixup-adviced-functions)
+
 (defun json-par-delete-backward-inside-of-parent (&optional action)
   "Delete or mark contents of the parent array/object.
 
@@ -2450,6 +2504,9 @@ interactively.
   (json-par-up-forward)
   (json-par-delete-inner action))
 
+(push #'json-par-delete-backward-inside-of-parent
+      json-par--fixup-adviced-functions)
+
 (defun json-par-delete-forward-inside-of-parent (&optional action)
   "Delete or mark contents of the parent array/object.
 
@@ -2468,6 +2525,9 @@ interactively.
     (setq action 'delete))
   (json-par-up-backward)
   (json-par-delete-inner action))
+
+(push #'json-par-delete-forward-inside-of-parent
+      json-par--fixup-adviced-functions)
 
 (cl-defun json-par-join-line
     (&optional
@@ -2505,6 +2565,8 @@ ACTION-WHEN-JOINING-NON-EMPTY-LINES."
        t
        action-when-deleting-successive-empty-lines
        action-when-joining-non-empty-lines))))
+
+(push #'json-par-join-line json-par--fixup-adviced-functions)
 
 (defun json-par--join-line-backward (delete-preceding-spaces
                                      delete-following-spaces

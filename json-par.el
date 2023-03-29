@@ -79,6 +79,7 @@
 (require 'json-par-guess)
 (require 'json-par-indent)
 (require 'json-par-ancestor-overlay)
+(require 'json-par-fixup)
 
 
 ;;; Customizations
@@ -383,6 +384,15 @@ Call `json-par--post-newline' after line break."
   "Keymap for JSON Par mode.")
 
 
+;;; Install fixup advice
+
+
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
+(dolist (f json-par--fixup-adviced-functions)
+  (json-par--add-fixup-advice f))
+
 ;;; Entry point
 
 (defvar-local json-par-old-forward-sexp-function nil
@@ -428,7 +438,12 @@ It is restored when JSON Par mode is disabled.")
          json-par-highlight-ancestors)
         (json-par-enable-current-member-overlay
          json-par-highlight-current-member)
-        (json-par--check-long-line))
+        (json-par--check-long-line)
+        (add-hook 'after-change-functions
+                  #'json-par--update-changed-region
+                  nil
+                  t)
+        (add-hook 'post-command-hook #'json-par--fixup-changed-region nil t))
     (when (eq forward-sexp-function #'json-par-forward-sexp)
       (setq-local forward-sexp-function json-par-old-forward-sexp-function))
     (when (eq indent-line-function #'json-par-indent-line)
@@ -442,7 +457,9 @@ It is restored when JSON Par mode is disabled.")
     (json-par-enable-current-member-overlay nil)
     (kill-local-variable 'json-par-show-ancestors-out-of-window)
     (kill-local-variable 'json-par-highlight-ancestors)
-    (kill-local-variable 'json-par-highlight-current-member)))
+    (kill-local-variable 'json-par-highlight-current-member)
+    (remove-hook 'after-change-functions #'json-par--update-changed-region t)
+    (remove-hook 'post-command-hook #'json-par--fixup-changed-region t)))
 
 (provide 'json-par)
 

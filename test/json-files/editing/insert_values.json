@@ -215,7 +215,8 @@ true/*|*/
 // action: (json-par-insert-true-if-special)
 // expected-start
 [
-    1, true/*|*/
+    1,
+    true/*|*/
 ]
 // expected-end
 // test-end
@@ -306,7 +307,8 @@ true/*|*/
 // action: (json-par-insert-true-if-special)
 // expected-start
 {
-    "a": 1, "": true/*|*/
+    "a": 1,
+    "": true/*|*/
 }
 // expected-end
 // test-end
@@ -607,7 +609,7 @@ true/*|*/
 // context-end
 // action: (json-par-insert-true-if-special)
 // expected-start
-{ "a": true, /*|*/: false }
+{ "a": true, /*|*/"": false }
 // expected-end
 // test-end
 
@@ -621,7 +623,7 @@ true/*|*/
 // expected-start
 {
     "a": true,/*|*/
-    : false
+    "": false
 }
 // expected-end
 // test-end
@@ -638,7 +640,7 @@ true/*|*/
 {
     "a":
     true,/*|*/
-    : false
+    "": false
 }
 // expected-end
 // test-end
@@ -845,7 +847,8 @@ true/*|*/
 // action: (json-par-insert-true-if-special)
 // expected-start
 [
-    1, true/*|*/
+    1,
+    true/*|*/
 ]
 // expected-end
 // test-end
@@ -925,7 +928,8 @@ true/*|*/
 // action: (json-par-insert-true-if-special)
 // expected-start
 {
-    "a": 1, "": true/*|*/
+    "a": 1,
+    "": true/*|*/
 }
 // expected-end
 // test-end

@@ -31,6 +31,9 @@
 (require 'json-par-insert)
 (require 'json-par-indent)
 
+(defvar json-par--fixup-adviced-functions nil
+  "Functions to be adviced with `json-par--fixup-advice'.")
+
 (defun json-par-split ()
   "Split a string, object, or array at the point.
 
@@ -85,6 +88,8 @@ A comma and other required tokens are inserted.
      ((or (json-par-token-open-square-bracket-p parent-token)
           (json-par-token-open-curly-bracket-p parent-token))
       (json-par--split-array-or-object parent-token)))))
+
+(push #'json-par-split json-par--fixup-adviced-functions)
 
 (defun json-par--split-string (string-token)
   "Split a string STRING-TOKEN at the point.
@@ -386,6 +391,8 @@ nothing."
 
      ;; Otherwise
      (t nil))))
+
+(push #'json-par-join json-par--fixup-adviced-functions)
 
 (defun json-par--join-comments (previous-token next-token)
   "Join comments PREVIOUS-TOKEN and NEXT-TOKEN."

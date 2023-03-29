@@ -240,7 +240,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ /*|*/, : 1 }
+{ /*|*/, "": 1 }
 // expected-end
 // test-end
 
@@ -249,7 +249,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ /*|*/, : 1 }
+{ /*|*/, "": 1 }
 // expected-end
 // test-end
 
@@ -261,7 +261,7 @@
 // action: (json-par-insert-comma-if-special)
 // expected-start
 { /*|*/,
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -275,7 +275,7 @@
 // expected-start
 {
     /*|*/,
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -290,7 +290,7 @@
 // expected-start
 {
     /*|*/,
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -303,7 +303,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ "a": 1, /*|*/, : 2 }
+{ "a": 1, /*|*/, "": 2 }
 // expected-end
 // test-end
 
@@ -312,7 +312,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ "a": 1, /*|*/, : 2 }
+{ "a": 1, /*|*/, "": 2 }
 // expected-end
 // test-end
 
@@ -324,7 +324,7 @@
 // action: (json-par-insert-comma-if-special)
 // expected-start
 {
-    "a": 1, /*|*/, : 2
+    "a": 1, /*|*/, "": 2
 }
 // expected-end
 // test-end
@@ -340,7 +340,7 @@
 {
     "a": 1,
     /*|*/,
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -356,7 +356,7 @@
 {
     "a": 1,
     /*|*/,
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -373,7 +373,7 @@
 {
     "a": 1,
     /*|*/,
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -386,7 +386,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ 1, /*|*/: 2 }
+{ 1, /*|*/"": 2 }
 // expected-end
 // test-end
 
@@ -395,7 +395,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ 1, /*|*/: 2 }
+{ 1, /*|*/"": 2 }
 // expected-end
 // test-end
 
@@ -404,7 +404,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ "a": "1", /*|*/: 2 }
+{ "a": "1", /*|*/"": 2 }
 // expected-end
 // test-end
 
@@ -416,7 +416,7 @@
 // action: (json-par-insert-comma-if-special)
 // expected-start
 {
-    1, /*|*/: 2
+    1, /*|*/"": 2
 }
 // expected-end
 // test-end
@@ -431,7 +431,7 @@
 // expected-start
 {
     1,
-    /*|*/: 2
+    /*|*/"": 2
 }
 // expected-end
 // test-end
@@ -446,7 +446,7 @@
 // expected-start
 {
     1,/*|*/
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -463,7 +463,7 @@
 {
     1,
     /*|*/
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -476,7 +476,7 @@
 // action: (json-par-insert-comma-if-special)
 // expected-start
 {
-    "a": "1", /*|*/: 2
+    "a": "1", /*|*/"": 2
 }
 // expected-end
 // test-end
@@ -491,7 +491,7 @@
 // expected-start
 {
     "a": "1",
-    /*|*/: 2
+    /*|*/"": 2
 }
 // expected-end
 // test-end
@@ -506,7 +506,7 @@
 // expected-start
 {
     "a": "1",/*|*/
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -523,7 +523,7 @@
 {
     "a": "1",
     /*|*/
-    : 2
+    "": 2
 }
 // expected-end
 // test-end
@@ -536,7 +536,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ : , /*|*/: 1 }
+{ : , /*|*/"": 1 }
 // expected-end
 // test-end
 
@@ -545,7 +545,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ : , /*|*/: 1 }
+{ : , /*|*/"": 1 }
 // expected-end
 // test-end
 
@@ -554,7 +554,7 @@
 // context-end
 // action: (json-par-insert-comma-if-special)
 // expected-start
-{ : , /*|*/: 1 }
+{ : , /*|*/"": 1 }
 // expected-end
 // test-end
 
@@ -566,7 +566,7 @@
 // action: (json-par-insert-comma-if-special)
 // expected-start
 {
-    : , /*|*/: 1
+    : , /*|*/"": 1
 }
 // expected-end
 // test-end
@@ -581,7 +581,7 @@
 // expected-start
 {
     : ,
-    /*|*/: 1
+    /*|*/"": 1
 }
 // expected-end
 // test-end
@@ -596,7 +596,7 @@
 // expected-start
 {
     : ,/*|*/
-    : 1
+    "": 1
 }
 // expected-end
 // test-end
@@ -613,7 +613,7 @@
 {
     : ,
     /*|*/
-    : 1
+    "": 1
 }
 // expected-end
 // test-end

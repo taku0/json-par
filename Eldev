@@ -10,7 +10,7 @@
 (eldev-add-extra-dependencies 'test 'json-mode)
 
 (setf eldev-standard-excludes
-      (append eldev-standard-excludes '("./documents/")))
+      `(:or ,eldev-standard-excludes "./documents/"))
 
 (setq-default package-lint-main-file "json-par.el")
 (setq-default indent-tabs-mode nil)

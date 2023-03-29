@@ -331,7 +331,10 @@ type `outside-of-buffer'."
   (json-par--forward-spaces)
   (cond
    ;; Outside of buffer
-   ((eobp)
+   ((or (eobp)
+        (and (eq (char-after) ?/)
+             (eq (char-after (1+ (point))) ?/)
+             (eq (char-after (line-end-position)) nil)))
     (json-par-token 'outside-of-buffer (point) (point)))
 
    ;; Separators and parentheses
@@ -618,8 +621,12 @@ If KEEP-LINE is non-nil, don't skip newlines except inside comments."
         (syntax-propertize-function nil))
     (skip-chars-forward space-chars)
     (while (and (eq (char-after) ?/)
-                (eq (char-after (1+ (point))) ?*)
-                (forward-comment 1))
+                (or (and (eq (char-after (1+ (point))) ?*)
+                         (forward-comment 1))
+                    (and (not keep-line)
+                         (eq (char-after (1+ (point))) ?/)
+                         (eq (char-after (line-end-position)) ?\n)
+                         (forward-comment 1))))
       (skip-chars-forward space-chars))))
 
 (defun json-par--backward-spaces (&optional keep-line)
@@ -709,7 +716,7 @@ A token is a object key if and only if:
 
 - it is a string,
 - it is before colon, and
-- if RIGHT-ASSOCIATIVE is non-nil, then it is not after colon.
+- if RIGHT-ASSOCIATIVE is nil, then it is not after colon.
 
 Examples:
 

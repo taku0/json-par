@@ -792,22 +792,85 @@ Examples:
 
 This function affects whether a line break is inserted or not when inserting a
 comma or a value."
+  (or (json-par--multiple-members-on-same-line-before-point-p count)
+      (json-par--multiple-members-on-same-line-after-point-p count)))
+
+(defun json-par--multiple-members-on-same-line-before-point-p (count)
+  "Return non-nil if lines before the point has multiple members.
+
+Otherwise, return nil.
+
+Check COUNT members around the point.
+
+Examples:
+
+  // Has multiple members on a line:
+  [
+    1, 2, 3,|
+    4, 5, 6
+  ]
+
+  // Has single member for each lines:
+  [
+    1,
+    2,
+    3,|
+    4,
+    5,
+    6
+  ]
+
+This function affects whether a line break is inserted or not when inserting a
+comma or a value."
   (let ((positions (list)))
     (save-excursion
       (json-par-beginning-of-member)
       (push (point) positions)
       (dotimes (_ count)
         (when (zerop (json-par-backward-member))
-          (when (eq (char-after) ?\,)
-            (forward-char))
+          (json-par-end-of-member)
           (json-par-beginning-of-member)
           (push (point) positions))))
+    (not (cl-every #'json-par--beginning-of-line-or-list-p positions))))
+
+(defun json-par--multiple-members-on-same-line-after-point-p (count)
+  "Return non-nil if lines after the point has multiple members.
+
+Otherwise, return nil.
+
+Check COUNT members around the point.
+
+Examples:
+
+  // Has multiple members on a line:
+  [
+    1, 2, 3,|
+    4, 5, 6
+  ]
+
+  // Has single member for each lines:
+  [
+    1,
+    2,
+    3,|
+    4,
+    5,
+    6
+  ]
+
+This function affects whether a line break is inserted or not when inserting a
+comma or a value."
+  (let ((positions (list)))
     (save-excursion
+      (json-par--forward-spaces)
+      (when (eq (char-after) ?,)
+        (forward-char))
+      (json-par-end-of-member)
       (json-par-beginning-of-member)
+      (push (point) positions)
       (dotimes (_ count)
         (when (zerop (json-par-forward-member))
-          (when (eq (char-before) ?\,)
-            (backward-char))
+          (json-par-end-of-member)
           (json-par-beginning-of-member)
           (push (point) positions))))
     (not (cl-every #'json-par--beginning-of-line-or-list-p positions))))

@@ -176,6 +176,7 @@ ERROR-BUFFER is the buffer to output errors."
                 (when deactivate-mark
                   (deactivate-mark))))
             actions)
+      (json-par--fixup-changed-region)
       (if (region-active-p)
           (setq actual-point (list (point) (mark)))
         (setq actual-point (point)))
