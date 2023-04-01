@@ -626,7 +626,7 @@ The user is asked to do so if the first line is longer than
                (not (search-forward "\n"
                                     (+ (point) json-par-long-line-threshold)
                                     t))
-               (y-or-n-p "The buffer seems long.  Pretty print it?"))
+               (y-or-n-p "The buffer seems long.  Pretty print it? "))
       (json-par--pretty-print-long-line))))
 
 (provide 'json-par-oneline-multiline)
