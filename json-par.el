@@ -427,7 +427,8 @@ It is restored when JSON Par mode is disabled.")
         (json-par-enable-ancestor-overlays
          json-par-highlight-ancestors)
         (json-par-enable-current-member-overlay
-         json-par-highlight-current-member))
+         json-par-highlight-current-member)
+        (json-par--check-long-line))
     (when (eq forward-sexp-function #'json-par-forward-sexp)
       (setq-local forward-sexp-function json-par-old-forward-sexp-function))
     (when (eq indent-line-function #'json-par-indent-line)

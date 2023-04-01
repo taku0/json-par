@@ -757,6 +757,48 @@ Return nil otherwise."
         (json-par--read-token token)
       nil)))
 
+(defun json-par--skip-string ()
+  "Move point after the string under the point.
+
+Point is assumed to be in a string, after the opening delimiter."
+  (let ((done nil))
+    (while (not done)
+      (skip-chars-forward "^\"\\\\")
+      (cond
+       ((eobp)
+        (setq done t))
+
+       ((eq (char-after) ?\\)
+        (forward-char 2))
+
+       ((eq (char-after) ?\")
+        (forward-char)
+        (setq done t))))))
+
+(defun json-par--skip-multiline-comment ()
+  "Move point after the multiline comment  under the point.
+
+Point is assumed to be in a multiline, after the opening delimiter.
+
+Multiline comments can nest."
+  (let ((done nil))
+    (while (not done)
+      (skip-chars-forward "^/*")
+      (cond
+       ((eobp)
+        (setq done t))
+
+       ((eq (char-after) ?/)
+        (forward-char)
+        (when (eq (char-after) ?*)
+          (forward-char)
+          (json-par--skip-multiline-comment)))
+
+       ((eq (char-after) ?*)
+        (forward-char)
+        (when (eq (char-after) ?/)
+          (forward-char)
+          (setq done t)))))))
 
 (provide 'json-par-lexer)
 

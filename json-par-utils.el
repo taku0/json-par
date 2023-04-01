@@ -117,6 +117,11 @@ out of the region."
         (end-value (make-symbol "end")))
     `(let ((,start-value ,start)
            (,end-value ,end))
+       ;; WORKAROUND: If buffer-undo-list is nil, combine-change-calls shows
+       ;; unnecessary message.
+       ;; https://git.savannah.gnu.org/cgit/emacs.git/commit/?id=977630b5285809a57e50ff5f38d9c34247b549a7
+       (unless buffer-undo-list
+         (push (point) buffer-undo-list))
        (,(if (fboundp 'combine-change-calls)
              'combine-change-calls
            'combine-after-change-calls)

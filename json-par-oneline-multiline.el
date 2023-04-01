@@ -188,6 +188,13 @@ and `json-par-join-line'."
   :safe #'symbolp)
 
 
+(defcustom json-par-long-line-threshold
+  1000
+  "Threshold of line length to ask if pretty print the buffer."
+  :type 'number
+  :group 'json-par
+  :safe #'numberp)
+
 ;;; Functions
 
 (defun json-par-multiline (&optional max-level)
@@ -531,6 +538,96 @@ Examples (`|' is the point):
 
      (t
       nil))))
+
+(defun json-par--pretty-print-long-line ()
+  "Format buffer containing long JSON lines.
+
+Lightweight version of `json-pretty-print-buffer'.
+
+This function is less accurate if the JSON lines is already formatted
+partially."
+  (json-par--huge-edit (point-min) (point-max)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((inhibit-changing-match-data t)
+            (inhibit-modification-hooks t)
+            (level 0)
+            (offset (if (boundp 'js-indent-level)
+                        (symbol-value 'js-indent-level)
+                      2))
+            char
+            match-start
+            match-end
+            empty)
+        (while (search-forward-regexp "[][\"{}:,/]" nil t)
+          (setq char (char-before))
+          (cond
+           ((or (eq char ?\[)
+                (eq char ?{))
+            (setq match-end (point))
+            (skip-chars-forward "\s\t")
+            (setq empty (or (eq (char-after) ?\])
+                            (eq (char-after) ?\})))
+            (unless empty
+              (setq level (1+ level)))
+            (unless (eolp)
+              (delete-region match-end (point))
+              (insert ?\n)
+              (indent-to (* level offset)))
+            (when empty
+              (forward-char)))
+
+           ((or (eq char ?\])
+                (eq char ?}))
+            (setq level (1- level))
+            (backward-char)
+            (setq match-start (point))
+            (skip-chars-backward "\s\t")
+            (unless (bolp)
+              (delete-region (point) match-start)
+              (insert ?\n)
+              (indent-to (* level offset)))
+            (forward-char))
+
+           ((eq char ?,)
+            (setq match-end (point))
+            (skip-chars-forward "\s\t")
+            (unless (eolp)
+              (delete-region match-end (point))
+              (insert ?\n)
+              (indent-to (* level offset))))
+
+           ((eq char ?:)
+            (unless (or (eq (char-after) ?\n)
+                        (eq (char-after) ?\s)
+                        (eq (char-after) ?\t))
+              (insert ?\s)))
+
+           ((eq char ?\")
+            (json-par--skip-string))
+
+           ((and (eq char ?/)
+                 (eq (char-after) ?/))
+            (end-of-line))
+
+           ((and (eq char ?/)
+                 (eq (char-after) ?*))
+            (forward-char)
+            (json-par--skip-multiline-comment))))))))
+
+(defun json-par--check-long-line ()
+  "If the first line of the buffer is long, pretty print it.
+
+The user is asked to do so if the first line is longer than
+`json-par-long-line-threshold'."
+  (save-excursion
+    (goto-char (point-min))
+    (when (and (> (buffer-size) json-par-long-line-threshold)
+               (not (search-forward "\n"
+                                    (+ (point) json-par-long-line-threshold)
+                                    t))
+               (y-or-n-p "The buffer seems long.  Pretty print it?"))
+      (json-par--pretty-print-long-line))))
 
 (provide 'json-par-oneline-multiline)
 
