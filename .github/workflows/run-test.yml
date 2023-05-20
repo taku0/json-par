@@ -42,6 +42,9 @@ jobs:
         curl -fsSL https://raw.github.com/doublep/eldev/master/bin/eldev > $ELDEV_DIR/bin/eldev
         chmod a+x $ELDEV_DIR/bin/eldev
     - name: Run linters
+      # WORKAROUND: disable for 24 to mitigate "Argument `_length' should appear
+      # (as _LENGTH) in the doc string".
+      if: ${{ !startsWith(matrix.version, '24.') }}
       run: find ./*.el test/*.el '!' -name '*autoloads.el' -exec ${ELDEV} lint doc re elisp '{}' '+'
     - name: Run tests
       run: ./scripts/run_test.sh
