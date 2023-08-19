@@ -162,23 +162,23 @@ Call `json-par--post-newline' after line break."
     (json-par-define-special-key map "M" #'json-par-multiline)
     (json-par-define-special-key map "O" #'json-par-oneline)
     (define-key
-      map
-      [remap delete-backward-char]
-      #'json-par-delete-backward-char)
+     map
+     [remap delete-backward-char]
+     #'json-par-delete-backward-char)
     (define-key
-      map
-      [remap delete-forward-char]
-      #'json-par-delete-forward-char)
+     map
+     [remap delete-forward-char]
+     #'json-par-delete-forward-char)
     (define-key
-      map
-      [remap delete-char]
-      #'json-par-delete-forward-char)
+     map
+     [remap delete-char]
+     #'json-par-delete-forward-char)
     (json-par-define-special-key map "m" #'json-par-mark-more)
     (json-par-define-special-key map "N" #'json-par-narrow)
     (define-key
-      map
-      [remap mark-sexp]
-      #'json-par-mark-more)
+     map
+     [remap mark-sexp]
+     #'json-par-mark-more)
     (json-par-define-special-key map "S" #'json-par-split)
     (json-par-define-special-key map "F" #'json-par-join)
     (json-par-define-special-key map "c" #'json-par-clone-prefix-command)

@@ -86,7 +86,9 @@ parent member."
                 (if (json-par--goto-end-of-previous-member)
                     (json-par--current-indentation)
                   (if (json-par-token-open-bracket-p (json-par-backward-token))
-                      (+ (json-par--current-indentation) offset)
+                      (+ (or parent-indentation
+                             (json-par--current-indentation))
+                         offset)
                     0))))))))))
 
 (defun json-par--current-indentation ()

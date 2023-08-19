@@ -57,7 +57,7 @@ Those functions are invoked by commands defined by
 
 COMMAND is wrapped with `json-par-define-special-key-command' with SPECIAL-P."
   (define-key keymap key
-    (json-par-define-special-key-command command special-p)))
+              (json-par-define-special-key-command command special-p)))
 
 (defun json-par-define-special-key-command (command &optional special-p)
   "Define a command that invokes COMMAND when SPECIAL-P return non-nil.

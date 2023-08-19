@@ -313,10 +313,10 @@ If PREFIX-CHAR is non-nil, it is shown before the ancestor"
                   (define-key map [down-mouse-2] (lambda () (interactive)))
                   (define-key map [down-mouse-1] (lambda () (interactive)))
                   (define-key map [mouse-2]
-                    (lambda ()
-                      (interactive)
-                      (push-mark)
-                      (goto-char (json-par-token-start key-token))))
+                              (lambda ()
+                                (interactive)
+                                (push-mark)
+                                (goto-char (json-par-token-start key-token))))
                   (define-key map [follow-link] 'mouse-face)
                   map)
                 'mouse-face

@@ -375,13 +375,13 @@ interactively, mark the contents of the key."
     (dolist (prefix '("" "C-" "M-" "C-M-"))
       (dolist (key '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
         (define-key
-          map
-          (kbd (concat prefix key))
-          #'json-par-prefix-digit-argument))
+         map
+         (kbd (concat prefix key))
+         #'json-par-prefix-digit-argument))
       (define-key
-        map
-        (kbd (concat prefix "-"))
-        #'json-par-prefix-negative-argument))
+       map
+       (kbd (concat prefix "-"))
+       #'json-par-prefix-negative-argument))
     (define-key map "\C-u" #'json-par-prefix-universal-argument)
     (define-key map [t] #'json-par-prefix-default)
     map)
@@ -402,13 +402,13 @@ interactively, mark the contents of the key."
     (dolist (prefix '("" "C-" "M-" "C-M-"))
       (dolist (key '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
         (define-key
-          map
-          (kbd (concat prefix key))
-          #'json-par-prefix-digit-argument))
+         map
+         (kbd (concat prefix key))
+         #'json-par-prefix-digit-argument))
       (define-key
-        map
-        (kbd (concat prefix "-"))
-        #'json-par-prefix-negative-argument))
+       map
+       (kbd (concat prefix "-"))
+       #'json-par-prefix-negative-argument))
     (define-key map "\C-u" #'json-par-prefix-universal-argument)
     (define-key map [t] #'json-par-prefix-default)
     map)

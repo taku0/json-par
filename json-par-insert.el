@@ -940,7 +940,7 @@ Return the end position of the region."
                       (setq replacement
                             (string (logior
                                      #x10000
-                                     (lsh (- high-surrogate #xD800) 10)
+                                     (ash (- high-surrogate #xD800) 10)
                                      (- low-surrogate #xDC00))))
                     ;; Not a surrogate pair; go back to the first sequence
                     (setq match-end (- match-end 6))
