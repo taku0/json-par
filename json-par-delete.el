@@ -31,6 +31,7 @@
 (require 'json-par-motion)
 (require 'json-par-keymap)
 (require 'json-par-indent)
+(require 'json-par-insert)
 
 (declare-function
  json-par--oneline-after
