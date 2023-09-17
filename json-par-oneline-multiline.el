@@ -556,71 +556,78 @@ partially."
   (json-par--huge-edit (point-min) (point-max)
     (save-excursion
       (goto-char (point-min))
-      (save-match-data
-        (let ((inhibit-modification-hooks t)
-              (level 0)
-              (offset (if (boundp 'js-indent-level)
-                          (symbol-value 'js-indent-level)
-                        2))
-              char
-              match-start
-              match-end
-              empty)
-          (while (search-forward-regexp "[][\"{}:,/]" nil t)
-            (setq char (char-before))
+      (let ((inhibit-modification-hooks t)
+            (level 0)
+            (offset (if (boundp 'js-indent-level)
+                        (symbol-value 'js-indent-level)
+                      2))
+            (original-size (- (point-max) (point-min)))
+            (progress (make-progress-reporter "Formatting..."
+                                              (point-min)
+                                              (point-max)))
+            char
+            match-start
+            match-end
+            empty)
+        (while (not (eobp))
+          (skip-chars-forward "^][\"{}:,/")
+          (progress-reporter-update progress
+                                    (- original-size (- (point-max) (point))))
+          (setq char (char-after))
+          (cond
+           ((or (eq char ?\[)
+                (eq char ?{))
+            (forward-char)
+            (setq match-end (point))
+            (skip-chars-forward "\s\t\n")
+            (setq empty (or (eq (char-after) ?\])
+                            (eq (char-after) ?\})))
+            (unless empty
+              (setq level (1+ level)))
+            (delete-region match-end (point))
+            (insert ?\n)
+            (indent-to (* level offset))
+            (when empty
+              (forward-char)))
+
+           ((or (eq char ?\])
+                (eq char ?}))
+            (setq level (1- level))
+            (setq match-start (point))
+            (skip-chars-backward "\s\t\n")
+            (delete-region (point) match-start)
+            (insert ?\n)
+            (indent-to (* level offset))
+            (forward-char))
+
+           ((eq char ?,)
+            (forward-char)
+            (setq match-end (point))
+            (skip-chars-forward "\s\t\n")
+            (delete-region match-end (point))
+            (insert ?\n)
+            (indent-to (* level offset)))
+
+           ((eq char ?:)
+            (forward-char)
+            (unless (or (eq (char-after) ?\n)
+                        (eq (char-after) ?\s)
+                        (eq (char-after) ?\t))
+              (insert ?\s)))
+
+           ((eq char ?\")
+            (forward-char)
+            (json-par--skip-string))
+
+           ((eq char ?/)
+            (forward-char)
             (cond
-             ((or (eq char ?\[)
-                  (eq char ?{))
-              (setq match-end (point))
-              (skip-chars-forward "\s\t")
-              (setq empty (or (eq (char-after) ?\])
-                              (eq (char-after) ?\})))
-              (unless empty
-                (setq level (1+ level)))
-              (unless (eolp)
-                (delete-region match-end (point))
-                (insert ?\n)
-                (indent-to (* level offset)))
-              (when empty
-                (forward-char)))
-
-             ((or (eq char ?\])
-                  (eq char ?}))
-              (setq level (1- level))
-              (backward-char)
-              (setq match-start (point))
-              (skip-chars-backward "\s\t")
-              (unless (bolp)
-                (delete-region (point) match-start)
-                (insert ?\n)
-                (indent-to (* level offset)))
-              (forward-char))
-
-             ((eq char ?,)
-              (setq match-end (point))
-              (skip-chars-forward "\s\t")
-              (unless (eolp)
-                (delete-region match-end (point))
-                (insert ?\n)
-                (indent-to (* level offset))))
-
-             ((eq char ?:)
-              (unless (or (eq (char-after) ?\n)
-                          (eq (char-after) ?\s)
-                          (eq (char-after) ?\t))
-                (insert ?\s)))
-
-             ((eq char ?\")
-              (json-par--skip-string))
-
-             ((and (eq char ?/)
-                   (eq (char-after) ?/))
+             ((eq (char-after) ?/)
               (end-of-line))
-
-             ((and (eq char ?/)
-                   (eq (char-after) ?*))
+             ((eq (char-after) ?*)
               (forward-char)
-              (json-par--skip-multiline-comment)))))))))
+              (json-par--skip-multiline-comment))))))
+        (progress-reporter-done progress)))))
 
 (defun json-par--check-long-line ()
   "If the first line of the buffer is long, pretty print it.
