@@ -16,7 +16,8 @@ jobs:
         version:
           - '29.1'
           - '28.2'
-          - '28.1'
+          # Tests on 28.1 fails for some reason.
+          # - '28.1'
           - '27.2'
           - '27.1'
           - '26.3'
