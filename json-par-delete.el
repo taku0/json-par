@@ -2073,6 +2073,9 @@ Spaces and line breaks in strings are not affected."
                               (point))))))
     (json-par--free-marker end)))
 
+(defvar-local json-par--inhibit-fixup-tick nil
+  "Suppress fixing if this variable equal to `buffer-chars-modified-tick'.")
+
 (defun json-par--delete-backward-char-for-string
     (current-atom
      action-when-deleting-string-from-inside
@@ -2095,6 +2098,18 @@ and ACTION-WHEN-DELETING-STRING-FROM-OUTSIDE."
      current-atom
      action-when-deleting-string-from-inside
      'backward))
+
+   ;; The character is escaped
+   ((save-excursion
+      (backward-char)
+      (json-par--escaped-p))
+    (delete-char -1)
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
+
+   ;; The character is escaping a reverse solidus
+   ((and (eq (char-before) ?\\) (eq (char-after) ?\\) (json-par--escaped-p))
+    (delete-char -1)
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
 
    ;; Otherwise
    (t
@@ -2122,6 +2137,20 @@ and ACTION-WHEN-DELETING-STRING-FROM-OUTSIDE."
      current-atom
      action-when-deleting-string-from-inside
      'forward))
+
+   ;; The character is escaped
+   ((json-par--escaped-p)
+    (delete-char 1)
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
+
+   ;; The character is escaping a reverse solidus
+   ((and (eq (char-after) ?\\)
+         (eq (char-after (1+ (point))) ?\\)
+         (save-excursion
+           (forward-char)
+           (json-par--escaped-p)))
+    (delete-char 1)
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
 
    ;; Otherwise
    (t

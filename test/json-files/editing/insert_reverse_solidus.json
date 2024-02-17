@@ -1,0 +1,29 @@
+/// Test for commands relating to inserting reverse solidus.
+
+// Each test consisits with “context”, “actions”, and “expected text”.
+//
+// Context and expected text are JSON texts with annotations:
+//
+// - /*|*/ is the point.
+// - /*[|*/ and /*]*/ or /*[*/ and /*|]*/ shows the region where “|” indicate
+//   the point.
+//
+// Actions are expressions to be evaluated for each step.  It must be
+// a function (or macro) call.
+
+/// It doen't trigger fixup
+
+// context-start
+{
+  "aaa": "aaa/*|*/",
+  "bbb": "bbb"
+}
+// context-end
+// action: (json-par-insert-reverse-solidus)
+// expected-start
+{
+  "aaa": "aaa\/*|*/",
+  "bbb": "bbb"
+}
+// expected-end
+// test-end

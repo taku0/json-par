@@ -3698,3 +3698,72 @@
 ]
 // expected-end
 // test-end
+
+
+/// Deleting escaped characters doesn't trigger fixup
+
+// context-start
+{
+  "aaa": "aaa/*|*/\\",
+  "bbb": "bbb"
+}
+// context-end
+// action: (json-par-delete-forward-char 1)
+// action: (json-par-delete-forward-char 1)
+// expected-start
+{
+  "aaa": "aaa/*|*/",
+  "bbb": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+  "aaa": "aaa/*|*/\\",
+  "bbb": "bbb"
+}
+// context-end
+// action: (forward-char)
+// action: (json-par-delete-forward-char 1)
+// action: (json-par-delete-backward-char 1)
+// expected-start
+{
+  "aaa": "aaa/*|*/",
+  "bbb": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+  "aaa": "aaa/*|*/\\",
+  "bbb": "bbb"
+}
+// context-end
+// action: (forward-char)
+// action: (json-par-delete-backward-char 1)
+// action: (json-par-delete-forward-char 1)
+// expected-start
+{
+  "aaa": "aaa/*|*/",
+  "bbb": "bbb"
+}
+// expected-end
+// test-end
+
+// context-start
+{
+  "aaa": "aaa\\/*|*/",
+  "bbb": "bbb"
+}
+// context-end
+// action: (json-par-delete-backward-char 1)
+// action: (json-par-delete-backward-char 1)
+// expected-start
+{
+  "aaa": "aaa/*|*/",
+  "bbb": "bbb"
+}
+// expected-end
+// test-end

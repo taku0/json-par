@@ -31,6 +31,8 @@
 (defvar-local json-par--changed-region-start nil)
 (defvar-local json-par--changed-region-end nil)
 (defvar-local json-par--inhibit-modification-hooks nil)
+(defvar-local json-par--inhibit-fixup-tick nil
+  "Suppress fixing if this variable equal to `buffer-chars-modified-tick'.")
 
 (defun json-par--reset-changed-region ()
   "Clear the markers of the changed region."
@@ -68,7 +70,9 @@ Remove redundant commas.
 Insert missing commas.
 Quote unquoted keys.
 Insert empty keys if missing."
-  (when (not (memq this-command '(undo undo-only undo-redo)))
+  (when (and (not (memq this-command '(undo undo-only undo-redo)))
+             (not (eq json-par--inhibit-fixup-tick
+                      (buffer-chars-modified-tick))))
     (json-par--clean-up-protection-markers)
     (when (and json-par--changed-region-start
                json-par--changed-region-end
@@ -128,7 +132,10 @@ Redundant commas are not deleted if the comma is inserted by
     (save-excursion
       (goto-char start)
       (json-par--out-comment)
+      (setq start (point))
       (json-par--out-atom)
+      (when (/= start (point))
+        (json-par-backward-token))
       (setq start (point)))
     (save-excursion
       (goto-char end)

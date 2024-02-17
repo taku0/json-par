@@ -1386,6 +1386,17 @@ If the previous token is a colon, keep one space after it."
 
 (push #'json-par-insert-colon json-par--fixup-adviced-functions)
 
+(defvar-local json-par--inhibit-fixup-tick nil
+  "Suppress fixing if this variable equal to `buffer-chars-modified-tick'.")
+
+(defun json-par-insert-reverse-solidus ()
+  "Insert a reverse solidus.
+
+Inhibit fixup until next modification."
+  (interactive)
+  (insert-char ?\\)
+  (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
+
 (provide 'json-par-insert)
 
 ;;; json-par-insert.el ends here
