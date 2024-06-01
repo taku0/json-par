@@ -34,6 +34,9 @@
 (defvar json-par--fixup-adviced-functions nil
   "Functions to be adviced with `json-par--fixup-advice'.")
 
+(defvar-local json-par--inhibit-fixup-tick nil
+  "Suppress fixing if this variable equal to `buffer-chars-modified-tick'.")
+
 ;;; Customizations
 
 (defcustom json-par-action-when-inserting-double-quotes-at-end 'exit
@@ -1391,9 +1394,6 @@ If the previous token is a colon, keep one space after it."
         (skip-chars-forward "\s\t\n"))))))
 
 (push #'json-par-insert-colon json-par--fixup-adviced-functions)
-
-(defvar-local json-par--inhibit-fixup-tick nil
-  "Suppress fixing if this variable equal to `buffer-chars-modified-tick'.")
 
 (defun json-par-insert-reverse-solidus ()
   "Insert a reverse solidus.
