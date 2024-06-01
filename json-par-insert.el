@@ -543,7 +543,6 @@ START is the start position of the object."
        ((use-region-p)
         (json-par-stringify-region (region-beginning) (region-end)))
 
-
        ;; Inside a string
        ((save-excursion (nth 3 (setq parser-state (syntax-ppss))))
         (cond
@@ -620,7 +619,9 @@ If the region is active, unwrap all strings in it.
 
 Otherwise, unwrap the nearest string.
 
-Escaped characters in the strings are unescaped."
+Escaped characters in the strings are unescaped.
+
+Inhibit fixing up until next modification."
   (interactive)
   (let* ((parser-state (save-excursion (syntax-ppss)))
          (current-atom (json-par--current-atom parser-state))
@@ -678,9 +679,11 @@ Escaped characters in the strings are unescaped."
 (push #'json-par-destringify json-par--fixup-adviced-functions)
 
 (defun json-par-destringify-region (start end)
-  "Unwrap strings in the region from START to END.
+  "Unwrap strings overlapping the region from START to END.
 
 Escaped characters in the strings are unescaped.
+
+Inhibit fixing up until next modification.
 
 Return the end position."
   (interactive "r")
@@ -711,14 +714,17 @@ Return the end position."
 (push #'json-par-destringify-region json-par--fixup-adviced-functions)
 
 (defun json-par--destringify-after ()
-  "Unwrap a string just after the point."
+  "Unwrap a string just after the point.
+
+Inhibit fixing up until next modification."
   (let ((start (point-marker))
         (end (save-excursion (json-par-forward-token) (point-marker))))
     (goto-char end)
     (delete-char -1)
     (goto-char start)
     (delete-char 1)
-    (goto-char (json-par-unescape-region-for-string start end))))
+    (goto-char (json-par-unescape-region-for-string start end))
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick))))
 
 (defun json-par--insert-key-or-value (value)
   "Insert VALUE as a key or a value.
