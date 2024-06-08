@@ -4,7 +4,7 @@
 ;;
 ;; Author: taku0 <mxxouy6x3m_github@tatapa.org>
 ;; Maintainer: taku0 <mxxouy6x3m_github@tatapa.org>
-;; Version: 4.0.0
+;; Version: 5.0.0
 ;; Package-Requires: ((emacs "24.4") (json-mode "1.7.0"))
 ;; Keywords: abbrev, convenience, files
 ;; URL: https://github.com/taku0/json-par
