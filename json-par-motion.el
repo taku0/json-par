@@ -1791,13 +1791,18 @@ line breaks between the brackets."
 Assuming the point is not inside a string, an number, or a constants."
   (save-excursion
     (json-par--backward-spaces)
-    (if (bobp)
-        (json-par-backward-token)
+    (cond
+     ((bobp)
+      (json-par-backward-token))
+     ((zerop (nth 0 (syntax-ppss)))
+      (goto-char (point-min))
+      (json-par-backward-token))
+     (t
       (json-par-up-backward)
       (let ((parent-token (json-par-forward-token)))
         (if (json-par-token-open-bracket-p parent-token)
             parent-token
-          (json-par-backward-token))))))
+          (json-par-backward-token)))))))
 
 (defun json-par-down (&optional push-mark place)
   "Move the point inside the current value/key.

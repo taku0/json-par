@@ -138,10 +138,11 @@ Examples (`|' is the point):
     (cond
      ;; Inside an empty brackets, or between two commas or other places
      ;; expecting a value (but not before a colon)
-     ((and (memq (json-par-token-type previous-token)
-                 '({ \( \[ \, : outside-of-buffer))
-           (memq (json-par-token-type next-token)
-                 '(} \) \] \, outside-of-buffer)))
+     ((or (and (memq (json-par-token-type previous-token)
+                     '({ \( \[ \, : outside-of-buffer))
+               (memq (json-par-token-type next-token)
+                     '(} \) \] \, outside-of-buffer)))
+          (json-par-token-outside-of-buffer-p parent-token))
       (when (and point-is-just-after-previous-token
                  (not (json-par-token-outside-of-buffer-p previous-token)))
         (if (memq (char-after) '(?\s ?\t))
