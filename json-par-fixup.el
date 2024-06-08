@@ -126,7 +126,9 @@ Remove spaces inside empty array/object.
 
 Redundant commas are not deleted if the comma is inserted by
 `json-par-insert-comma' and the point is on the empty member resulted from the
-`json-par-insert-comma' invocation."
+`json-par-insert-comma' invocation.
+
+Regions between top-level values are not modified."
   (interactive "r")
   (save-match-data
     (save-excursion
@@ -148,11 +150,13 @@ Redundant commas are not deleted if the comma is inserted by
            preceding-token
            newline-after-preceding-colon
            newline-before-following-colon
-           only-one-value-between-colons)
+           only-one-value-between-colons
+           depth)
       (save-excursion
         (goto-char end)
         (setq following-token (json-par-forward-token))
         (goto-char end)
+        (setq depth (nth 0 (syntax-ppss)))
         (while (progn
                  (setq current-token (json-par-backward-token))
                  (and
@@ -161,6 +165,10 @@ Redundant commas are not deleted if the comma is inserted by
                    (not (json-par-token-outside-of-buffer-p following-token))
                    (not (json-par-token-outside-of-buffer-p current-token)))))
           (cond
+           ;; Between top-level values.
+           ((zerop depth)
+            (setq following-token current-token))
+
            ;; Before an object key.
            ((json-par--object-key-p following-token t)
             ;; Case 1:
@@ -500,7 +508,12 @@ Redundant commas are not deleted if the comma is inserted by
 
            (t
             (error "Unkown token type: %s"
-                   (json-par-token-type following-token))))))
+                   (json-par-token-type following-token))))
+          (cond
+           ((json-par-token-open-bracket-p current-token)
+            (setq depth (1- depth)))
+           ((json-par-token-close-bracket-p current-token)
+            (setq depth (1+ depth))))))
       (json-par--fixup-region-insert-newlines-if-needed start end)
       (json-par--free-marker end))))
 
