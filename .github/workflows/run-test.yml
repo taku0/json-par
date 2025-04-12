@@ -14,6 +14,10 @@ jobs:
     strategy:
       matrix:
         version:
+          - '30.1'
+          - '29.4'
+          - '29.3'
+          - '29.2'
           - '29.1'
           - '28.2'
           # Tests on 28.1 fails for some reason.
