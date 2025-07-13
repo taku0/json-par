@@ -198,6 +198,7 @@ Call `json-par--post-newline' after line break."
     (define-key map (kbd "S-TAB") #'json-par-mark-head-of-member)
     (define-key map "\\" #'json-par-insert-reverse-solidus)
     (json-par-define-special-key map ";" #'json-par-dwim)
+    (json-par-define-special-key map "u" #'universal-argument)
     (easy-menu-define json-par-menu map "Show a menu for JSON Par mode."
       `("JSON Par"
         :help "Structural editing of JSON"
