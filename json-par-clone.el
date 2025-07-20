@@ -39,7 +39,7 @@
   "List of the locations of the ancestor members to be cloned.
 
 The first element is the start position of the member to be cloned.  The last
-element is the start position the parent member.")
+element is the start position of the parent member.")
 
 (defvar-local json-par--clone-level-overlay nil
   "Overlay to indicate the member to be cloned.")
