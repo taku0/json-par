@@ -2,6 +2,13 @@
 
 # Run linter in Docker.  Used in Makefile.
 
+if docker info --format '{{.SecurityOptions}}' | grep -q 'name=rootless'
+then
+    USER_OPT=""
+else
+    USER_OPT=--user="$(id -u):$(id -g)"
+fi
+
 # WORKAROUND: disable for 24 to mitigate "Argument `_length' should appear
 # (as _LENGTH) in the doc string".
 # Indentation rules changed since 29.
@@ -11,7 +18,7 @@ do
         run \
         --rm \
         --volume="$(pwd)":/src \
-        --user="$(id -u):$(id -g)" \
+        $USER_OPT \
         --workdir="/src" \
         --env=ELDEV_DIR=/src/.eldev \
         --env=HOME=/tmp \
