@@ -217,7 +217,7 @@ colon."
 (defvar-local json-par--last-state nil
   "The last state of `json-par--guess-state'.")
 
-(defvar json-par--json-modes '(json-mode jsonian-mode json-ts-mode)
+(defvar json-par--json-modes '(json-mode jsonian-mode json-ts-mode js-json-mode)
   "Modes for searching guessed values/keys.
 
 Buffers with derived modes are also searched.")

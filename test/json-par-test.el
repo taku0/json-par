@@ -35,7 +35,8 @@
 (defvar json-par-test-running nil)
 (defvar json-par-test-jsonc-modes '((jsonc-mode js-indent-level)
                                     (jsonian-c-mode jsonian-default-indentation)
-                                    (json-ts-mode json-ts-mode-indent-offset)))
+                                    (json-ts-mode json-ts-mode-indent-offset)
+                                    (js-json-mode js-indent-level)))
 
 (defvar js-indent-level)
 (defvar jsonian-default-indentation)
@@ -59,6 +60,7 @@ Return the error-buffer"
   (require 'json-mode nil t)
   (require 'jsonian nil t)
   (require 'json-ts-mode nil t)
+  (require 'js nil t)
   (unless tests
     (dolist (test-source (directory-files json-par-test-basedir
                                           t "json-par-test-.*.el"))
