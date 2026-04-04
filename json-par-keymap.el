@@ -114,14 +114,16 @@ If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
 Return non-nil if and only if:
 
 - the region is active, or
-- the point is not in a string or a comment.
-- the point is not in a number or just before/after a number.
+  - the point is not in a string or a comment, nor
+  - the point is not in a number or just before/after a number.
 
 If PARSER-STATE is given, it is used instead of (syntax-ppss).
 If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
-  (and
-   (json-par--special-p parser-state)
-   (not (json-par-token-number-p (json-par--current-atom parser-state)))))
+  (or
+   (use-region-p)
+   (and
+    (not (json-par--string-like-beginning-position parser-state))
+    (not (json-par-token-number-p (json-par--current-atom parser-state))))))
 
 (defun json-par--special-for-e-p (&optional parser-state)
   "Return non-nil if the current buffer is \"special state\" for key `e'.
@@ -129,20 +131,22 @@ If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
 Return non-nil if and only if:
 
 - the region is active, or
-- the point is not in a string or a comment.
-- the point is not in a number, just before a number, or the number contains
-  a character `e'.
+  - the point is not in a string or a comment, nor
+  - the point is not in a number, just before a number, or the number contains
+    a character `e'.
 
 If PARSER-STATE is given, it is used instead of (syntax-ppss).
 If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
-  (and
-   (json-par--special-p parser-state)
-   (let ((current-atom (json-par--current-atom parser-state)))
-     (or
-      (not (json-par-token-number-p current-atom))
-      (eq (json-par-token-start current-atom) (point))
-      (cl-find ?e (json-par-token-text-no-properties current-atom))
-      (cl-find ?E (json-par-token-text-no-properties current-atom))))))
+  (or
+   (use-region-p)
+   (and
+    (not (json-par--string-like-beginning-position parser-state))
+    (let ((current-atom (json-par--current-atom parser-state)))
+      (or
+       (not (json-par-token-number-p current-atom))
+       (eq (json-par-token-start current-atom) (point))
+       (cl-find ?e (json-par-token-text-no-properties current-atom))
+       (cl-find ?E (json-par-token-text-no-properties current-atom)))))))
 
 (defvar-local json-par--prefix-prompt nil
   "The prompt for the temporary keymap of `json-par-prefix-command'.")
@@ -424,7 +428,7 @@ See `json-par--flatten-keymap' for TAIL, PREFIX, and SEEN-KEYMAPS."
    (t tail)))
 
 (defun json-par--supress-pre-command-hooks (fun &rest args)
-  "Call FUN with ARGS only if `this-command' would call it later."
+  "Call FUN with ARGS unless `this-command' would call it later."
   (when (or (null json-par-mode)
             (null (get this-command 'json-par--special-key-command)))
     (apply fun args)))

@@ -221,14 +221,35 @@ See `json-par--insert-value' for details."
 
 (push #'json-par-insert-self-as-value json-par--fixup-adviced-functions)
 
-(defun json-par-insert-self-as-number ()
+(defun json-par-insert-self-as-number (&optional arg)
   "Insert a char invoked this command before or after the current member.
 
 See `json-par--insert-value' for details.
 
-This function doesn't move the point after a comma, if any, after the number."
-  (interactive)
-  (json-par--insert-value (string last-command-event) t))
+This function doesn't move the point after a comma, if any, after the number.
+
+If the region is active, combine the input with ARG as the prefix argument
+instead."
+  (interactive "P")
+  (if (use-region-p)
+      (let* ((event-basic-type (event-basic-type last-command-event))
+             (n (cond
+                 ((eq event-basic-type ?-)
+                  '-)
+                 ((and (numberp event-basic-type)
+                       (<= ?0 event-basic-type ?9))
+                  (- event-basic-type ?0))
+                 (t
+                  (error "Digit or minus sign is expected")))))
+        (setq prefix-arg
+              (cond
+               ((numberp arg)
+                (if (eq n '-) (- arg) (+ (* 10 arg) n)))
+               ((eq arg '-)
+                (if (eq n '-) nil (- n)))
+               (t
+                n))))
+    (json-par--insert-value (string last-command-event) t)))
 
 (push #'json-par-insert-self-as-number json-par--fixup-adviced-functions)
 
@@ -338,7 +359,7 @@ for details."
     (goto-char end)
     (let* (token
            (previous-value (save-excursion
-                             (json-par-beginning-of-member)
+                             (json-par-beginning-of-member-point-only)
                              (setq token (json-par-backward-token-or-list))
                              (when (json-par-token-comma-p token)
                                (setq token (json-par-backward-token-or-list)))
@@ -346,7 +367,7 @@ for details."
            (next-value (save-excursion
                          (setq token (json-par-forward-token-or-list))
                          (when (json-par-token-comma-p token)
-                           (json-par-end-of-member)
+                           (json-par-end-of-member-point-only)
                            (setq token (json-par-backward-token-or-list)))
                          token))
            (previous-is-brackets
@@ -371,10 +392,10 @@ for details."
            (or
             (json-par-token-outside-of-buffer-p previous-value)
             (/= (save-excursion
-                  (json-par-up-backward)
+                  (json-par-up-backward-point-only)
                   (line-beginning-position))
                 (save-excursion
-                  (json-par-up-forward)
+                  (json-par-up-forward-point-only)
                   (line-beginning-position))))
            (not (eq default-brackets-style 'one-line)))))))
 
@@ -1191,7 +1212,7 @@ Details:
                    previous-is-object-key)
               (and (json-par-token-colon-p previous-token)
                    next-is-value))
-      (json-par-beginning-of-member))
+      (json-par-beginning-of-member-point-only))
     (when (memq (char-before) '(?\[ ?\( ?{ ?\,))
       (insert-char ?\s)
       (when (and (json-par-token-comma-p previous-token)
@@ -1361,7 +1382,7 @@ If the previous token is a colon, keep one space after it."
      ;; After a key
      ((and (json-par-token-string-p previous-token)
            (save-excursion
-             (json-par-beginning-of-member)
+             (json-par-beginning-of-member-point-only)
              (= (point) (json-par-token-start previous-token))))
       (save-excursion
         (json-par--backward-spaces)

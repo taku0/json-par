@@ -100,7 +100,7 @@ See `json-par-split' for details."
       (goto-char (cdr escape-sequence))))
   (let* ((is-key (json-par--object-key-p string-token))
          (end-position (save-excursion
-                         (json-par-end-of-member)
+                         (json-par-end-of-member-point-only)
                          (point)))
          (end-marker
           (let ((marker (copy-marker end-position)))
@@ -295,7 +295,7 @@ See `json-par-split' for details."
     (json-par--out-atom)
     (unless (or (eq position-in-member 'after-member)
                 (eq position-in-member 'before-member))
-      (json-par-beginning-of-member))
+      (json-par-beginning-of-member-point-only))
     (save-excursion
       (json-par--backward-spaces)
       (when (eq (char-before) ?\,)

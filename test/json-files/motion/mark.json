@@ -110,7 +110,7 @@
 
 // context-start
 {
-    /*1[*/"a":/*|]1*/ /*0*/,
+    /*1[*/"a": /*0*//*|]1*/,
     "b": "bbb"
 }
 // context-end
@@ -121,7 +121,7 @@
 //// Between colon and bracket.
 
 // context-start
-{ /*1[*/"a":/*|]1*/ /*0*/ }
+{ /*1[*/"a": /*|]1*//*0*/ }
 // context-end
 // action: (json-par-mark-more-if-special) // 1
 // test-end
@@ -674,4 +674,360 @@
 ]
 // context-end
 // action: (json-par-mark-more 1 t) // 1
+// test-end
+
+
+/// Pop region history
+
+// context-start
+[[
+        /*2[|*//*1[|*//*0[|*/"aaa"/*]0*//*]2*/,
+        "bbb"/*]1*/,
+        "ccc"
+    ]
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// action: (json-par-mark-more -1 t) // 2
+// test-end
+
+
+/// Mark and motion
+
+// context-start
+{
+    "aaa": "aaa",
+    /*5[|*/"bbb": "bbb",
+    /*1[*//*2[*//*3[*//*4[*/"ccc": /*0[|*/"ccc"/*]0*//*|]4*//*]5*/,
+    "ddd": "ddd"/*|]1*/,
+    "eee": "eee"/*|]2*//*|]3*/
+}
+// context-end
+// action: (json-par-forward-member) // 1
+// action: (json-par-forward-member) // 2
+// action: (json-par-forward-member) // 3
+// action: (json-par-backward-member 2) // 4
+// action: (json-par-backward-member) // 5
+// test-end
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    /*1[|*/"ccc": /*0[|*/"ccc"/*]0*//*]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-beginning-of-member) // 1
+// test-end
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    /*1[*/"ccc": /*0[|*/"ccc"/*]0*//*|]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-end-of-member) // 1
+// test-end
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    /*0[|*/"ccc"/*]0*/: /*1[|*/"ccc"/*]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-beginning-of-object-value) // 1
+// test-end
+
+// context-start
+{
+    /*1[|*/"aaa": "aaa",
+    "bbb": "bbb",
+    "ccc": /*0[|*/"ccc"/*]0*//*]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-beginning-of-list) // 1
+// test-end
+
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    /*1[*/"ccc": /*0[|*/"ccc"/*]0*/,
+    "ddd": "ddd",
+    "eee": "eee"/*|]1*/
+}
+// context-end
+// action: (json-par-end-of-list) // 1
+// test-end
+
+// context-start
+{
+    "aaa": /*0[|*/"aaa"/*]0*/,
+    "bbb": "bbb",
+    /*1[|*/"ccc": "ccc"/*]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-key "ccc") // 1
+// test-end
+
+// context-start
+{
+    "aaa": /*0[|*/"aaa"/*]0*/,
+    "bbb": "bbb",
+    /*1[|*/"ccc": "ccc"/*]1*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-index 2) // 1
+// test-end
+
+// context-start
+{
+    "aaa": /*0[|*/"aaa"/*]0*/,
+    "bbb": "bbb",
+    "ccc": [
+        "A",
+        /*1[|*/"B"/*]1*/,
+        "C"
+    ],
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 1)) // 1
+// test-end
+
+// context-start
+[
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        "eee": /*0[|*/"eee"/*]0*/
+    },
+    {
+        /*1[|*/"aaa": "aaa"/*]1*/,
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        "eee": "eee"
+    }
+]
+// context-end
+// action: (json-par-goto-next-cousin) // 1
+// test-end
+
+// context-start
+[
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        /*1[|*/"eee": "eee"/*]1*/
+    },
+    {
+        "aaa": /*0[|*/"aaa"/*]0*/,
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        "eee": "eee"
+    }
+]
+// context-end
+// action: (json-par-goto-previous-cousin) // 1
+// test-end
+
+// context-start
+{
+    "A": /*1[*/{
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[|*/"ccc"/*]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    }/*|]1*/
+}
+// context-end
+// action: (json-par-up-forward) // 1
+// test-end
+
+// context-start
+{
+    "A": /*1[|*/{
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[|*/"ccc"/*]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    }/*]1*/
+}
+// context-end
+// action: (json-par-up-backward) // 1
+// test-end
+
+// context-start
+{
+    "A": /*0[|*/{
+        /*1[|*/"aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        "eee": "eee"/*]1*/
+    }/*]0*/,
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+{
+    "A": /*0[*/{
+        /*1[*/"aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": "ccc",
+        "ddd": "ddd",
+        "eee": "eee"/*|]1*/
+    }/*|]0*/,
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+{
+    "A": {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        /*0[|*/"/*1[|*/ccc/*]1*/"/*]0*/: "ccc",
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+{
+    "A": {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        /*0[*/"/*1[*/ccc/*|]1*/"/*|]0*/: "ccc",
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+{
+    "A": {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[|*/"/*1[|*/ccc/*]1*/"/*]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+{
+    "A": {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[*/"/*1[*/ccc/*|]1*/"/*|]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+}
+// context-end
+// action: (json-par-down) // 1
+// test-end
+
+// context-start
+[
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[|*/"ccc"/*]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        /*1[|*/"ccc": "ccc"/*]1*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    }
+]
+// context-end
+// action: (json-par-forward-record) // 1
+// test-end
+
+// context-start
+[
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        /*1[|*/"ccc": "ccc"/*]1*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    },
+    {
+        "aaa": "aaa",
+        "bbb": "bbb",
+        "ccc": /*0[|*/"ccc"/*]0*/,
+        "ddd": "ddd",
+        "eee": "eee"
+    }
+]
+// context-end
+// action: (json-par-backward-record) // 1
+// test-end
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    /*0[|*/"/*1[|*/ccc/*]1*/"/*]0*/: /*2[|*/"ccc"/*]2*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-tab) // 1
+// action: (json-par-tab) // 2
+// test-end
+
+// context-start
+{
+    "aaa": "aaa",
+    "bbb": "bbb",
+    "/*1[*/ccc/*|]1*/": /*0[|*/"ccc"/*]0*/,
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-mark-head-of-member) // 1
 // test-end

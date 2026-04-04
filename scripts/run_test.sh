@@ -9,4 +9,5 @@
   --eval "(add-to-list 'load-path \"$(readlink -f .)/test\")" \
   --eval "(setq debug-on-error t)" \
   -l test/json-par-test.el \
-  -f json-par-run-test
+  -f json-par-run-test \
+  | grep -v '^Mark set$'

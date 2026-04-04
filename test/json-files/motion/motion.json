@@ -312,21 +312,21 @@
 // context-start
 [
     "abc",
-    "a/*0[*//*1[*/b/*|]0*/c",
-    "abc"/*|]1*/
+    "a/*0*/bc",
+    "abc"/*1*/
 ]
 // context-end
-// action: (json-par-forward-member-if-special) // 1
+// action: (json-par-forward-member) // 1
 // test-end
 
 // context-start
 [
-    "abc"/*1[|*/,
-    "a/*]1*//*0[*/b/*|]0*/c",
+    "abc"/*1*/,
+    "a/*0*/bc",
     "abc"
 ]
 // context-end
-// action: (json-par-backward-member-if-special) // 1
+// action: (json-par-backward-member) // 1
 // test-end
 
 
@@ -464,19 +464,19 @@
 
 // context-start
 {
-    "aaa": /*1[|*/"a[\"/*0[*//*]1*/a/*|]0*/\"]a"
+    "aaa": /*1*/"a[\"/*0*/a\"]a"
 }
 // context-end
-// action: (json-par-up-backward-if-special) // 1
+// action: (json-par-up-backward) // 1
 // test-end
 
 // context-start
 {
-    "aaa": "a[\"/*0[*//*1[*/a/*|]0*/\"]a"/*|]1*/,
+    "aaa": "a[\"/*0*/a\"]a"/*1*/,
     "bbb": "bbb"
 }
 // context-end
-// action: (json-par-up-forward-if-special) // 1
+// action: (json-par-up-forward) // 1
 // test-end
 
 
@@ -1069,7 +1069,7 @@
 
 // context-start
 [
-  /*0*/[/*1*/   ]
+  /*0*/[ /*1*/  ]
 ]
 // context-end
 // action: (json-par-down-if-special) // 1
@@ -1077,7 +1077,7 @@
 
 // context-start
 [
-  [   /*1*/]/*0*/
+  [ /*1*/  ]/*0*/
 ]
 // context-end
 // action: (json-par-down-if-special) // 1

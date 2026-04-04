@@ -665,9 +665,9 @@ after each members around the region."
                 (goto-char end)
                 (json-par--forward-spaces)
                 (when (json-par--same-line-p (point) end)
-                  (or (zerop (json-par-forward-member))
+                  (or (zerop (json-par-forward-member-point-only))
                       (progn
-                        (json-par-end-of-member)
+                        (json-par-end-of-member-point-only)
                         (json-par--forward-spaces))))
                 (and (not (memq (char-after) '(?\] ?\) ?} nil)))
                      (json-par--multiple-members-on-same-line-after-point-p

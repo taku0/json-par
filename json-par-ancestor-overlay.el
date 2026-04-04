@@ -271,14 +271,14 @@ If the beginning of the current member is before POINT, include it at the last."
       (goto-char point)
       (json-par--out-comment)
       (json-par--out-atom)
-      (json-par-beginning-of-member)
+      (json-par-beginning-of-member-point-only)
       (when (< (point) point)
         (push (point) path))
       (while (progn
                (json-par--backward-spaces)
                (not (bobp)))
-        (json-par-up-backward)
-        (json-par-beginning-of-member)
+        (json-par-up-backward-point-only)
+        (json-par-beginning-of-member-point-only)
         (push (point) path))
       path)))
 
@@ -399,8 +399,8 @@ WINDOW-START is the start position of the visible area of the WINDOW, default to
           (while (progn
                    (json-par--backward-spaces)
                    (not (bobp)))
-            (json-par-up-backward)
-            (json-par-beginning-of-member)
+            (json-par-up-backward-point-only)
+            (json-par-beginning-of-member-point-only)
             (setq token (save-excursion (json-par-forward-token)))
             (if (< (json-par-token-end token) window-start)
                 (goto-char (point-min))
@@ -507,11 +507,11 @@ WINDOW is the window to be updated, default to the selected window."
         (save-excursion
           (goto-char (window-point window))
           (setq start (save-excursion
-                        (json-par-beginning-of-member)
+                        (json-par-beginning-of-member-point-only)
                         (point)))
           (setq end (save-excursion
                       (goto-char start)
-                      (json-par-end-of-member)
+                      (json-par-end-of-member-point-only)
                       (point)))
           (setq before-start (max (1- start) (point-min)))
           (overlay-put current-member-overlay

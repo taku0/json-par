@@ -888,13 +888,13 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
       (setq token-before-value
             (save-excursion
               (goto-char pos)
-              (json-par-end-of-member)
+              (json-par-end-of-member-point-only)
               (json-par-backward-token-or-list)
               (json-par-backward-token)))
       (setq token-after-value
             (save-excursion
               (goto-char pos)
-              (json-par-end-of-member)
+              (json-par-end-of-member-point-only)
               (json-par-forward-token)))
       (if (and (or (json-par-token-open-bracket-p token-before-value)
                    (json-par-token-outside-of-buffer-p token-before-value))
@@ -908,7 +908,7 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
            mark-direction)
         (setq end-position (save-excursion
                              (goto-char pos)
-                             (json-par-end-of-member)
+                             (json-par-end-of-member-point-only)
                              (json-par--forward-spaces)
                              (skip-chars-backward "\s\t\n")
                              (point)))
@@ -1262,10 +1262,10 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
       nil
     (let* ((start-of-member (save-excursion
                               (goto-char pos)
-                              (json-par-beginning-of-member)
+                              (json-par-beginning-of-member-point-only)
                               (when (< n -1)
                                 (dotimes (_ (- (- n) 1))
-                                  (json-par-backward-member)))
+                                  (json-par-backward-member-point-only)))
                               (json-par--backward-spaces)
                               (skip-chars-forward "\s\t\n")
                               (when (memq (char-after) '(nil ?\] ?\) ?}))
@@ -1280,11 +1280,11 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
                               (point)))
            (end-of-member (save-excursion
                             (goto-char pos)
-                            (json-par-beginning-of-member)
-                            (json-par-end-of-member)
+                            (json-par-beginning-of-member-point-only)
+                            (json-par-end-of-member-point-only)
                             (when (< 1 n)
                               (dotimes (_ (- n 1))
-                                (json-par-forward-member)))
+                                (json-par-forward-member-point-only)))
                             (json-par--forward-spaces)
                             (skip-chars-backward "\s\t\n")
                             (when (memq (char-before) '(nil ?\[ ?\( ?{ ?,))
@@ -2037,7 +2037,7 @@ array/object."
        ;; Between members.
        ;; Also delete spaces inside the array/object.
        ((eq (char-before start) ?\,)
-        (json-par-up-backward)
+        (json-par-up-backward-point-only)
         (setq whole-list (json-par-forward-token-or-list))
         (when (and (json-par-token-matching-brackets-p whole-list)
                    (json-par-token-one-line-p whole-list))
@@ -2323,7 +2323,7 @@ interactively.
     (setq action 'delete))
   (json-par-delete-current-value-or-key
    (save-excursion
-     (json-par-beginning-of-object-value)
+     (json-par-beginning-of-object-value-point-only)
      (point))
    t
    nil
@@ -2383,7 +2383,7 @@ interactively.
     nil)
 
    (t
-    (json-par-up-forward n)
+    (json-par-up-forward-point-only n)
     (json-par-delete-current-value-or-key
      nil
      nil
@@ -2419,7 +2419,7 @@ interactively.
     nil)
 
    (t
-    (json-par-up-backward n)
+    (json-par-up-backward-point-only n)
     (json-par-delete-current-value-or-key
      nil
      nil
@@ -2454,7 +2454,7 @@ interactively.
                        ((eq action 'delete) 'delete-inner)
                        ((eq action 'mark-or-delete) 'mark-or-delete-inner)
                        ((eq action 'mark) 'mark-inner))))
-    (json-par-down nil 'member)
+    (json-par-down-point-only nil 'member)
     (cond
      ((< pos (point))
       (goto-char pos)
@@ -2506,7 +2506,7 @@ interactively.
     (setq action 'delete))
   (json-par-delete-current-value-or-key
    (save-excursion
-     (json-par-beginning-of-member)
+     (json-par-beginning-of-member-point-only)
      (point))
    t
    'following
@@ -2531,7 +2531,7 @@ interactively.
    (list json-par-action-when-deleting-value-or-member))
   (unless action
     (setq action 'delete))
-  (json-par-up-forward)
+  (json-par-up-forward-point-only)
   (json-par-delete-inner action))
 
 (push #'json-par-delete-backward-inside-of-parent
@@ -2553,7 +2553,7 @@ interactively.
    (list json-par-action-when-deleting-value-or-member))
   (unless action
     (setq action 'delete))
-  (json-par-up-backward)
+  (json-par-up-backward-point-only)
   (json-par-delete-inner action))
 
 (push #'json-par-delete-forward-inside-of-parent
@@ -3000,7 +3000,7 @@ around the point."
            (skip-chars-backward "\s\t"))
          (point))
        end)
-      (json-par-up-forward)
+      (json-par-up-forward-point-only)
       (json-par-oneline)
       (backward-char)
       (json-par--backward-spaces))
@@ -3021,7 +3021,7 @@ around the point."
            (skip-chars-backward "\s\t"))
          (point))
        end)
-      (json-par-up-backward)
+      (json-par-up-backward-point-only)
       (json-par-oneline)
       (forward-char)
       (json-par--forward-spaces))
@@ -3051,7 +3051,7 @@ around the point."
       (setq current-member-index (json-par--current-member-index))
       (setq current-offset-from-member
             (- (save-excursion (skip-chars-forward "\s\t") (point)) (point)))
-      (json-par-up-backward)
+      (json-par-up-backward-point-only)
       (save-excursion
         (json-par--oneline-after
          0
@@ -3059,7 +3059,7 @@ around the point."
              'delete-line-breaks-between-members)))
       (forward-char)
       (json-par--forward-spaces)
-      (json-par-goto-index current-member-index)
+      (json-par-goto-index-point-only current-member-index)
       (backward-char current-offset-from-member))
 
      ;; Otherwise.
@@ -3445,7 +3445,7 @@ around the point."
          (when delete-following-spaces
            (skip-chars-forward "\s\t"))
          (point)))
-      (json-par-up-backward)
+      (json-par-up-backward-point-only)
       (json-par-oneline)
       (forward-char)
       (json-par--forward-spaces))
@@ -3467,7 +3467,7 @@ around the point."
          (when delete-following-spaces
            (skip-chars-forward "\s\t"))
          (point)))
-      (json-par-up-forward)
+      (json-par-up-forward-point-only)
       (json-par-oneline)
       (backward-char)
       (json-par--backward-spaces))
@@ -3498,7 +3498,7 @@ around the point."
       (setq current-member-index (json-par--current-member-index))
       (setq current-offset-from-member
             (- (save-excursion (skip-chars-forward "\s\t") (point)) (point)))
-      (json-par-up-backward)
+      (json-par-up-backward-point-only)
       (save-excursion
         (json-par--oneline-after
          0
@@ -3506,7 +3506,7 @@ around the point."
              'delete-line-breaks-between-members)))
       (forward-char)
       (json-par--forward-spaces)
-      (json-par-goto-index current-member-index)
+      (json-par-goto-index-point-only current-member-index)
       (backward-char current-offset-from-member))
 
      ;; Otherwise.

@@ -85,10 +85,10 @@ interactively, mark the contents of the key."
                  after-cloned
                  (save-excursion
                    (goto-char after-cloned)
-                   (json-par-beginning-of-member)
+                   (json-par-beginning-of-member-point-only)
                    (json-par--object-key-p (json-par-forward-token))))
         (goto-char after-cloned)
-        (json-par-beginning-of-member)
+        (json-par-beginning-of-member-point-only)
         (json-par--delete-or-mark-string
          (save-excursion (json-par-forward-token))
          'mark-inner
@@ -133,10 +133,10 @@ interactively, mark the contents of the key."
                  after-cloned
                  (save-excursion
                    (goto-char after-cloned)
-                   (json-par-beginning-of-member)
+                   (json-par-beginning-of-member-point-only)
                    (json-par--object-key-p (json-par-forward-token))))
         (goto-char after-cloned)
-        (json-par-beginning-of-member)
+        (json-par-beginning-of-member-point-only)
         (json-par--delete-or-mark-string
          (save-excursion (json-par-forward-token))
          'mark-inner
@@ -170,15 +170,15 @@ Return the location after the cloned member."
     (json-par--out-comment)
     (json-par--out-atom)
     (when level
-      (json-par-up-backward level))
+      (json-par-up-backward-point-only level))
     (setq start (progn
-                  (json-par-beginning-of-member)
+                  (json-par-beginning-of-member-point-only)
                   (json-par--backward-spaces)
                   (skip-chars-forward "\s\t\n")
                   (point)))
     (setq end (progn
                 (goto-char start)
-                (json-par-end-of-member)
+                (json-par-end-of-member-point-only)
                 (json-par--forward-spaces)
                 (skip-chars-backward "\s\t\n")
                 (point)))
@@ -511,7 +511,7 @@ json-par\N{U+2D}clone-increase-level or other custom key bindings."
     (goto-char (or (car json-par--clone-level-locations) (point)))
     (json-par--out-comment)
     (json-par--out-atom)
-    (json-par-up-backward)
+    (json-par-up-backward-point-only)
     (push (point) json-par--clone-level-locations)
     (move-overlay json-par--clone-level-overlay (point) (1+ (point)))
     (add-hook

@@ -97,11 +97,11 @@ parent member."
 It is the indentation of the current of preceding member at the beginning of a
 line or the beginning of the containing array/object."
   (save-excursion
-    (json-par-beginning-of-member)
+    (json-par-beginning-of-member-point-only)
     (json-par--backward-spaces t)
     (while (and (not (bolp))
                 (json-par--goto-end-of-previous-member))
-      (json-par-beginning-of-member)
+      (json-par-beginning-of-member-point-only)
       (json-par--backward-spaces t))
     (skip-chars-forward "\s\t")
     (current-column)))

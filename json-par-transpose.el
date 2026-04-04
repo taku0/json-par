@@ -69,26 +69,26 @@ If the current member is the last one, do nothing."
 
 If the current member is the first one, do nothing."
   (let* ((start-of-current-member (save-excursion
-                                    (json-par-beginning-of-member)
+                                    (json-par-beginning-of-member-point-only)
                                     (json-par--backward-spaces)
                                     (skip-chars-forward "\s\t\n")
                                     (point)))
          (end-of-current-member (save-excursion
                                   (goto-char start-of-current-member)
-                                  (json-par-end-of-member)
+                                  (json-par-end-of-member-point-only)
                                   (json-par--forward-spaces)
                                   (skip-chars-backward "\s\t\n")
                                   (point)))
          (offset (- (point) start-of-current-member))
          (start-of-previous-member (save-excursion
-                                     (json-par-backward-member)
-                                     (json-par-beginning-of-member)
+                                     (json-par-backward-member-point-only)
+                                     (json-par-beginning-of-member-point-only)
                                      (json-par--backward-spaces)
                                      (skip-chars-forward "\s\t\n")
                                      (point)))
          (end-of-previous-member (save-excursion
                                    (goto-char start-of-previous-member)
-                                   (json-par-end-of-member)
+                                   (json-par-end-of-member-point-only)
                                    (json-par--forward-spaces)
                                    (skip-chars-backward "\s\t\n")
                                    (point))))
@@ -105,26 +105,26 @@ If the current member is the first one, do nothing."
 
 If the current member is the last one, do nothing."
   (let* ((start-of-current-member (save-excursion
-                                    (json-par-beginning-of-member)
+                                    (json-par-beginning-of-member-point-only)
                                     (json-par--backward-spaces)
                                     (skip-chars-forward "\s\t\n")
                                     (point)))
          (end-of-current-member (save-excursion
                                   (goto-char start-of-current-member)
-                                  (json-par-end-of-member)
+                                  (json-par-end-of-member-point-only)
                                   (json-par--forward-spaces)
                                   (skip-chars-backward "\s\t\n")
                                   (point)))
          (offset (- (point) end-of-current-member))
          (start-of-next-member (save-excursion
-                                 (json-par-forward-member)
-                                 (json-par-beginning-of-member)
+                                 (json-par-forward-member-point-only)
+                                 (json-par-beginning-of-member-point-only)
                                  (json-par--backward-spaces)
                                  (skip-chars-forward "\s\t\n")
                                  (point)))
          (end-of-next-member (save-excursion
                                (goto-char start-of-next-member)
-                               (json-par-end-of-member)
+                               (json-par-end-of-member-point-only)
                                (json-par--forward-spaces)
                                (skip-chars-backward "\s\t\n")
                                (point))))

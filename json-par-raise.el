@@ -40,7 +40,7 @@ If ARG is given, repeat that time."
   (let* ((start (if (use-region-p)
                     (region-beginning)
                   (save-excursion
-                    (json-par-beginning-of-member)
+                    (json-par-beginning-of-member-point-only)
                     (json-par--backward-spaces)
                     (skip-chars-forward "\s\t\n")
                     (point))))
@@ -48,18 +48,18 @@ If ARG is given, repeat that time."
                   (region-end)
                 (save-excursion
                   (goto-char start)
-                  (json-par-end-of-member)
+                  (json-par-end-of-member-point-only)
                   (json-par--forward-spaces)
                   (skip-chars-backward "\s\t\n")
                   (point))))
          start-of-parent
          end-of-parent)
-    (json-par-up-backward arg)
-    (json-par-beginning-of-member)
+    (json-par-up-backward-point-only arg)
+    (json-par-beginning-of-member-point-only)
     (setq start-of-parent (point-marker))
     (setq end-of-parent
           (save-excursion
-            (json-par-end-of-member)
+            (json-par-end-of-member-point-only)
             (point-marker)))
     (transpose-regions (point) (point) start end)
     (goto-char (- start-of-parent (- end start)))

@@ -239,11 +239,11 @@ MAX-ANCESTORS is the max number of ancestors to search."
            (next-token (save-excursion
                          (json-par-forward-token)))
            (start-of-member (save-excursion
-                              (json-par-beginning-of-member)
+                              (json-par-beginning-of-member-point-only)
                               (point)))
            (end-of-member (save-excursion
                             (goto-char start-of-member)
-                            (json-par-end-of-member)
+                            (json-par-end-of-member-point-only)
                             (point)))
            key-token-and-depth
            key-token
@@ -312,7 +312,7 @@ MAX-ANCESTORS is the max number of ancestors to search."
            :depth depth
            :sibling-keys
            (save-excursion
-             (json-par-up-backward)
+             (json-par-up-backward-point-only)
              (delq nil
                    (mapcar (lambda (pos)
                              (goto-char pos)
@@ -351,8 +351,8 @@ If any ancestors don't have a key, return a list (nil DEPTH)."
       (while (and (null key-token)
                   (not (bobp)))
         (setq depth (1+ depth))
-        (json-par-up-backward)
-        (json-par-beginning-of-member)
+        (json-par-up-backward-point-only)
+        (json-par-beginning-of-member-point-only)
         (setq key-token (save-excursion (json-par-forward-token)))
         (unless (json-par--object-key-p key-token)
           (setq key-token nil))
@@ -375,7 +375,7 @@ If RESULT is given, the positions are prepended to it."
                  (eobp)))
           result
         (cons (point) result))
-    (json-par-beginning-of-object-value)
+    (json-par-beginning-of-object-value-point-only)
     (if (memq (char-after) '(?\[ ?\( ?{))
         (progn
           (forward-char)
@@ -659,7 +659,7 @@ See `json-par--guess-next' for details."
       (with-current-buffer buffer
         (while (and candidates (null value-token))
           (goto-char (pop candidates))
-          (json-par-beginning-of-object-value)
+          (json-par-beginning-of-object-value-point-only)
           (setq value-token (json-par-forward-token-or-list))
           (unless (json-par--guess-eligible-value-p value-token seen-values)
             (setq value-token nil)))
@@ -714,7 +714,7 @@ See `json-par--guess-next' for details."
     (dolist (parent-location parent-locations)
       (save-excursion
         (goto-char parent-location)
-        (json-par-beginning-of-object-value)
+        (json-par-beginning-of-object-value-point-only)
         (when (eq (char-after) '?{)
           (setq member-locations (reverse (json-par--locate-all-members 1)))
           (setq keys
@@ -789,7 +789,7 @@ See `json-par--guess-next' for details."
                         (buffer-substring-no-properties
                          (point)
                          (save-excursion
-                           (json-par-end-of-member)
+                           (json-par-end-of-member-point-only)
                            (point)))))
             (when (or (string-empty-p text)
                       (member text seen-values))

@@ -216,7 +216,7 @@ Insert a space after colon if not exists."
   (setq max-level
         (if (null max-level) 1.0e+INF (prefix-numeric-value max-level)))
   (save-excursion
-    (json-par-beginning-of-object-value)
+    (json-par-beginning-of-object-value-point-only)
     (let* ((next-token (json-par-forward-token-or-list))
            (json-par--already-out-of-comment t)
            (json-par--already-out-of-atom t)
@@ -307,7 +307,7 @@ between tokens."
   (interactive "P")
   (setq min-level (if (null min-level) 0 (prefix-numeric-value min-level)))
   (save-excursion
-    (json-par-beginning-of-member)
+    (json-par-beginning-of-member-point-only)
     (let* ((parsed (json-par--parse-member-forward))
            (parent-token (json-par--parent-token))
            (inside-object (json-par-token-open-curly-bracket-p parent-token))
@@ -319,7 +319,7 @@ between tokens."
            next-token)
       (json-par--huge-edit start end
         (when inside-object
-          (json-par-beginning-of-object-value nil parsed)
+          (json-par-beginning-of-object-value-point-only nil parsed)
           (when (zerop min-level)
             ;; Delete line breaks around the key and colon.
             (setq object-value-start (point-marker))
@@ -464,7 +464,7 @@ Examples (`|' is the point):
            (json-par--before-second-member-p previous-token)
            (json-par--all-members-on-same-line-after-point-p))
       (save-excursion
-        (json-par-up-backward)
+        (json-par-up-backward-point-only)
         (json-par-multiline 1)))
 
      ;; Just inside brackets and the array/object was single line.
@@ -495,7 +495,7 @@ Examples (`|' is the point):
                            (goto-char (point-min)))
                          (line-beginning-position))))))
       (save-excursion
-        (json-par-up-backward)
+        (json-par-up-backward-point-only)
         (json-par-multiline 1)))
 
      ;; [
@@ -522,7 +522,7 @@ Examples (`|' is the point):
      ((progn
         (setq whole-list-token
               (save-excursion
-                (json-par-up-backward)
+                (json-par-up-backward-point-only)
                 (json-par-forward-token-or-list)))
         (json-par-token-matching-brackets-p whole-list-token))
       (setq end (copy-marker (json-par-token-end whole-list-token)))

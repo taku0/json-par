@@ -28,6 +28,7 @@
 
 (require 'json-par-lexer)
 (require 'json-par-motion)
+(require 'json-par-delete)
 
 ;;; Mark
 
@@ -62,7 +63,7 @@ backward if not.  See `json-par--region-to-extend-backward' or
     current-prefix-arg
     (or (eq last-command 'json-par-mark-more)
         (use-region-p))))
-  (when (consp arg)
+  (when (or (consp arg) (eq arg '-))
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
   (if (< arg 0)
@@ -81,16 +82,20 @@ backward if not.  See `json-par--region-to-extend-backward' or
 (defun json-par-pop-region (&optional arg)
   "Undo `json-par-mark-more' ARG times.
 
+If the region is not active, call `pop-to-mark-command' instead.
+
 If ARG is negative, call `json-par-mark-more' that times.  If called with
 non-numeric prefix argument, it is converted to -1."
   (interactive "P")
-  (when (consp arg)
+  (when (or (consp arg) (eq arg '-))
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
   (if (< arg 0)
       (json-par-mark-more (- arg))
     (dotimes (_ arg)
-      (json-par--pop-region-1))))
+      (if (region-active-p)
+          (json-par--pop-region-1)
+        (pop-to-mark-command)))))
 
 (defun json-par--pop-region-1 ()
   "Undo `json-par-mark-more'."
@@ -223,10 +228,10 @@ Return a cons of the start and end positions."
          ((or (json-par-token-colon-p previous-token)
               (json-par-token-colon-p next-token))
           (setq start (save-excursion
-                        (json-par-beginning-of-member)
+                        (json-par-beginning-of-member-point-only)
                         (point)))
           (setq end (save-excursion
-                      (json-par-end-of-member)
+                      (json-par-end-of-member-point-only)
                       (point))))
 
          ((json-par-token-comma-p next-token)
@@ -250,13 +255,12 @@ Return a cons of the start and end positions."
        ;; Otherwise.
        (t
         (setq start (save-excursion
-                      (json-par-end-of-member)
+                      (json-par-end-of-member-point-only)
                       (json-par-backward-token-or-list)
                       (point)))
-        (setq end
-              (save-excursion
-                (json-par-end-of-member)
-                (point)))))
+        (setq end (save-excursion
+                    (json-par-end-of-member-point-only)
+                    (point)))))
       (cons start end))))
 
 (defun json-par--region-to-extend-backward (point mark)
@@ -335,25 +339,25 @@ The current region is represented with POINT and MARK.
                  (json-par-token-outside-of-buffer-p previous-token))
              (or (save-excursion
                    (goto-char point)
-                   (json-par-up-backward)
+                   (json-par-up-backward-point-only)
                    (< (json-par-token-start previous-token) (point)))
                  (and (save-excursion
                         (goto-char point)
-                        (json-par-end-of-member)
+                        (json-par-end-of-member-point-only)
                         (json-par--forward-spaces)
                         (skip-chars-backward "\s\t\n")
                         (< point (point)))
                       (save-excursion
                         (goto-char point)
-                        (json-par-beginning-of-member)
+                        (json-par-beginning-of-member-point-only)
                         (json-par--backward-spaces)
                         (skip-chars-forward "\s\t\n")
                         (< (point) point)))))
         (setq start (point))
         (setq end (save-excursion
-                    (json-par-end-of-member)
+                    (json-par-end-of-member-point-only)
                     (while (< (point) point)
-                      (json-par-forward-member)
+                      (json-par-forward-member-point-only)
                       (json-par--forward-spaces))
                     (json-par--forward-spaces)
                     (skip-chars-backward "\s\t\n")
@@ -370,10 +374,10 @@ The current region is represented with POINT and MARK.
        ;; After a colon.
        ((json-par-token-colon-p previous-token)
         (setq start (save-excursion
-                      (json-par-beginning-of-member)
+                      (json-par-beginning-of-member-point-only)
                       (point)))
         (setq end (save-excursion
-                    (json-par-end-of-member)
+                    (json-par-end-of-member-point-only)
                     (point))))
 
        ;; One or more members are marked.  Case 1.
@@ -381,14 +385,14 @@ The current region is represented with POINT and MARK.
        (mark-is-after-comma
         (setq end (point))
         (json-par-backward-token)
-        (json-par-beginning-of-member)
+        (json-par-beginning-of-member-point-only)
         (setq start (point)))
 
        ;; One or more members are marked.  Case 2.
        ;; Mark one more member.
        (t
         (setq end (point))
-        (json-par-beginning-of-member)
+        (json-par-beginning-of-member-point-only)
         (setq start (point))))
       (cons start end))))
 
@@ -475,25 +479,25 @@ The current region is represented with POINT and MARK.
              (or
               (save-excursion
                 (goto-char point)
-                (json-par-up-forward)
+                (json-par-up-forward-point-only)
                 (< (point) (json-par-token-end next-token)))
               (and (save-excursion
                      (goto-char point)
-                     (json-par-beginning-of-member)
+                     (json-par-beginning-of-member-point-only)
                      (json-par--backward-spaces)
                      (skip-chars-forward "\s\t\n")
                      (< (point) point))
                    (save-excursion
                      (goto-char point)
-                     (json-par-end-of-member)
+                     (json-par-end-of-member-point-only)
                      (json-par--forward-spaces)
                      (skip-chars-backward "\s\t\n")
                      (< point (point))))))
         (setq end (point))
         (setq start (save-excursion
-                      (json-par-beginning-of-member)
+                      (json-par-beginning-of-member-point-only)
                       (while (< point (point))
-                        (json-par-backward-member)
+                        (json-par-backward-member-point-only)
                         (json-par--backward-spaces))
                       (json-par--backward-spaces)
                       (skip-chars-forward "\s\t\n")
@@ -510,10 +514,10 @@ The current region is represented with POINT and MARK.
        ;; Before colon.
        ((json-par-token-colon-p next-token)
         (setq start (save-excursion
-                      (json-par-beginning-of-member)
+                      (json-par-beginning-of-member-point-only)
                       (point)))
         (setq end (save-excursion
-                    (json-par-end-of-member)
+                    (json-par-end-of-member-point-only)
                     (point))))
 
        ;; One or more members are marked.  Case 1.
@@ -521,14 +525,14 @@ The current region is represented with POINT and MARK.
        (mark-is-before-comma
         (setq start (point))
         (json-par-forward-token)
-        (json-par-end-of-member)
+        (json-par-end-of-member-point-only)
         (setq end (point)))
 
        ;; One or more members are marked.  Case 2.
        ;; Mark one more.
        (t
         (setq start (point))
-        (json-par-end-of-member)
+        (json-par-end-of-member-point-only)
         (setq end (point))))
       (cons start end))))
 
@@ -579,7 +583,7 @@ ORIGINAL-REGION-END.
 See `json-par--region-to-extend-forward' for details"
   (let* (token
          (start (save-excursion
-                  (json-par-up-backward)
+                  (json-par-up-backward-point-only)
                   (skip-chars-forward "\s\t\n")
                   (setq token (save-excursion (json-par-forward-token)))
                   (when (json-par-token-open-bracket-p token)
@@ -587,7 +591,7 @@ See `json-par--region-to-extend-forward' for details"
                     (skip-chars-forward "\s\t\n"))
                   (point)))
          (end (save-excursion
-                (json-par-up-forward)
+                (json-par-up-forward-point-only)
                 (skip-chars-backward "\s\t\n")
                 (setq token (save-excursion (json-par-backward-token)))
                 (when (json-par-token-close-bracket-p token)
@@ -606,13 +610,639 @@ See `json-par--region-to-extend-forward' for details"
       (when (<= original-region-start start end original-region-end)
         (setq start (save-excursion
                       (goto-char start)
-                      (json-par-up-backward)
+                      (json-par-up-backward-point-only)
                       (point)))
         (setq end (save-excursion
                     (goto-char end)
-                    (json-par-up-forward)
+                    (json-par-up-forward-point-only)
                     (point)))))
     (cons start end)))
+
+;;; Interactive mark
+
+(defmacro json-par--save-region-history-if-moved (&rest body)
+  "Add current region to history if region changed after evaluating BODY.
+
+Region is added to `json-par--region-history'.
+
+Return the last value of BODY."
+  (declare (debug (body)))
+  (let ((current-region (make-symbol "current-region")))
+    `(let ((,current-region (list (point) (mark t) (region-active-p))))
+       (prog1 (progn ,@body)
+         (when (and (region-active-p)
+                    (not (equal ,current-region (list (point) (mark t) t))))
+           (add-to-history 'json-par--region-history ,current-region nil t))))))
+
+(defun json-par-end-of-member (&optional push-mark)
+  "Move the point to the end of the current member, not including a comma.
+
+If region is active, move mark to the beginning of the member.
+
+If PUSH-MARK is non-nil or called interactively, the function is not called
+repeatedly, and the region is not active, push a mark first."
+  (interactive
+   (list
+    (not (eq last-command 'json-par-end-of-member))))
+  (json-par--save-region-history-if-moved
+   (json-par-end-of-member-point-only push-mark)
+   (when (region-active-p)
+     (json-par-end-of-member-point-only nil t)
+     (set-mark (save-excursion
+                 (json-par-beginning-of-member-point-only nil t)
+                 (point))))))
+
+(defun json-par-beginning-of-member (&optional push-mark)
+  "Move the point to the start of the current member.
+
+If the region is active, move mark to the end of the member.
+
+If PUSH-MARK is non-nil or called interactively, the function is not called
+repeatedly, and the region is not active, push a mark first."
+  (interactive
+   (list
+    (not (eq last-command 'json-par-beginning-of-member))))
+  (json-par--save-region-history-if-moved
+   (json-par-beginning-of-member-point-only push-mark)
+   (when (region-active-p)
+     (json-par-beginning-of-member-point-only nil t)
+     (set-mark (save-excursion
+                 (json-par-end-of-member-point-only nil t)
+                 (point))))))
+
+(defun json-par-beginning-of-object-value (&optional push-mark parsed)
+  "Move the point to the start of the object value of the current member.
+
+If the point is not in a object, go to the beginning of the member.
+
+If the region is active, move mark to the end of the member.
+
+If PUSH-MARK is non-nil or called interactively, the function is not called
+repeatedly, and the region is not active, push a mark first.
+
+If PARSED is given, it is used instead of calling
+`json-par--parse-member-forward'."
+  (interactive
+   (list
+    (not (eq last-command 'json-par-beginning-of-object-value))))
+  (json-par--save-region-history-if-moved
+   (json-par-beginning-of-object-value-point-only push-mark parsed t)
+   (when (region-active-p)
+     (set-mark (save-excursion
+                 (json-par-end-of-member-point-only nil t)
+                 (point))))))
+
+(defun json-par-beginning-of-list (&optional push-mark)
+  "Move the point before the first member of the current array/object.
+
+If the region is active, move mark to the end of the member where mark is.
+
+If PUSH-MARK is non-nil or called interactively, the function is not called
+repeatedly, and the region is not active, push a mark first."
+  (interactive
+   (list
+    (not (eq last-command 'json-par-beginning-of-list))))
+  (json-par--save-region-history-if-moved
+   (json-par-beginning-of-list-point-only push-mark t)
+   (when (region-active-p)
+     (set-mark (save-excursion
+                 (goto-char (mark t))
+                 (json-par-end-of-member-point-only nil t)
+                 (point)))
+     (when (and (= (point) (mark t))
+                (save-excursion
+                  (skip-chars-forward "\s\t\n")
+                  (not (eq (char-after) ?\,))))
+       (skip-chars-forward "\s\t\n")
+       (set-mark (point))
+       (skip-chars-backward "\s\t\n")))))
+
+(defun json-par-end-of-list (&optional push-mark)
+  "Move the point after last the member of the current array/object.
+
+If the region is active, move mark to the beginning of the member where mark is.
+
+If PUSH-MARK is non-nil or called interactively, the function is not called
+repeatedly, and the region is not active, push a mark first."
+  (interactive
+   (list
+    (not (eq last-command 'json-par-end-of-list))))
+  (json-par--save-region-history-if-moved
+   (json-par-end-of-list-point-only push-mark t)
+   (when (region-active-p)
+     (set-mark (save-excursion
+                 (goto-char (mark t))
+                 (json-par-beginning-of-member-point-only nil t)
+                 (point)))
+     (when (and (= (point) (mark t))
+                (save-excursion
+                  (skip-chars-backward "\s\t\n")
+                  (not (eq (char-after) ?\,))))
+       (skip-chars-backward "\s\t\n")
+       (set-mark (point))
+       (skip-chars-forward "\s\t\n")))))
+
+(defun json-par-goto-key (key &optional push-mark)
+  "Move the point to the beginning of the member with KEY.
+
+If the region is active, move mark to the end of the member.
+
+If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Return non-nil if KEY found.  Otherwise, keep the original position and return
+nil."
+  (interactive "MGoto key: \np")
+  (json-par--save-region-history-if-moved
+   (prog1 (json-par-goto-key-point-only key push-mark)
+     (when (region-active-p)
+       (json-par-beginning-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-end-of-member-point-only nil t)
+                   (point)))))))
+
+(defun json-par-goto-index (index &optional push-mark)
+  "Move the point to the beginning of the member at INDEX.
+
+If the region is active, move mark to the end of the member.
+
+If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Return non-nil if INDEX found.  Otherwise, keep the original position and return
+nil."
+  (interactive "nGoto index: \np")
+  (json-par--save-region-history-if-moved
+   (prog1 (json-par-goto-index-point-only index push-mark)
+     (when (region-active-p)
+       (json-par-beginning-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-end-of-member-point-only nil t)
+                   (point)))))))
+
+(defun json-par-goto-path (path &optional push-mark)
+  "Move the point to the beginning of the member at PATH.
+
+PATH is a list of following elements:
+
+- String: key of member in object
+- Number: index of member in object/array
+- Symbol `*': first member matching rest of the path
+
+Example:
+
+  When the point is at (*1) below, (json-par-goto-path \\='(\"a\" * \"b\" 1))
+  move the point to (*2).
+
+  {
+    (*1) \"a\": [
+      { \"a\": 1 },
+      { \"b\": [ 2, (*2) 3, 4] },
+      { \"c\": 3 }
+    ]
+  }
+
+If the region is active, move mark to the end of the member.
+
+If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Return non-nil if PATH found.  Otherwise, keep the original position and return
+nil."
+  (json-par--save-region-history-if-moved
+   (prog1 (json-par-goto-path-point-only path push-mark)
+     (when (region-active-p)
+       (json-par-beginning-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-end-of-member-point-only nil t)
+                   (point)))))))
+
+(defun json-par--adjust-region-to-member-boundary ()
+  "Place point and mark to member boundary."
+  (let ((mark-is-before-point (< (mark t) (point))))
+    (if mark-is-before-point
+        (json-par-end-of-member-point-only nil t)
+      (json-par-beginning-of-member-point-only nil t))
+    (set-mark (save-excursion
+                (goto-char (mark t))
+                (if mark-is-before-point
+                    (json-par-beginning-of-member-point-only nil t)
+                  (json-par-end-of-member-point-only nil t))
+                (point)))
+    ;; Is empty array/object?
+    (when (and (= (point) (mark t))
+               (save-excursion
+                 (skip-chars-backward "\s\t\n")
+                 (memq (char-before) '(nil ?\[ ?\( ?{)))
+               (save-excursion
+                 (skip-chars-forward "\s\t\n")
+                 (memq (char-after) '(nil ?\] ?\) ?}))))
+      (if mark-is-before-point
+          (progn
+            (skip-chars-backward "\s\t\n")
+            (set-mark (point))
+            (skip-chars-forward "\s\t\n"))
+        (skip-chars-forward "\s\t\n")
+        (set-mark (point))
+        (skip-chars-backward "\s\t\n")))))
+
+(defun json-par-forward-member (&optional arg)
+  "Move the point forward to the next member.
+
+With ARG, repeat that times.  If ARG is negative, move backward.
+
+If the region is active, place point to the end of the member after movement
+and place mark to the beginning of the member where mark is.
+
+If the region is not active, keep position in a member after movement.
+
+This function treats a key-value pair in an object as one member while
+`json-par-forward-sexp' treats it as multiple tokens (key, colon, value, and
+optional comma).
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (prog1 (json-par-forward-member-point-only arg)
+     (when (region-active-p)
+       (json-par--adjust-region-to-member-boundary)))))
+
+(defun json-par-backward-member (&optional arg)
+  "Move the point backward to the previous member.
+
+With ARG, repeat that times.  If ARG is negative, move forward.
+
+If the region is active, place point to the beginning of the member after
+movement and place mark to the end of the member where mark is.
+
+If the region is not active, keep position in a member after movement.
+
+This function treats a key-value pair in an object as one member while
+`json-par-forward-sexp' treats it as three tokens (key, colon, and value).
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (prog1 (json-par-backward-member-point-only arg)
+     (when (region-active-p)
+       (json-par--adjust-region-to-member-boundary)))))
+
+(defun json-par-goto-next-cousin (&optional arg)
+  "Move the point to the first member of the following sibling of the parent.
+
+If the following sibling of the parent is empty, go inside it.
+
+If the parent has no following siblings, move to the 2nd cousin, and so on.
+
+If ARG is given, repeat that times.  If ARG is negative, move backward.
+
+If the region is active, mark the member after movement.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+     (prog1 (json-par-goto-next-cousin-point-only arg)
+       (when (region-active-p)
+         (if mark-is-before-point
+             (progn
+               (json-par-beginning-of-member-point-only nil t)
+               (set-mark (point))
+               (json-par-end-of-member-point-only nil t))
+           (progn
+             (json-par-end-of-member-point-only nil t)
+             (set-mark (point))
+             (json-par-beginning-of-member-point-only nil t))))))))
+
+(defun json-par-goto-previous-cousin (&optional arg)
+  "Move the point to the last member of the preceding sibling of the parent.
+
+If the preceding sibling of the parent is empty, go inside it.
+
+If the parent has no preceding siblings, move to the 2nd cousin, and so on.
+
+If ARG is given, repeat that times.  If ARG is negative, move backward.
+
+If the region is active, mark the member after movement.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+     (prog1 (json-par-goto-previous-cousin-point-only arg)
+       (when (region-active-p)
+         (if mark-is-before-point
+             (progn
+               (json-par-beginning-of-member-point-only nil t)
+               (set-mark (point))
+               (json-par-end-of-member-point-only nil t))
+           (progn
+             (json-par-end-of-member-point-only nil t)
+             (set-mark (point))
+             (json-par-beginning-of-member-point-only nil t))))))))
+
+(defun json-par-up-forward (&optional arg push-mark collapse-if-empty)
+  "Move the point to the end of the surrounding brackets.
+
+If the point is inside a string, an number, or a constants, move to the end of
+the token instead.
+
+If ARG is given, repeat that times.  If ARG is negative, move backward.
+
+If the region is active, mark the key or value after movement.
+
+If PUSH-MARK is non-nil or called interactively, and the region is not active,
+push a mark first.
+
+If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
+line breaks between the brackets.
+
+When called interactively, it defaults to the value of the variable
+`json-par-collapse-when-exit-from-empty-brackets'."
+  (interactive
+   (list
+    (prefix-numeric-value current-prefix-arg)
+    t
+    json-par-collapse-when-exit-from-empty-brackets))
+  (json-par--save-region-history-if-moved
+   (json-par-up-forward-point-only arg push-mark collapse-if-empty)
+   (when (region-active-p)
+     (set-mark (save-excursion
+                 (json-par-backward-token-or-list)
+                 (point))))))
+
+(defun json-par-up-backward (&optional arg push-mark collapse-if-empty)
+  "Move the point to the start of the surrounding brackets.
+
+If the point is inside a string, an number, or a constants, move to the start of
+the token instead.
+
+If ARG is given, repeat that times.  If ARG is negative, move forward.
+
+If the region is active, mark the key or value after movement.
+
+If PUSH-MARK is non-nil or called interactively, and the region is not active,
+push a mark first.
+
+If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
+line breaks between the brackets.
+
+When called interactively, it defaults to the value of the variable
+`json-par-collapse-when-exit-from-empty-brackets'."
+  (interactive
+   (list
+    (prefix-numeric-value current-prefix-arg)
+    t
+    json-par-collapse-when-exit-from-empty-brackets))
+  (json-par--save-region-history-if-moved
+   (json-par-up-backward-point-only arg push-mark collapse-if-empty)
+   (when (region-active-p)
+     (set-mark (save-excursion
+                 (json-par-forward-token-or-list)
+                 (point))))))
+
+(defun json-par-down (&optional push-mark place)
+  "Move the point inside the current value/key.
+
+If the point is before or after a string/bracket, move the point to inside the
+string/bracket, then skip spaces unless the string/bracket contains only spaces.
+
+If the point is before a square bracket and PLACE is a symbol `value', go before
+the value of the first key-value pair.  The default value is `value' when called
+from Lisp program, or the value of `json-par-place-after-down-into-object'.
+
+If the point is not before or after a string/bracket, keep the position.
+
+If the region is active, mark contents of the current value/key.
+
+If PUSH-MARK is non-nil or called interactively, the resulting position is not
+same to the original position, and the region is not active, push a mark first."
+  (interactive
+   (list
+    t
+    json-par-place-after-down-into-object))
+  (unless place
+    (setq place 'value))
+  (json-par--save-region-history-if-moved
+   (let ((pos (point))
+         region
+         string-like-beginning-position)
+     (json-par-down-point-only push-mark place)
+     (when (and (region-active-p) (/= pos (point)))
+       (setq string-like-beginning-position
+             (json-par--string-like-beginning-position))
+       (setq region (cond
+                     (string-like-beginning-position
+                      (json-par--region-of-string-like-body
+                       string-like-beginning-position
+                       t))
+
+                     ((json-par-token-close-bracket-p
+                       (save-excursion (json-par-forward-token)))
+                      (json-par-end-of-member-point-only nil t)
+                      (cons (save-excursion
+                              (json-par-beginning-of-list-point-only nil t)
+                              (point))
+                            (point)))
+
+                     (t
+                      (json-par-beginning-of-member-point-only nil t)
+                      (cons (point)
+                            (save-excursion
+                              (json-par-end-of-list-point-only nil t)
+                              (point))))))
+       (if (= (point) (car region))
+           (set-mark (cdr region))
+         (set-mark (car region)))))))
+
+(defun json-par-forward-record (&optional arg)
+  "Move the point to the following object/array with the same key/index.
+
+Move the point to the member with the same key/index after the point.  Keep
+position in the member.  If such an object/array is not found, keep the original
+position.
+
+Search siblings after the point.  If not found, search first cousins after the
+point.  If not found, search second cousins after the point, and so on.
+
+With ARG, repeat that times.  If ARG is negative, move backward.
+
+If the region is active, mark the member after movement.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+     (prog1 (json-par-forward-record-point-only arg)
+       (when (region-active-p)
+         (if mark-is-before-point
+             (progn
+               (json-par-beginning-of-member-point-only nil t)
+               (set-mark (point))
+               (json-par-end-of-member-point-only nil t))
+           (progn
+             (json-par-end-of-member-point-only nil t)
+             (set-mark (point))
+             (json-par-beginning-of-member-point-only nil t))))))))
+
+(defun json-par-backward-record (&optional arg)
+  "Move the point to the preceding object/array with the same key/index.
+
+Move the point to the member with the same key/index before the point.  Keep
+position in the member.  If such an object/array is not found, keep the original
+position.
+
+Search siblings before the point.  If not found, search first cousins before the
+point.  If not found, search second cousins before the point, and so on.
+
+With ARG, repeat that times.  If ARG is negative, move forward.
+
+If the region is active, mark the member after movement.
+
+Return ARG minus the count of movement."
+  (interactive "p")
+  (json-par--save-region-history-if-moved
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+     (prog1 (json-par-backward-record-point-only arg)
+       (when (region-active-p)
+         (if mark-is-before-point
+             (progn
+               (json-par-beginning-of-member-point-only nil t)
+               (set-mark (point))
+               (json-par-end-of-member-point-only nil t))
+           (progn
+             (json-par-end-of-member-point-only nil t)
+             (set-mark (point))
+             (json-par-beginning-of-member-point-only nil t))))))))
+
+(defun json-par-tab (&optional arg)
+  "Move the point to the object value if the point is on or after a key.
+
+If the point is on a string, move to the end of the string.
+
+Otherwise, call `indent-for-tab-command' with ARG.
+
+If the region is active, mark the key or value after movement."
+  (interactive "P")
+  (json-par--save-region-history-if-moved
+   (unless (and
+            (region-active-p)
+            (save-excursion
+              (skip-chars-backward "\s\t")
+              (bolp)))
+     (json-par-tab-point-only arg))
+   (when (region-active-p)
+     (setq deactivate-mark nil)
+     (cond
+      ;; Empty member
+      ((and (save-excursion
+              (skip-chars-forward "\s\t\n")
+              (memq (char-after) '(nil ?\, ?\] ?\) ?})))
+            (save-excursion
+              (skip-chars-backward "\s\t\n")
+              (memq (char-before) '(nil ?\, ?\[ ?\( ?{))))
+       (set-mark (point))
+       (json-par--adjust-region-to-member-boundary))
+
+      ;; Before value
+      ((save-excursion
+         (json-par--backward-spaces)
+         (eq (char-before) ?:))
+       (json-par-beginning-of-object-value-point-only nil nil t)
+       (set-mark (save-excursion
+                   (json-par-end-of-member-point-only nil t)
+                   (when (save-excursion
+                           (json-par--backward-spaces)
+                           (eq (char-before) ?:))
+                     ;; Empty value
+                     (json-par--end-of-empty-member t))
+                   (point))))
+
+      ;; After member
+      ((save-excursion
+         (json-par--forward-spaces)
+         (memq (char-after) '(nil ?\, ?\] ?\) ?})))
+       (json-par-end-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-beginning-of-object-value-point-only nil nil t)
+                   (point))))
+
+      ;; Before key
+      ((and (eq (char-after) ?\")
+            (save-excursion
+              (forward-char)
+              (json-par--skip-string)
+              (json-par--forward-spaces)
+              (eq (char-after) ?:)))
+       (json-par-beginning-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-forward-token)
+                   (json-par--forward-spaces)
+                   (skip-chars-backward "\s\t\n")
+                   ;; In single-line comment?
+                   (when (json-par--string-like-beginning-position)
+                     (forward-line))
+                   (point)))
+       (when (and (eq (char-after) ?\")
+                  (eq (char-before (mark t)) ?\"))
+         (forward-char)
+         (set-mark (1- (mark t)))))
+
+      ;; Before member
+      (t
+       (json-par-beginning-of-member-point-only nil t)
+       (set-mark (save-excursion
+                   (json-par-end-of-member-point-only nil t)
+                   (point))))))))
+
+(defun json-par-mark-head-of-member ()
+  "Mark the key of the current member.
+
+If not inside an object, mark the whole member.
+
+If the current member don't have a key, insert an empty key and place point and
+mark inside the key."
+  (interactive)
+  (json-par--save-region-history-if-moved
+   (let* ((pos (point))
+          (parsed (progn
+                    (json-par-beginning-of-member-point-only nil t)
+                    (json-par--parse-member-forward)))
+          (key-token (gethash :key-token parsed))
+          (colon-token (gethash :colon-token parsed))
+          (value-token (gethash :value-token parsed))
+          (parent-token (json-par--parent-token))
+          (inside-object (json-par-token-open-curly-bracket-p parent-token)))
+     (cond
+      (key-token
+       (goto-char (json-par-token-start key-token))
+       (json-par--backward-spaces)
+       (skip-chars-forward "\s\t\n")
+       (set-mark (save-excursion
+                   (goto-char (json-par-token-end key-token))
+                   (json-par--forward-spaces)
+                   (skip-chars-backward "\s\t\n")
+                   (when (json-par--string-like-beginning-position)
+                     (forward-line))
+                   (point)))
+       (when (and (eq (char-after) ?\")
+                  (eq (char-before (mark t)) ?\"))
+         (forward-char)
+         (set-mark (1- (mark t))))
+       (when (<= (json-par-token-end key-token) pos)
+         (exchange-point-and-mark)))
+
+      (colon-token
+       (goto-char (json-par-token-start colon-token))
+       (json-par-insert-double-quotes)
+       (set-mark (point)))
+
+      (inside-object
+       (when value-token
+         (goto-char (json-par-token-start value-token)))
+       (json-par-insert-double-quotes)
+       (set-mark (point)))
+
+      (t
+       (set-mark (point))
+       (json-par--adjust-region-to-member-boundary))))))
 
 
 ;;; Narrow
@@ -636,7 +1266,7 @@ extend."
    (list
     current-prefix-arg
     (eq last-command 'json-par-narrow)))
-  (when (consp arg)
+  (when (or (consp arg) (eq arg '-))
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
   (if (< arg 0)
@@ -658,7 +1288,7 @@ extend."
 If ARG is negative, call `json-par-narrow' that times.  If called with
 non-numeric prefix argument, it is converted to -1."
   (interactive "P\np")
-  (when (consp arg)
+  (when (or (consp arg) (eq arg '-))
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
   (if (< arg 0)
