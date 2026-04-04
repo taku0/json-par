@@ -696,31 +696,220 @@ Return one of:
 
        (t 'after-key)))))
 
-(defun json-par--goto-position-in-member (position-in-member)
-  "Go to POSITION-IN-MEMBER in the current member.
+(defun json-par--fine-position-in-member ()
+  "Return the position in a member.
 
-POSITION-IN-MEMBER is a symbol returned from `json-par--position-in-member'."
-  (cond
-   ((eq position-in-member 'empty-member)
-    nil)
+Finer then `json-par--position-in-member'.
 
-   ((eq position-in-member 'before-member)
-    (json-par-beginning-of-member-point-only))
+Positions and return values:
 
-   ((eq position-in-member 'after-member)
-    (json-par-end-of-member-point-only))
+{(1)  (2)
+...,(3)  (4)
+\(5)
+\(6)  (7)\"key\"(8)  (9)
+\(10)
+\(11)  (12):(13)  (14)
+\(15)
+\(16)  (17)\"value\"(18)  (19)
+\(20)
+\(21)  (22),
+...
+\(23)  (24)}
 
-   ((eq position-in-member 'before-value)
-    (json-par-beginning-of-object-value-point-only))
+- 1: just-after-open-bracket
+- 2: after-open-bracket-on-same-line
+- 3: just-after-comma
+- 4: after-comma-on-same-line
+- 5: before-member
+- 6: before-member-on-same-line
+- 7: just-before-member
+- 8: just-after-key
+- 9: after-key-on-same-line
+- 10: after-key
+- 11: before-colon-on-same-line
+- 12: just-before-colon
+- 13: just-after-colon
+- 14: after-colon-on-same-line
+- 15: before-value
+- 16: before-value-on-same-line
+- 17: just-before-value
+- 18: just-after-member
+- 19: after-member-on-same-line
+- 20: after-member
+- 21: before-comma-on-same-line
+- 22: just-before-comma
+- 23: before-close-bracket-on-same-line
+- 24: just-before-close-bracket
 
-   ((eq position-in-member 'after-key)
-    (json-par-beginning-of-object-value-point-only)
-    (let ((previous-token (save-excursion (json-par-backward-token))))
-      (when (json-par-token-colon-p previous-token)
-        (goto-char (json-par-token-start previous-token))))
-    (json-par--backward-spaces))))
 
-(defun json-par--goto-position-in-parsed-member (position-in-member parsed)
+Priority (from high to low):
+
+- just-before-member
+- just-before-value
+- just-after-colon
+- just-after-member
+- just-after-open-bracket
+- just-before-close-bracket
+- just-after-comma
+- just-before-comma
+- just-after-key
+- just-before-colon
+- before-member-on-same-line
+- after-open-bracket-on-same-line
+- after-comma-on-same-line
+- before-member
+- after-key-on-same-line
+- before-colon-on-same-line
+- after-key
+- before-value-on-same-line
+- after-colon-on-same-line
+- before-value
+- after-member-on-same-line
+- before-close-bracket-on-same-line
+- before-comma-on-same-line
+- after-member"
+  (save-excursion
+    (json-par--out-comment)
+    (json-par--out-atom)
+    (let* ((parsed
+            (save-excursion
+              (json-par-beginning-of-member-point-only nil t)
+              (json-par--parse-member-forward t)))
+           (start-of-member (gethash :start-of-member parsed))
+           (end-of-member (gethash :end-of-member parsed))
+           (key-token (gethash :key-token parsed))
+           (colon-token (gethash :colon-token parsed))
+           (value-token (gethash :value-token parsed))
+           (point-before-spaces-on-same-line
+            (save-excursion
+              (json-par--backward-spaces t)
+              (point)))
+           (point-after-spaces-on-same-line
+            (save-excursion
+              (json-par--forward-spaces t)
+              (point)))
+           (point-before-spaces
+            (save-excursion
+              (json-par--backward-spaces)
+              (point)))
+           (point-after-spaces
+            (save-excursion
+              (json-par--forward-spaces)
+              (point))))
+      (cond
+       ((or (= (point) start-of-member)
+            (cond
+             (key-token
+              (= (point) (json-par-token-start key-token)))
+             (colon-token
+              (= (point) (json-par-token-start colon-token)))))
+        'just-before-member)
+
+       ((and value-token (= (point) (json-par-token-start value-token)))
+        'just-before-value)
+
+       ((and colon-token (= (point) (json-par-token-end colon-token)))
+        'just-after-colon)
+
+       ((or (= (point) end-of-member)
+            (and value-token
+                 (= (point) (json-par-token-end value-token))))
+        'just-after-member)
+
+       ((memq (char-before) '(nil ?\[ ?\( ?{))
+        'just-after-open-bracket)
+
+       ((memq (char-after) '(nil ?\] ?\) ?}))
+        'just-before-close-bracket)
+
+       ((eq (char-before) ?\,)
+        'just-after-comma)
+
+       ((eq (char-after) ?\,)
+        'just-before-comma)
+
+       ((and key-token (= (point) (json-par-token-end key-token)))
+        'just-after-key)
+
+       ((and colon-token (= (point) (json-par-token-start colon-token)))
+        'just-before-colon)
+
+       ((= point-before-spaces-on-same-line
+           (save-excursion
+             (goto-char start-of-member)
+             (json-par--backward-spaces t)
+             (point)))
+        'before-member-on-same-line)
+
+       ((= point-before-spaces-on-same-line
+           (save-excursion
+             (goto-char start-of-member)
+             (json-par--backward-spaces)
+             (point)))
+        (if (memq (char-before) '(nil ?\[ ?\( ?{))
+            'after-open-bracket-on-same-line
+          'after-comma-on-same-line))
+
+       ((= point-before-spaces
+           (save-excursion
+             (goto-char start-of-member)
+             (json-par--backward-spaces)
+             (point)))
+        'before-member)
+
+       ((and key-token
+             (= point-before-spaces-on-same-line
+                (json-par-token-end key-token)))
+        'after-key-on-same-line)
+
+       ((and colon-token
+             (= point-after-spaces-on-same-line
+                (json-par-token-start colon-token)))
+        'before-colon-on-same-line)
+
+       ((or (and key-token
+                 (= point-before-spaces
+                    (json-par-token-end key-token)))
+            (and colon-token
+                 (= point-after-spaces
+                    (json-par-token-start colon-token))))
+        'after-key)
+
+       ((and value-token
+             (= point-after-spaces-on-same-line
+                (json-par-token-start value-token)))
+        'before-value-on-same-line)
+
+       ((and colon-token
+             (= point-before-spaces-on-same-line
+                (json-par-token-end colon-token)))
+        'after-colon-on-same-line)
+
+       ((and value-token
+             (= point-after-spaces
+                (json-par-token-start value-token)))
+        'before-value)
+
+       ((= point-before-spaces-on-same-line
+           (save-excursion
+             (goto-char end-of-member)
+             (json-par--backward-spaces t)
+             (point)))
+        'after-member-on-same-line)
+
+       ((= point-after-spaces-on-same-line
+           (save-excursion
+             (goto-char end-of-member)
+             (json-par--forward-spaces)
+             (point)))
+        (if (memq (char-before) '(nil ?\] ?\) ?}))
+            'before-close-bracket-on-same-line
+          'before-comma-on-same-line))
+
+       (t
+        'after-member)))))
+
+(defun json-par--goto-position (position-in-member parsed)
   "Go to POSITION-IN-MEMBER in the PARSED member.
 
 POSITION-IN-MEMBER is a symbol returned from `json-par--position-in-member'.
@@ -746,6 +935,107 @@ PARSED is a parsed member returned from `json-par--parse-member-forward' or
       (when (json-par-token-colon-p previous-token)
         (goto-char (json-par-token-start previous-token))))
     (json-par--backward-spaces))))
+
+(defun json-par--goto-fine-position (position-in-member parsed)
+  "Go to POSITION-IN-MEMBER in the PARSED member.
+
+POSITION-IN-MEMBER is a symbol returned from
+`json-par--fine-position-in-member'.
+
+PARSED is a parsed member returned from `json-par--parse-member-forward' or
+`json-par--parse-member-backward'."
+  (let ((start-of-member (gethash :start-of-member parsed))
+        (end-of-member (gethash :end-of-member parsed))
+        (key-token (gethash :key-token parsed))
+        (colon-token (gethash :colon-token parsed))
+        (value-token (gethash :value-token parsed)))
+    (cond
+     ((memq position-in-member '(just-after-open-bracket
+                                 just-after-comma))
+      (goto-char start-of-member)
+      (json-par--backward-spaces))
+
+     ((memq position-in-member '(after-open-bracket-on-same-line
+                                 after-comma-on-same-line))
+      (goto-char start-of-member)
+      (json-par--backward-spaces)
+      (when (and (memq (char-after) '(?\s ?\t))
+                 (save-excursion
+                   (skip-chars-forward "\s\t")
+                   (not (eq (char-after) ?\n))))
+        (forward-char)))
+
+     ((memq position-in-member '(before-member
+                                 before-member-on-same-line
+                                 just-before-member))
+      (goto-char start-of-member))
+
+     ((memq position-in-member '(just-after-key
+                                 after-key-on-same-line
+                                 after-key))
+      (cond
+       (key-token
+        (goto-char (json-par-token-end key-token)))
+       (colon-token
+        (goto-char (json-par-token-start colon-token))
+        (skip-chars-backward "\s\t\n")
+        (when (<= (point) start-of-member)
+          (goto-char (json-par-token-start colon-token))))
+       (t
+        (goto-char start-of-member))))
+
+     ((memq position-in-member '(just-before-colon
+                                 before-colon-on-same-line))
+      (if colon-token
+          (goto-char (json-par-token-start colon-token))
+        (goto-char start-of-member)))
+
+     ((memq position-in-member '(just-after-colon
+                                 after-colon-on-same-line))
+      (if colon-token
+          (goto-char (json-par-token-end colon-token))
+        (goto-char start-of-member)))
+
+     ((memq position-in-member '(before-value
+                                 before-value-on-same-line
+                                 just-before-value))
+      (cond
+       (value-token
+        (goto-char (json-par-token-start value-token)))
+       (colon-token
+        (goto-char (json-par-token-end colon-token))
+        (skip-chars-forward "\s\t\n")
+        (when (<= (point) end-of-member)
+          (goto-char (json-par-token-end colon-token))
+          (when (memq (char-after) '(?\s ?\t))
+            (forward-char)
+            (when (memq (char-after) '(?\] ?\) ?}))
+              (backward-char)))))
+       (t
+        (goto-char start-of-member))))
+
+     ((memq position-in-member '(just-after-member
+                                 after-member-on-same-line
+                                 after-member))
+      (goto-char end-of-member))
+
+     ((memq position-in-member '(before-close-bracket-on-same-line
+                                 before-comma-on-same-line))
+      (goto-char end-of-member)
+      (json-par--forward-spaces)
+      (when (and (memq (char-before) '(?\s ?\t))
+                 (save-excursion
+                   (skip-chars-backward "\s\t")
+                   (not (eq (char-before) ?\n))))
+        (backward-char)))
+
+     ((memq position-in-member '(just-before-close-bracket
+                                 just-before-comma))
+      (goto-char end-of-member)
+      (json-par--forward-spaces))
+
+     (t
+      (error "Unknown position in member %s" position-in-member)))))
 
 (defun json-par-goto-key-point-only (key &optional push-mark)
   "Move the point to the beginning of the member with KEY.
@@ -1165,249 +1455,22 @@ If GOTO-BEGINNING-OF-NEXT-MEMBER is given, it is used instead of
     (setq goto-beginning-of-next-member
           #'json-par--goto-beginning-of-next-member))
   (let* ((pos (point))
-         ;; If `skip-following-spaces' is non-nil, skip forward following
-         ;; spaces after moving.  If it is nil, skip backward.
-         skip-following-spaces
-         next-token
-         previous-token
-         just-after-previous-token
-         just-before-next-token
-         next-is-same-line
-         position-in-member
-         parsed-next-member)
+         position-in-member)
     (json-par--out-comment)
     (json-par--out-atom)
-    (setq next-token (save-excursion (json-par-forward-token)))
-    (if (json-par-token-outside-of-buffer-p next-token)
+    (if (save-excursion
+          (json-par--forward-spaces)
+          (forward-comment 1)
+          (eobp))
         (progn
           (goto-char pos)
           nil)
-      (setq position-in-member
-            (json-par--position-in-member))
-      (when (eq position-in-member 'empty-member)
-        (setq position-in-member 'before-member))
-      (setq previous-token (save-excursion (json-par-backward-token)))
-      (setq just-after-previous-token (eq (json-par-token-end previous-token)
-                                          (point)))
-      (setq just-before-next-token (eq (json-par-token-start next-token)
-                                       (point)))
-      (setq next-is-same-line (json-par--same-line-p
-                               (point)
-                               (json-par-token-start next-token)))
-      (setq skip-following-spaces
-            (cond
-             ;; After open bracket
-             ;;
-             ;; [|
-             ;;   1,
-             ;;   2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,|
-             ;;   2
-             ;; ]
-             ;;
-             ;; [
-             ;; |  1,
-             ;;   2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   |2
-             ;; ]
-             ((json-par-token-open-bracket-p previous-token)
-              next-is-same-line)
-
-             ;; Before close bracket
-             ;;
-             ;; [
-             ;;   [
-             ;;     1,
-             ;;     2
-             ;; | ],
-             ;;   [
-             ;;     1
-             ;;   ]
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   [
-             ;;     1,
-             ;;     2
-             ;;   ],
-             ;;   [
-             ;;     1
-             ;;   |]
-             ;; ]
-             ;;
-             ;; [
-             ;;   [
-             ;;     1,
-             ;;     2|
-             ;;   ],
-             ;;   [
-             ;;     1
-             ;;   ]
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   [
-             ;;     1,
-             ;;     2
-             ;;   ],
-             ;;   [
-             ;;     1|
-             ;;   ]
-             ;; ]
-             ((json-par-token-close-bracket-p next-token)
-              next-is-same-line)
-
-             ;; After ":"
-             ;;
-             ;; {
-             ;;   "a":|   "aaa",
-             ;;   "b":   "bbb"
-             ;; }
-             ;; ↓
-             ;; {
-             ;;   "a":   "aaa",
-             ;;   "b":|   "bbb"
-             ;; }
-             ;;
-             ;; {
-             ;;   "a": |  "aaa",
-             ;;   "b":   "bbb"
-             ;; }
-             ;; ↓
-             ;; {
-             ;;   "a":   "aaa",
-             ;;   "b":   |"bbb"
-             ;; }
-             ((json-par-token-colon-p previous-token)
-              (not just-after-previous-token))
-
-             ;; Before ":"
-             ;;
-             ;; {
-             ;;   "a"  | : "aaa",
-             ;;   "b"    : "bbb"
-             ;; }
-             ;; {
-             ;;   "a"    : "aaa",
-             ;;   "b"|   : "bbb"
-             ;; }
-             ((json-par-token-colon-p next-token)
-              (and just-before-next-token
-                   (not just-after-previous-token)))
-
-             ;; Before comma
-             ;;
-             ;; {
-             ;;   "a": "aaa"  |  ,
-             ;;   "b": "bbb"     ,
-             ;;   "c": "ccc"
-             ;; }
-             ;; {
-             ;;   "a": "aaa"     ,
-             ;;   "b": "bbb"|    ,
-             ;;   "c": "ccc"
-             ;; }
-             ((json-par-token-comma-p next-token)
-              (and just-before-next-token
-                   (not just-after-previous-token)))
-
-             ;; Just before next token (key or value)
-             ;;
-             ;; [
-             ;;   |1,
-             ;;   2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   |2
-             ;; ]
-             (just-before-next-token
-              t)
-
-             ;; Just after previous token
-             ;;
-             ;; [
-             ;;   1,|
-             ;;   2,
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   2,|
-             ;;   3
-             ;; ]
-             (just-after-previous-token
-              nil)
-
-             ;; On same line to the next token
-             ;;
-             ;; [
-             ;; |  1,
-             ;;   2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   |2
-             ;; ]
-             (next-is-same-line
-              t)
-
-             ;; Otherwise
-             ;;
-             ;; [
-             ;;   1,  |
-             ;;   2,
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   2,|
-             ;;   3
-             ;; ]
-             ;;
-             ;; [
-             ;;   1,
-             ;;   |
-             ;;   2,
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;
-             ;;   2,|
-             ;;   3
-             ;; ]
-             (t
-              nil)))
+      (setq position-in-member (json-par--fine-position-in-member))
       (if (funcall goto-beginning-of-next-member)
           (progn
-            (setq parsed-next-member (json-par--parse-member-forward))
-            (json-par--goto-position-in-parsed-member
+            (json-par--goto-fine-position
              position-in-member
-             parsed-next-member)
-            (when (and (or (json-par-token-colon-p previous-token)
-                           (json-par-token-colon-p next-token))
-                       (null (gethash :colon-token parsed-next-member)))
-              (setq skip-following-spaces t))
-            (json-par--skip-spaces-after-forward-member
-             skip-following-spaces
-             pos)
-            (when (and (memq (char-after) '(nil ?\] ?\) ?}))
-                       (or (not (json-par-token-close-bracket-p next-token))
-                           (not next-is-same-line)))
-              (json-par--end-of-empty-member))
+             (json-par--parse-member-forward))
             t)
         (goto-char pos)
         nil))))
@@ -1438,18 +1501,6 @@ nil.  Return t otherwise."
         (forward-char)
         (json-par--forward-spaces)
         t)))))
-
-(defun json-par--skip-spaces-after-forward-member
-    (go-forward original-position)
-  "Adjust the point after forwarding a member.
-
-If GO-FORWARD is non-nil, skip spaces forward.
-If GO-FORWARD is nil, skip spaces backward but not go beyond ORIGINAL-POSITION."
-  (if go-forward
-      (json-par--forward-spaces)
-    (json-par--backward-spaces)
-    (when (< (point) original-position)
-      (goto-char original-position))))
 
 (defun json-par-backward-member-point-only (&optional arg)
   "Move the point backward to the previous member.
@@ -1495,221 +1546,21 @@ If GOTO-END-OF-PREVIOUS-MEMBER is given, it is used instead of
   (unless goto-end-of-previous-member
     (setq goto-end-of-previous-member #'json-par--goto-end-of-previous-member))
   (let ((pos (point))
-        ;; If `skip-preceding-spaces' is non-nil, skip backward preceding
-        ;; spaces after moving.  If it is nil, skip forward.
-        skip-preceding-spaces
-        next-token
-        previous-token
-        just-after-previous-token
-        just-before-next-token
-        previous-is-same-line
-        position-in-member
-        parsed-previous-member)
+        position-in-member)
     (json-par--out-comment)
     (json-par--out-atom)
-    (setq previous-token (save-excursion (json-par-backward-token)))
-    (if (json-par-token-outside-of-buffer-p previous-token)
+    (if (save-excursion
+          (json-par--backward-spaces)
+          (bobp))
         (progn
           (goto-char pos)
           nil)
-      (setq position-in-member (json-par--position-in-member))
-      (when (eq position-in-member 'empty-member)
-        (setq position-in-member 'before-member))
-      (setq next-token (save-excursion (json-par-forward-token)))
-      (setq just-after-previous-token (eq (json-par-token-end previous-token)
-                                          (point)))
-      (setq just-before-next-token (eq (json-par-token-start next-token)
-                                       (point)))
-      (setq previous-is-same-line
-            (json-par--same-line-p
-             (point)
-             (json-par-token-start previous-token)))
-      (setq skip-preceding-spaces
-            (cond
-             ;; Before close bracket
-             ;;
-             ;; [
-             ;;   1  ,
-             ;;   2|
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1|  ,
-             ;;   2
-             ;; ]
-             ;;
-             ;; [
-             ;;   1  ,
-             ;;   2
-             ;; |]
-             ;; ↓
-             ;; [
-             ;;   1  |,
-             ;;   2
-             ;; ]
-             ((json-par-token-close-bracket-p next-token)
-              previous-is-same-line)
-
-             ;; After open bracket
-             ;;
-             ;; [
-             ;;   [
-             ;;     1
-             ;;   ],
-             ;;   [|
-             ;;     1,
-             ;;     2
-             ;;   ]
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   [|
-             ;;     1
-             ;;   ],
-             ;;   [
-             ;;     1,
-             ;;     2
-             ;;   ]
-             ;; ]
-             ;;
-             ;; [
-             ;;   [
-             ;;     1
-             ;;   ],
-             ;;   [
-             ;; |   1,
-             ;;     2
-             ;;   ]
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   [
-             ;;     |1
-             ;;   ],
-             ;;   [
-             ;;     1,
-             ;;     2
-             ;;   ]
-             ;; ]
-             ((json-par-token-open-bracket-p previous-token)
-              previous-is-same-line)
-
-             ;; After ":"
-             ((json-par-token-colon-p previous-token)
-              just-after-previous-token)
-
-             ;; Before ":"
-             ;;
-             ;; {
-             ;;   "a"    : "aaa",
-             ;;   "b"  | : "bbb"
-             ;; }
-             ;; {
-             ;;   "a"|   : "aaa",
-             ;;   "b"    : "bbb"
-             ;; }
-             ((json-par-token-colon-p next-token)
-              (or just-after-previous-token
-                  (not just-before-next-token)))
-
-             ;; Before ","
-             ;;
-             ;; {
-             ;;   "a": "aaa"     ,
-             ;;   "b": "bbb"  |  ,
-             ;;   "c": "ccc"
-             ;; }
-             ;; {
-             ;;   "a": "aaa"|    ,
-             ;;   "b": "bbb"     ,
-             ;;   "c": "ccc"
-             ;; }
-             ((json-par-token-comma-p next-token)
-              (or just-after-previous-token
-                  (not just-before-next-token)))
-
-             ;; Just before next token (key or value)
-             ;;
-             ;; [
-             ;;   1,
-             ;;   |2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   |1,
-             ;;   2
-             ;; ]
-             (just-before-next-token
-              nil)
-
-             ;; Just after previous token
-             ;;
-             ;; [
-             ;;   1,
-             ;;   2,|
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,|
-             ;;   2,
-             ;;   3
-             ;; ]
-             (just-after-previous-token
-              t)
-
-             ;; On same line to the previous token
-             ;;
-             ;; [
-             ;;   1,
-             ;;   2,  |
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,|
-             ;;   2,
-             ;;   3
-             ;; ]
-             (previous-is-same-line
-              t)
-
-             ;; Otherwise
-             ;;
-             ;; [
-             ;;   1,
-             ;; |  2
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   |1,
-             ;;   2
-             ;; ]
-             ;;
-             ;; [
-             ;;   1,
-             ;;   2,
-             ;;   |
-             ;;   3
-             ;; ]
-             ;; ↓
-             ;; [
-             ;;   1,
-             ;;   |2,
-             ;;
-             ;;   3
-             ;; ]
-             (t
-              nil)))
+      (setq position-in-member (json-par--fine-position-in-member))
       (if (funcall goto-end-of-previous-member)
           (progn
-            (setq parsed-previous-member (json-par--parse-member-backward))
-            (json-par--goto-position-in-parsed-member
+            (json-par--goto-fine-position
              position-in-member
-             parsed-previous-member)
-            (json-par--skip-spaces-after-backward-member
-             skip-preceding-spaces
-             pos)
+             (json-par--parse-member-backward))
             t)
         (goto-char pos)
         nil))))
@@ -1734,18 +1585,6 @@ return nil.  Return t otherwise."
       (backward-char)
       (json-par--backward-spaces)
       t))))
-
-(defun json-par--skip-spaces-after-backward-member
-    (go-backward original-position)
-  "Adjust the point after backwarding a member.
-
-If GO-BACKWARD is non-nil, skip spaces backward.
-If GO-BACKWARD is nil, skip spaces forward but not go beyond ORIGINAL-POSITION."
-  (if go-backward
-      (json-par--backward-spaces)
-    (json-par--forward-spaces)
-    (when (< original-position (point))
-      (goto-char original-position))))
 
 (defun json-par-goto-next-cousin-point-only (&optional arg)
   "Move the point to the first member of the following sibling of the parent.
@@ -2150,7 +1989,7 @@ FIND-MEMBER is either `json-par--find-member-forward' or
         key)
     (json-par--out-comment)
     (json-par--out-atom)
-    (setq position-in-member (json-par--position-in-member))
+    (setq position-in-member (json-par--fine-position-in-member))
     (setq key (or (save-excursion
                     (json-par-beginning-of-member-point-only)
                     (json-par--read-object-key-if-any))
@@ -2175,7 +2014,7 @@ FIND-MEMBER is either `json-par--find-member-forward' or
                               (json-par-goto-index-point-only key))))
                      t)))
     (if found
-        (json-par--goto-position-in-parsed-member
+        (json-par--goto-fine-position
          position-in-member
          (json-par--parse-member-forward))
       (goto-char pos))
