@@ -743,11 +743,13 @@ repeatedly, and the region is not active, push a mark first."
        (skip-chars-forward "\s\t\n")))))
 
 (defun json-par-goto-key (key &optional push-mark)
-  "Move the point to the beginning of the member with KEY.
-
-If the region is active, move mark to the end of the member.
+  "Move the point to the member with KEY.
 
 If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Keep position in a member after movement.
+
+If the region is active, mark the whole member.
 
 Return non-nil if KEY found.  Otherwise, keep the original position and return
 nil."
@@ -761,11 +763,13 @@ nil."
                    (point)))))))
 
 (defun json-par-goto-index (index &optional push-mark)
-  "Move the point to the beginning of the member at INDEX.
-
-If the region is active, move mark to the end of the member.
+  "Move the point to the member at INDEX.
 
 If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Keep position in a member after movement.
+
+If the region is active, mark the whole member.
 
 Return non-nil if INDEX found.  Otherwise, keep the original position and return
 nil."
@@ -800,9 +804,9 @@ Example:
     ]
   }
 
-If the region is active, move mark to the end of the member.
-
 If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+If the region is active, mark the whole member.
 
 Return non-nil if PATH found.  Otherwise, keep the original position and return
 nil."

@@ -1038,9 +1038,11 @@ PARSED is a parsed member returned from `json-par--parse-member-forward' or
       (error "Unknown position in member %s" position-in-member)))))
 
 (defun json-par-goto-key-point-only (key &optional push-mark)
-  "Move the point to the beginning of the member with KEY.
+  "Move the point to the member with KEY.
 
 If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Keep position in a member after movement.
 
 Return non-nil if KEY found.  Otherwise, keep the original position and return
 nil."
@@ -1048,24 +1050,31 @@ nil."
   (when (and push-mark (not (region-active-p)))
     (push-mark))
   (let ((pos (point))
+        position-in-member
         found)
     (json-par--out-comment)
     (json-par--out-atom)
+    (setq position-in-member (json-par--fine-position-in-member))
     (setq found (json-par--find-member
                  (lambda (_)
                    (let ((key-token (save-excursion (json-par-forward-token))))
                      (and (json-par-token-string-p key-token)
                           (equal (json-par--read-token key-token) key))))))
-    (unless found
+    (if found
+        (json-par--goto-fine-position
+         position-in-member
+         (json-par--parse-member-forward))
       (goto-char pos)
       (when (called-interactively-p 'interactive)
         (message "Key not found")))
     found))
 
 (defun json-par-goto-index-point-only (index &optional push-mark)
-  "Move the point to the beginning of the member at INDEX.
+  "Move the point to the member at INDEX.
 
 If PUSH-MARK is non-nil and the region is not active, push a mark first.
+
+Keep position in a member after movement.
 
 Return non-nil if INDEX found.  Otherwise, keep the original position and return
 nil."
@@ -1073,11 +1082,16 @@ nil."
   (when (and push-mark (not (region-active-p)))
     (push-mark))
   (let ((pos (point))
+        position-in-member
         found)
     (json-par--out-comment)
     (json-par--out-atom)
+    (setq position-in-member (json-par--fine-position-in-member))
     (setq found (json-par--find-member (lambda (i) (= i index))))
-    (unless found
+    (if found
+        (json-par--goto-fine-position
+         position-in-member
+         (json-par--parse-member-forward))
       (goto-char pos)
       (when (called-interactively-p 'interactive)
         (message "Index out of bound")))
@@ -1115,6 +1129,7 @@ nil."
   (let ((pos (point))
         (found t)
         step)
+    (json-par-beginning-of-member-point-only)
     (while (and path found)
       (setq step (car path))
       (setq path (cdr path))
