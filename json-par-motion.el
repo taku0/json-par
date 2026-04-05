@@ -397,24 +397,11 @@ of the comments."
     (if include-comment
         (skip-chars-forward "\s\t\n")
       (json-par--forward-spaces))
-    (when (memq (char-after) '(?\] ?\) ?}))
+    (when (memq (char-after) '(?\, ?\] ?\) ?}))
       (goto-char (json-par-token-end (gethash :colon-token parsed)))
       (skip-chars-forward "\s\t")
-      (when (memq (char-after) '(?\] ?\) ?}))
+      (when (memq (char-after) '(?\, ?\] ?\) ?}))
         (goto-char (json-par-token-end (gethash :colon-token parsed)))
-        (when (memq (char-after) '(?\s ?\t))
-          (forward-char)))))
-
-   ((gethash :key-token parsed)
-    (goto-char (json-par-token-end (gethash :key-token parsed)))
-    (if include-comment
-        (skip-chars-forward "\s\t\n")
-      (json-par--forward-spaces))
-    (when (memq (char-after) '(?\] ?\) ?}))
-      (goto-char (json-par-token-end (gethash :key-token parsed)))
-      (skip-chars-forward "\s\t")
-      (when (memq (char-after) '(?\] ?\) ?}))
-        (goto-char (json-par-token-end (gethash :key-token parsed)))
         (when (memq (char-after) '(?\s ?\t))
           (forward-char)))))
 

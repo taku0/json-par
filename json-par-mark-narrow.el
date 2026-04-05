@@ -742,6 +742,110 @@ repeatedly, and the region is not active, push a mark first."
        (set-mark (point))
        (skip-chars-forward "\s\t\n")))))
 
+(defun json-par--selected-tokens-in-member ()
+  "Return a hash indicating which parts are selected in the current member.
+
+A token is considered selected when the region overlaps that token.
+
+The keys of the hash is :key, :colon, and :value and the value is non-nil
+if and only if the token is selected.
+
+If the region is not active, return an empty hash."
+  (if (region-active-p)
+      (let* ((parsed (save-excursion
+                       (json-par-beginning-of-member-point-only)
+                       (json-par--parse-member-forward)))
+             (key-token (gethash :key-token parsed))
+             (colon-token (gethash :colon-token parsed))
+             (value-token (gethash :value-token parsed))
+             (end-of-member (gethash :end-of-member parsed))
+             (region-start (min (point) (mark t)))
+             (region-end (max (point) (mark t)))
+             (result (make-hash-table :size 3)))
+        (puthash :key
+                 (and
+                  key-token
+                  (< (json-par-token-start key-token) region-end)
+                  (< region-start (json-par-token-end key-token)))
+                 result)
+        (puthash :colon
+                 (and
+                  colon-token
+                  (< (json-par-token-start colon-token) region-end)
+                  (< region-start (json-par-token-end colon-token)))
+                 result)
+        (puthash :value
+                 (if value-token
+                     (and (< (json-par-token-start value-token) region-end)
+                          (< region-start (json-par-token-end value-token)))
+                   (and colon-token
+                        (<= (1+ (json-par-token-end colon-token))
+                            region-end)
+                        (or (< region-start
+                               (save-excursion
+                                 (goto-char end-of-member)
+                                 (json-par--forward-spaces)
+                                 (json-par--end-of-empty-member t)
+                                 (point)))
+                            (= region-start
+                               (1+ (json-par-token-end colon-token))))))
+                 result)
+        result)
+    (make-hash-table :size 0)))
+
+(defun json-par--mark-tokens-in-member (selected-tokens direction)
+  "Mark parts of the current member acoording to SELECTED-TOKENS.
+
+SELECTED-TOKENS is a hash returned by `json-par--selected-tokens-in-member'.
+
+if DIRECTION is a symbol `backward', mark backward.  Otherwise mark forward."
+  (let* ((parsed (save-excursion
+                   (json-par-beginning-of-member-point-only nil t)
+                   (json-par--parse-member-forward)))
+         (key-selected (gethash :key selected-tokens))
+         (colon-selected (gethash :colon selected-tokens))
+         (value-selected (gethash :value selected-tokens))
+         (key-token (gethash :key-token parsed))
+         (colon-token (gethash :colon-token parsed))
+         (start (cond
+                 (key-selected
+                  (gethash :start-of-member parsed))
+
+                 (colon-selected
+                  (or
+                   (and colon-token (json-par-token-start colon-token))
+                   (gethash :start-of-member parsed)))
+
+                 (value-selected
+                  (save-excursion
+                    (json-par-beginning-of-object-value-point-only nil parsed t)
+                    (point)))
+
+                 (t
+                  (gethash :start-of-member parsed))))
+         (end (cond
+               (value-selected
+                (gethash :end-of-member parsed))
+
+               (colon-selected
+                (or
+                 (and colon-token (json-par-token-end colon-token))
+                 (gethash :end-of-member parsed)))
+
+               (key-selected
+                (or
+                 (and key-token (json-par-token-end key-token))
+                 (gethash :end-of-member parsed)))
+
+               (t
+                (gethash :end-of-member parsed)))))
+    (if (eq direction 'backward)
+        (progn
+          (goto-char end)
+          (set-mark start))
+      (goto-char start)
+      (set-mark end))))
+
 (defun json-par-goto-key (key &optional push-mark)
   "Move the point to the member with KEY.
 
@@ -755,12 +859,13 @@ Return non-nil if KEY found.  Otherwise, keep the original position and return
 nil."
   (interactive "MGoto key: \np")
   (json-par--save-region-history-if-moved
-   (prog1 (json-par-goto-key-point-only key push-mark)
-     (when (region-active-p)
-       (json-par-beginning-of-member-point-only nil t)
-       (set-mark (save-excursion
-                   (json-par-end-of-member-point-only nil t)
-                   (point)))))))
+   (let ((mark-is-before-point (< (mark t) (point)))
+         (current-selection (json-par--selected-tokens-in-member)))
+     (prog1 (json-par-goto-key-point-only key push-mark)
+       (when (region-active-p)
+         (json-par--mark-tokens-in-member
+          current-selection
+          (if mark-is-before-point 'backward 'forward)))))))
 
 (defun json-par-goto-index (index &optional push-mark)
   "Move the point to the member at INDEX.
@@ -775,12 +880,13 @@ Return non-nil if INDEX found.  Otherwise, keep the original position and return
 nil."
   (interactive "nGoto index: \np")
   (json-par--save-region-history-if-moved
-   (prog1 (json-par-goto-index-point-only index push-mark)
-     (when (region-active-p)
-       (json-par-beginning-of-member-point-only nil t)
-       (set-mark (save-excursion
-                   (json-par-end-of-member-point-only nil t)
-                   (point)))))))
+   (let ((mark-is-before-point (< (mark t) (point)))
+         (current-selection (json-par--selected-tokens-in-member)))
+     (prog1 (json-par-goto-index-point-only index push-mark)
+       (when (region-active-p)
+         (json-par--mark-tokens-in-member
+          current-selection
+          (if mark-is-before-point 'backward 'forward)))))))
 
 (defun json-par-goto-path (path &optional push-mark)
   "Move the point to the beginning of the member at PATH.
@@ -811,12 +917,10 @@ If the region is active, mark the whole member.
 Return non-nil if PATH found.  Otherwise, keep the original position and return
 nil."
   (json-par--save-region-history-if-moved
-   (prog1 (json-par-goto-path-point-only path push-mark)
-     (when (region-active-p)
-       (json-par-beginning-of-member-point-only nil t)
-       (set-mark (save-excursion
-                   (json-par-end-of-member-point-only nil t)
-                   (point)))))))
+   (let ((current-selection (json-par--selected-tokens-in-member)))
+     (prog1 (json-par-goto-path-point-only path push-mark)
+       (when (region-active-p)
+         (json-par--mark-tokens-in-member current-selection 'forward))))))
 
 (defun json-par--adjust-region-to-member-boundary ()
   "Place point and mark to member boundary."
@@ -1073,18 +1177,13 @@ If the region is active, mark the member after movement.
 Return ARG minus the count of movement."
   (interactive "p")
   (json-par--save-region-history-if-moved
-   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point))))
+         (current-selection (json-par--selected-tokens-in-member)))
      (prog1 (json-par-forward-record-point-only arg)
        (when (region-active-p)
-         (if mark-is-before-point
-             (progn
-               (json-par-beginning-of-member-point-only nil t)
-               (set-mark (point))
-               (json-par-end-of-member-point-only nil t))
-           (progn
-             (json-par-end-of-member-point-only nil t)
-             (set-mark (point))
-             (json-par-beginning-of-member-point-only nil t))))))))
+         (json-par--mark-tokens-in-member
+          current-selection
+          (if mark-is-before-point 'backward 'forward)))))))
 
 (defun json-par-backward-record (&optional arg)
   "Move the point to the preceding object/array with the same key/index.
@@ -1103,18 +1202,13 @@ If the region is active, mark the member after movement.
 Return ARG minus the count of movement."
   (interactive "p")
   (json-par--save-region-history-if-moved
-   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point)))))
+   (let ((mark-is-before-point (and (region-active-p) (< (mark t) (point))))
+         (current-selection (json-par--selected-tokens-in-member)))
      (prog1 (json-par-backward-record-point-only arg)
        (when (region-active-p)
-         (if mark-is-before-point
-             (progn
-               (json-par-beginning-of-member-point-only nil t)
-               (set-mark (point))
-               (json-par-end-of-member-point-only nil t))
-           (progn
-             (json-par-end-of-member-point-only nil t)
-             (set-mark (point))
-             (json-par-beginning-of-member-point-only nil t))))))))
+         (json-par--mark-tokens-in-member
+          current-selection
+          (if mark-is-before-point 'backward 'forward)))))))
 
 (defun json-par-tab (&optional arg)
   "Move the point to the object value if the point is on or after a key.
