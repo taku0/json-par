@@ -1384,18 +1384,22 @@ If the previous token is a colon, keep one space after it."
            (save-excursion
              (json-par-beginning-of-member-point-only)
              (= (point) (json-par-token-start previous-token))))
-      (save-excursion
-        (json-par--backward-spaces)
-        (insert-char ?:))
-      (when (and (eq (char-before) ?:)
-                 (not (memq (char-after)
-                            '(?\s ?\t ?\n))))
-        (insert-char ?\s))
+      (if (= (point) (json-par-token-end previous-token))
+          (progn
+            (insert-char ?:)
+            (when (not (memq (char-after) '(?\s ?\t ?\n)))
+              (insert-char ?\s)))
+        (save-excursion
+          (goto-char (json-par-token-end previous-token))
+          (insert-char ?:)))
       (if next-is-value
           (skip-chars-forward "\s\t\n")
         (when (and (eq (char-before) ?:)
                    (memq (char-after) '(?\s ?\t)))
-          (forward-char))))
+          (forward-char)
+          (when (memq (char-after) '(?\] ?\) ?}))
+            (backward-char)
+            (insert-char ?\s)))))
 
      ;; Otherwise
      (t

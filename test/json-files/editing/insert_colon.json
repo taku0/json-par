@@ -586,6 +586,32 @@
 // expected-end
 // test-end
 
+// context-start
+[
+    { "a"/*|*/, "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/ , "b": "bbb" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/, "b": "bbb" }
+]
+// expected-end
+// test-end
+
 
 /// Between a key and a close bracket
 
@@ -602,12 +628,64 @@
 // expected-end
 // test-end
 
+// context-start
+[
+    { "a"/*|*/ }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/ }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/  }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/ }
+]
+// expected-end
+// test-end
+
 
 /// Between a key and a value (colon missing)
 
 // context-start
 [
     { "a" /*|*/"b" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/"b" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/"b" }
+]
+// context-end
+// action: (json-par-insert-colon)
+// expected-start
+[
+    { "a": /*|*/"b" }
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    { "a"/*|*/ "b" }
 ]
 // context-end
 // action: (json-par-insert-colon)
