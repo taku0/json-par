@@ -98,8 +98,8 @@
 // context-start
 [
     "aaa",
-    /*0*//*1[|*/,/*]1*/
-    "bbb"
+    /*0*//*1[|*/,
+    /*]1*/"bbb"
 ]
 // context-end
 // action: (json-par-mark-more-if-special) // 1
@@ -137,8 +137,8 @@
 
 // context-start
 [
-    /*0*//*1[|*/,/*]1*/
-    "aaa"
+    /*0*//*1[|*/,
+    /*]1*/"aaa"
 ]
 // context-end
 // action: (json-par-mark-more-if-special) // 1
@@ -525,6 +525,48 @@
     /*1[|*/"b": [ /*0[|*/"bbb" ]/*]0*//*]1*/,
     "c": "ccc"
 }
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    /*1[|*/[
+        [
+            1,
+            /*0[|*/2,
+            3
+        ]
+    ],
+    [
+        [
+            1,
+            2/*]0*/,
+            3
+        ]
+    ]/*]1*/
+]
+// context-end
+// action: (json-par-mark-more 1 t) // 1
+// test-end
+
+// context-start
+[
+    /*1[*/[
+        [
+            1,
+            /*0[*/2,
+            3
+        ]
+    ],
+    [
+        [
+            1,
+            2/*|]0*/,
+            3
+        ]
+    ]/*|]1*/
+]
 // context-end
 // action: (json-par-mark-more 1 t) // 1
 // test-end

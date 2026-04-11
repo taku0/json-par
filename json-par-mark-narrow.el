@@ -50,8 +50,8 @@ If the region is not active or ALLOW-EXTEND is nil:
 
 - If a value or key is missing but the member is not empty, mark the member.
 
-- If the member is empty and a comma is around the point, mark it (the following
-  one is preferred).
+- If the member is empty and a comma is around the point, mark it (the
+  following one is preferred) and the following spaces.
 
 - Inside a empty brackets, mark the whole object/array.
 
@@ -123,7 +123,17 @@ details."
   (cond
    ((not should-extend)
     (let ((region (json-par--region-of-current-value-or-key-to-mark (point))))
-      (if (< (point) (cdr region))
+      (if (and (< (point) (cdr region))
+               (or
+                ;; Mark the last member backwards.
+                (save-excursion
+                  (goto-char (cdr region))
+                  (skip-chars-forward "\s\t\n")
+                  (not (memq (char-after) '(nil ?\] ?\) ?}))))
+                ;; Unless it is the first member.
+                (save-excursion
+                  (skip-chars-backward "\s\t\n")
+                  (memq (char-before) '(nil ?\[ ?\( ?{)))))
           (progn
             (goto-char (car region))
             (push-mark (cdr region) nil t))
@@ -235,12 +245,28 @@ Return a cons of the start and end positions."
                       (point))))
 
          ((json-par-token-comma-p next-token)
-          (setq start (json-par-token-start next-token))
-          (setq end (json-par-token-end next-token)))
+          (setq start (save-excursion
+                        (goto-char (json-par-token-start next-token))
+                        (json-par-end-of-member-point-only nil t)
+                        (point)))
+          (setq end (save-excursion
+                      (goto-char (json-par-token-end next-token))
+                      (skip-chars-forward "\s\t\n")
+                      (when (memq (char-after) '(nil ?\, ?\] ?\) ?}))
+                        (json-par--end-of-empty-member t))
+                      (point))))
 
          ((json-par-token-comma-p previous-token)
-          (setq start (json-par-token-start previous-token))
-          (setq end (json-par-token-end previous-token)))))
+          (setq start (save-excursion
+                        (goto-char (json-par-token-start previous-token))
+                        (json-par-end-of-member-point-only nil t)
+                        (point)))
+          (setq end (save-excursion
+                      (goto-char (json-par-token-end previous-token))
+                      (skip-chars-forward "\s\t\n")
+                      (when (memq (char-after) '(nil ?\, ?\] ?\) ?}))
+                        (json-par--end-of-empty-member t))
+                      (point))))))
 
        ;; Before a key.
        ((json-par--object-key-p next-token)
@@ -291,18 +317,15 @@ The current region is represented with POINT and MARK.
 
 - Otherwise, return the region of the next member."
   (save-excursion
-    (goto-char point)
-    (let (string-like-beginning-position
-          current-atom
+    (goto-char mark)
+    (let ((string-like-beginning-position
+           (json-par--string-like-beginning-position))
+          (current-atom (json-par--current-atom))
           previous-token
           mark-is-after-comma
           extended-region
           start
           end)
-      (goto-char mark)
-      (setq string-like-beginning-position
-            (json-par--string-like-beginning-position))
-      (setq current-atom (json-par--current-atom))
       (unless (json-par-token-inside-p current-atom)
         (setq current-atom nil))
       (when (and (not string-like-beginning-position)
@@ -333,35 +356,40 @@ The current region is represented with POINT and MARK.
         (setq start (json-par-token-start current-atom))
         (setq end (json-par-token-end current-atom)))
 
-       ;; After an open bracket or comma, and the member is marked partially.
+       ;; After an open bracket or comma, and the member under the point is
+       ;; marked partially.
        ((and (or (json-par-token-open-bracket-p previous-token)
                  (json-par-token-comma-p previous-token)
                  (json-par-token-outside-of-buffer-p previous-token))
-             (or (save-excursion
-                   (goto-char point)
-                   (json-par-up-backward-point-only)
-                   (< (json-par-token-start previous-token) (point)))
-                 (and (save-excursion
-                        (goto-char point)
-                        (json-par-end-of-member-point-only)
-                        (json-par--forward-spaces)
-                        (skip-chars-backward "\s\t\n")
-                        (< point (point)))
-                      (save-excursion
-                        (goto-char point)
-                        (json-par-beginning-of-member-point-only)
-                        (json-par--backward-spaces)
-                        (skip-chars-forward "\s\t\n")
-                        (< (point) point)))))
-        (setq start (point))
-        (setq end (save-excursion
-                    (json-par-end-of-member-point-only)
-                    (while (< (point) point)
-                      (json-par-forward-member-point-only)
-                      (json-par--forward-spaces))
-                    (json-par--forward-spaces)
-                    (skip-chars-backward "\s\t\n")
-                    (point))))
+             (or
+              ;; Point is at depper level or at a cousin.
+              (save-excursion
+                (goto-char point)
+                (json-par-up-backward-point-only)
+                (< (json-par-token-start previous-token) (point)))
+              ;; the member under the point is marked partially.
+              (and
+               (< (save-excursion
+                    (goto-char point)
+                    (json-par-beginning-of-member-point-only nil t)
+                    (point))
+                  point
+                  (save-excursion
+                    (goto-char point)
+                    (json-par-end-of-member-point-only nil t)
+                    (point))))))
+        (setq start mark)
+        (setq end
+              (progn
+                (goto-char mark)
+                (json-par-end-of-member-point-only nil t)
+                (while (< (point) point)
+                  (unless (zerop (json-par-forward-member-point-only))
+                    (goto-char start)
+                    (json-par-up-backward-point-only)
+                    (setq start (point)))
+                  (json-par-end-of-member-point-only nil t))
+                (point))))
 
        ;; Beginning of the buffer or after an open bracket.
        ((or (json-par-token-outside-of-buffer-p previous-token)
@@ -385,14 +413,14 @@ The current region is represented with POINT and MARK.
        (mark-is-after-comma
         (setq end (point))
         (json-par-backward-token)
-        (json-par-beginning-of-member-point-only)
+        (json-par-beginning-of-member-point-only nil t)
         (setq start (point)))
 
        ;; One or more members are marked.  Case 2.
        ;; Mark one more member.
        (t
         (setq end (point))
-        (json-par-beginning-of-member-point-only)
+        (json-par-beginning-of-member-point-only nil t)
         (setq start (point))))
       (cons start end))))
 
@@ -424,19 +452,16 @@ The current region is represented with POINT and MARK.
 
 - Otherwise, return the region of the next member."
   (save-excursion
-    (goto-char point)
-    (let* (string-like-beginning-position
-           string-like-end-position
-           current-atom
-           next-token
-           mark-is-before-comma
-           extended-region
-           start
-           end)
-      (goto-char mark)
-      (setq string-like-beginning-position
-            (json-par--string-like-beginning-position))
-      (setq current-atom (json-par--current-atom))
+    (goto-char mark)
+    (let ((string-like-beginning-position
+           (json-par--string-like-beginning-position))
+          string-like-end-position
+          (current-atom (json-par--current-atom))
+          next-token
+          mark-is-before-comma
+          extended-region
+          start
+          end)
       (unless (json-par-token-inside-p current-atom)
         (setq current-atom nil))
       (when (and (not string-like-beginning-position)
@@ -472,36 +497,39 @@ The current region is represented with POINT and MARK.
         (setq start (json-par-token-start current-atom))
         (setq end (json-par-token-end current-atom)))
 
-       ;; Before close bracket or comma and member is marked partially.
+       ;; Before close bracket or comma, and the member under the point is
+       ;; marked partially.
        ((and (or (json-par-token-close-bracket-p next-token)
                  (json-par-token-comma-p next-token)
                  (json-par-token-outside-of-buffer-p next-token))
              (or
+              ;; Point is at depper level or at a cousin.
               (save-excursion
                 (goto-char point)
                 (json-par-up-forward-point-only)
                 (< (point) (json-par-token-end next-token)))
-              (and (save-excursion
-                     (goto-char point)
-                     (json-par-beginning-of-member-point-only)
-                     (json-par--backward-spaces)
-                     (skip-chars-forward "\s\t\n")
-                     (< (point) point))
-                   (save-excursion
-                     (goto-char point)
-                     (json-par-end-of-member-point-only)
-                     (json-par--forward-spaces)
-                     (skip-chars-backward "\s\t\n")
-                     (< point (point))))))
-        (setq end (point))
-        (setq start (save-excursion
-                      (json-par-beginning-of-member-point-only)
-                      (while (< point (point))
-                        (json-par-backward-member-point-only)
-                        (json-par--backward-spaces))
-                      (json-par--backward-spaces)
-                      (skip-chars-forward "\s\t\n")
-                      (point))))
+              ;; the member under the point is marked partially.
+              (< (save-excursion
+                   (goto-char point)
+                   (json-par-beginning-of-member-point-only nil t)
+                   (point))
+                 point
+                 (save-excursion
+                   (goto-char point)
+                   (json-par-end-of-member-point-only nil t)
+                   (point)))))
+        (setq end mark)
+        (setq start
+              (progn
+                (goto-char mark)
+                (json-par-beginning-of-member-point-only nil t)
+                (while (< point (point))
+                  (unless (zerop (json-par-backward-member-point-only))
+                    (goto-char end)
+                    (json-par-up-forward-point-only)
+                    (setq end (point)))
+                  (json-par-beginning-of-member-point-only nil t))
+                (point))))
 
        ;; End of the buffer or before close bracket.
        ((or (json-par-token-outside-of-buffer-p next-token)
@@ -525,14 +553,14 @@ The current region is represented with POINT and MARK.
        (mark-is-before-comma
         (setq start (point))
         (json-par-forward-token)
-        (json-par-end-of-member-point-only)
+        (json-par-end-of-member-point-only nil t)
         (setq end (point)))
 
        ;; One or more members are marked.  Case 2.
        ;; Mark one more.
        (t
         (setq start (point))
-        (json-par-end-of-member-point-only)
+        (json-par-end-of-member-point-only nil t)
         (setq end (point))))
       (cons start end))))
 
@@ -588,7 +616,9 @@ See `json-par--region-to-extend-forward' for details"
                   (setq token (save-excursion (json-par-forward-token)))
                   (when (json-par-token-open-bracket-p token)
                     (goto-char (json-par-token-end token))
-                    (skip-chars-forward "\s\t\n"))
+                    (skip-chars-forward "\s\t\n")
+                    (when (memq (char-after) '(nil ?\] ?\) ?}))
+                      (goto-char (json-par-token-end token))))
                   (point)))
          (end (save-excursion
                 (json-par-up-forward-point-only)
@@ -596,7 +626,9 @@ See `json-par--region-to-extend-forward' for details"
                 (setq token (save-excursion (json-par-backward-token)))
                 (when (json-par-token-close-bracket-p token)
                   (goto-char (json-par-token-start token))
-                  (skip-chars-backward "\s\t\n"))
+                  (skip-chars-backward "\s\t\n")
+                  (when (memq (char-before) '(nil ?\[ ?\( ?{))
+                    (goto-char (json-par-token-start token))))
                 (point))))
     (when (<= original-region-start start end original-region-end)
       (setq start (save-excursion
@@ -1425,7 +1457,19 @@ details."
                 (cons (min (point) (mark t)) (max (point) (mark t)))
               (json-par--region-of-current-value-or-key-to-mark (point))))
       (setq json-par--narrow-direction
-            (if (< (point) (cdr region)) 1 -1)))
+            (if (and (< (point) (cdr region))
+                     (or
+                      ;; Mark the last member backwards.
+                      (save-excursion
+                        (goto-char (cdr region))
+                        (skip-chars-forward "\s\t\n")
+                        (not (memq (char-after) '(nil ?\] ?\) ?}))))
+                      ;; Unless it is the first member.
+                      (save-excursion
+                        (skip-chars-backward "\s\t\n")
+                        (memq (char-before) '(nil ?\[ ?\( ?{)))))
+                1
+              -1)))
 
      ((< direction 0)
       (setq region (json-par--region-to-extend-backward end start)))
