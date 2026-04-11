@@ -72,7 +72,13 @@ Quote unquoted keys.
 Insert empty keys if missing."
   (when (and (not (memq this-command '(undo undo-only undo-redo)))
              (not (eq json-par--inhibit-fixup-tick
-                      (buffer-chars-modified-tick))))
+                      (buffer-chars-modified-tick)))
+             ;; Not in a comment
+             (let ((string-like-beginning-position
+                    (json-par--string-like-beginning-position)))
+               (or
+                (not string-like-beginning-position)
+                (eq (char-after string-like-beginning-position) ?\"))))
     (json-par--clean-up-protection-markers)
     (when (and json-par--changed-region-start
                json-par--changed-region-end
