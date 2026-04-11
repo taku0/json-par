@@ -160,8 +160,7 @@ Regions between top-level values are not modified."
            depth)
       (save-excursion
         (goto-char end)
-        (setq following-token (json-par-forward-token))
-        (goto-char end)
+        (setq following-token (save-excursion (json-par-forward-token)))
         (setq depth (nth 0 (syntax-ppss)))
         (while (progn
                  (setq current-token (json-par-backward-token))
@@ -481,6 +480,13 @@ Regions between top-level values are not modified."
            ((or (json-par-token-close-bracket-p following-token)
                 (json-par-token-outside-of-buffer-p following-token))
             (cond
+             ;; Comments are between the tokens. Go ahead.
+             ((save-excursion
+                (goto-char (json-par-token-end current-token))
+                (skip-chars-forward "\s\t\n")
+                (eq (char-after) ?/))
+              (setq following-token current-token))
+
              ;; The current token is a redundant comma.  Remove it.
              ((json-par-token-comma-p current-token)
               (json-par--delete-redundant-comma current-token))
@@ -502,9 +508,14 @@ Regions between top-level values are not modified."
 
            ;; Before a comma
            ((json-par-token-comma-p following-token)
-            (if (or (json-par-token-comma-p current-token)
-                    (json-par-token-open-bracket-p current-token)
-                    (json-par-token-outside-of-buffer-p current-token))
+            (if (and (or (json-par-token-comma-p current-token)
+                         (json-par-token-open-bracket-p current-token)
+                         (json-par-token-outside-of-buffer-p current-token))
+                     ;; No comments between the tokens.
+                     (save-excursion
+                       (goto-char (json-par-token-end current-token))
+                       (skip-chars-forward "\s\t\n")
+                       (not (eq (char-after) ?/))))
                 ;; The following token is a redundant comma.  Remove it.
                 (progn
                   (json-par--delete-redundant-comma following-token)
