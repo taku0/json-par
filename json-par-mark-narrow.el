@@ -39,8 +39,9 @@
   "Mark the current value, or extend the region if active.
 
 If ARG is given, repeat that times.  If the ARG is negative, undo
-`json-par-mark-more' that times.  If called with non-numeric prefix argument,
-it is converted to -1.
+`json-par-mark-more' that times.  If it is a symbol `-', a cons, or called
+interactively with just a \\[universal-argument] prefix arg, it is interpreted
+as -1.
 
 If the region is not active or ALLOW-EXTEND is nil:
 
@@ -84,8 +85,9 @@ backward if not.  See `json-par--region-to-extend-backward' or
 
 If the region is not active, call `pop-to-mark-command' instead.
 
-If ARG is negative, call `json-par-mark-more' that times.  If called with
-non-numeric prefix argument, it is converted to -1."
+If ARG is negative, call `json-par-mark-more' that times.  If it is a symbol
+`-', a cons, or called interactively with just a \\[universal-argument] prefix
+arg, it is interpreted as -1."
   (interactive "P")
   (when (or (consp arg) (eq arg '-))
     (setq arg -1))
@@ -856,8 +858,8 @@ If the region is not active, return an empty hash."
              (colon-token (gethash :colon-token parsed))
              (value-token (gethash :value-token parsed))
              (end-of-member (gethash :end-of-member parsed))
-             (region-start (min (point) (mark t)))
-             (region-end (max (point) (mark t)))
+             (region-start (region-beginning))
+             (region-end (region-end))
              (result (make-hash-table :size 3)))
         (puthash :key
                  (and
@@ -1362,8 +1364,9 @@ mark inside the key."
   "Narrow to the current value, or extend the narrowed area if repeated.
 
 If ARG is given, repeat that times.  If the ARG is negative, undo
-`json-par-narrow' that times.  If called with non-numeric prefix argument,
-it is converted to -1.
+`json-par-narrow' that times.  If it is a symbol `-', a cons, or called
+interactively with just a \\[universal-argument] prefix arg, it is interpreted
+as -1.
 
 See `json-par-mark-more' for ALLOW-EXTEND and what region narrowed to or
 extend."
@@ -1390,8 +1393,9 @@ extend."
 (defun json-par-pop-restriction (&optional arg)
   "Undo `json-par-narrow' ARG times.
 
-If ARG is negative, call `json-par-narrow' that times.  If called with
-non-numeric prefix argument, it is converted to -1."
+If ARG is negative, call `json-par-narrow' that times.  If it is a symbol `-',
+a cons, or called interactively with just a \\[universal-argument] prefix arg,
+it is interpreted as -1."
   (interactive "P\np")
   (when (or (consp arg) (eq arg '-))
     (setq arg -1))
@@ -1429,7 +1433,7 @@ details."
      ((not should-extend)
       (setq region
             (if (region-active-p)
-                (cons (min (point) (mark t)) (max (point) (mark t)))
+                (cons (region-beginning) (region-end))
               (json-par--region-of-current-value-or-key-to-mark (point))))
       (setq json-par--narrow-direction
             (if (and (< (point) (cdr region))
