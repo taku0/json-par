@@ -815,9 +815,9 @@
 
 // context-start
 {
-    /*0[|*/"aaa"/*]0*/: "aaa",
+    /*0[|*//*1[*/"aaa"/*]0*/: "aaa",
     "bbb": "bbb",
-    /*1[|*/"ccc"/*]1*/: "ccc",
+    "ccc": "ccc"/*|]1*/,
     "ddd": "ddd",
     "eee": "eee"
 }
@@ -827,9 +827,9 @@
 
 // context-start
 {
-    /*0[*/"aaa"/*|]0*/: "aaa",
+    /*0[*//*1[*/"aaa"/*|]0*/: "aaa",
     "bbb": "bbb",
-    /*1[*/"ccc"/*|]1*/: "ccc",
+    "ccc": "ccc"/*|]1*/,
     "ddd": "ddd",
     "eee": "eee"
 }
@@ -839,157 +839,9 @@
 
 // context-start
 {
-    /*0[|*/"aaa":/*]0*/ "aaa",
+    /*1[*/"aaa": /*0[|*/"aaa"/*]0*/,
     "bbb": "bbb",
-    /*1[|*/"ccc":/*]1*/ "ccc",
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    /*0[*/"aaa":/*|]0*/ "aaa",
-    "bbb": "bbb",
-    /*1[*/"ccc":/*|]1*/ "ccc",
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa"/*0[|*/:/*]0*/ "aaa",
-    "bbb": "bbb",
-    "ccc"/*1[|*/:/*]1*/ "ccc",
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa"/*0[*/:/*|]0*/ "aaa",
-    "bbb": "bbb",
-    "ccc"/*1[*/:/*|]1*/ "ccc",
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa"/*0[|*/: "aaa"/*]0*/,
-    "bbb": "bbb",
-    "ccc"/*1[|*/: "ccc"/*]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa"/*0[*/: "aaa"/*|]0*/,
-    "bbb": "bbb",
-    "ccc"/*1[*/: "ccc"/*|]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa": /*0[|*/"aaa"/*]0*/,
-    "bbb": "bbb",
-    "ccc": /*1[|*/"ccc"/*]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa": /*0[*/"aaa"/*|]0*/,
-    "bbb": "bbb",
-    "ccc": /*1[*/"ccc"/*|]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// test-end
-
-// context-start
-{
-    "aaa": /*0[|*//*2[|*/"aaa"/*]2*//*]0*/,
-    "bbb": "bbb",
-    "ccc": /*1[|*//*]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// action: (json-par-goto-key "aaa") // 2
-// test-end
-
-// context-start
-{
-    "aaa"/*0[|*//*2[|*/: "aaa"/*]2*//*]0*/,
-    "bbb": "bbb",
-    "ccc"/*1[|*/: /*]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// action: (json-par-goto-key "aaa") // 2
-// test-end
-
-// context-start
-{
-    /*0[|*//*2[|*/"aaa": "aaa"/*]2*//*]0*/,
-    "bbb": "bbb",
-    /*1[|*/"ccc": /*]1*/,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// action: (json-par-goto-key "aaa") // 2
-// test-end
-
-// context-start
-{
-    /*0[|*//*2[|*/"aaa":/*]2*//*]0*/ "aaa",
-    "bbb": "bbb",
-    /*1[|*/"ccc":/*]1*/ ,
-    "ddd": "ddd",
-    "eee": "eee"
-}
-// context-end
-// action: (json-par-goto-key "ccc") // 1
-// action: (json-par-goto-key "aaa") // 2
-// test-end
-
-// context-start
-{
-    "aaa": /*0[|*/"aaa"/*]0*/,
-    "bbb": "bbb",
-    "ccc": /*1[|*/"ccc"/*]1*/,
+    "ccc": "ccc"/*|]1*/,
     "ddd": "ddd",
     "eee": "eee"
 }
@@ -999,9 +851,9 @@
 
 // context-start
 {
-    "aaa": /*0[*/"aaa"/*|]0*/,
+    /*1[*/"aaa": /*0[*/"aaa"/*|]0*/,
     "bbb": "bbb",
-    "ccc": /*1[*/"ccc"/*|]1*/,
+    "ccc": "ccc"/*|]1*/,
     "ddd": "ddd",
     "eee": "eee"
 }
@@ -1026,16 +878,100 @@
 // test-end
 
 // context-start
+{
+    /*0[*/"aaa"/*|]0*/: "aaa",
+    "bbb": "bbb",
+    "ccc": {
+        /*1[*/"a"/*|]1*/: "a"
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
+{
+    /*0[*/"aaa":/*|]0*/ "aaa",
+    "bbb": "bbb",
+    "ccc": {
+        /*1[*/"a":/*|]1*/ "a"
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
+{
+    "aaa"/*0[*/:/*|]0*/ "aaa",
+    "bbb": "bbb",
+    "ccc": {
+        "a"/*1[*/:/*|]1*/ "a"
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
+{
+    "aaa"/*0[*/: "aaa"/*|]0*/,
+    "bbb": "bbb",
+    "ccc": {
+        "a"/*1[*/: "a"/*|]1*/
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
+{
+    "aaa": /*0[*/"aaa"/*|]0*/,
+    "bbb": "bbb",
+    "ccc": {
+        "a": /*1[*/"a"/*|]1*/
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
+{
+    /*0[*/"aaa": "aaa"/*|]0*/,
+    "bbb": "bbb",
+    "ccc": {
+        /*1[*/"a": "a"/*|]1*/
+    },
+    "ddd": "ddd",
+    "eee": "eee"
+}
+// context-end
+// action: (json-par-goto-path (list "ccc" 0)) // 1
+// test-end
+
+// context-start
 [
     {
         "aaa": "aaa",
         "bbb": "bbb",
         "ccc": "ccc",
         "ddd": "ddd",
-        "eee": /*0[|*/"eee"/*]0*/
+        /*1[*/"eee": /*0[|*/"eee"/*]0*/
     },
     {
-        /*1[|*/"aaa": "aaa"/*]1*/,
+        "aaa": "aaa"/*|]1*/,
         "bbb": "bbb",
         "ccc": "ccc",
         "ddd": "ddd",
@@ -1053,10 +989,10 @@
         "bbb": "bbb",
         "ccc": "ccc",
         "ddd": "ddd",
-        /*1[|*/"eee": "eee"/*]1*/
+        /*1[|*/"eee": "eee"
     },
     {
-        "aaa": /*0[|*/"aaa"/*]0*/,
+        "aaa": /*0[|*/"aaa"/*]0*//*]1*/,
         "bbb": "bbb",
         "ccc": "ccc",
         "ddd": "ddd",
@@ -1184,14 +1120,14 @@
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*0[|*/"ccc"/*]0*/,
+        /*1[*/"ccc": /*0[|*/"ccc"/*]0*/,
         "ddd": "ddd",
         "eee": "eee"
     },
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*1[|*/"ccc"/*]1*/,
+        "ccc": "ccc"/*|]1*/,
         "ddd": "ddd",
         "eee": "eee"
     }
@@ -1205,14 +1141,14 @@
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*0[*/"ccc"/*|]0*/,
+        /*1[*/"ccc": /*0[*/"ccc"/*|]0*/,
         "ddd": "ddd",
         "eee": "eee"
     },
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*1[*/"ccc"/*|]1*/,
+        "ccc": "ccc"/*|]1*/,
         "ddd": "ddd",
         "eee": "eee"
     }
@@ -1226,14 +1162,14 @@
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*1[|*/"ccc"/*]1*/,
+        /*1[|*/"ccc": "ccc",
         "ddd": "ddd",
         "eee": "eee"
     },
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*0[|*/"ccc"/*]0*/,
+        "ccc": /*0[|*/"ccc"/*]0*//*]1*/,
         "ddd": "ddd",
         "eee": "eee"
     }
@@ -1247,14 +1183,14 @@
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*1[*/"ccc"/*|]1*/,
+        /*1[|*/"ccc": "ccc",
         "ddd": "ddd",
         "eee": "eee"
     },
     {
         "aaa": "aaa",
         "bbb": "bbb",
-        "ccc": /*0[*/"ccc"/*|]0*/,
+        "ccc": /*0[*/"ccc"/*|]0*//*]1*/,
         "ddd": "ddd",
         "eee": "eee"
     }
