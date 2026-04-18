@@ -190,6 +190,9 @@ ERROR-BUFFER is the buffer to output errors."
                 (when deactivate-mark
                   (deactivate-mark))))
             actions)
+      (setq prefix-arg nil)
+      (setq current-prefix-arg nil)
+      (setq last-prefix-arg nil)
       (json-par--fixup-changed-region)
       (if (region-active-p)
           (setq actual-point (list (point) (mark)))

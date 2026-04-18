@@ -1662,7 +1662,7 @@
     "\"a/*|*/bc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "a/*|*/bc"
@@ -1676,7 +1676,7 @@
     "\"g/*]*/hi\",\n    \"jkl\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "a/*|*/bc",
@@ -1692,7 +1692,7 @@
     "/*|*/\"\"\\\/\u0000\b\f\n\r\t\uD83D\ude00"
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     /*|*/""\/ 
@@ -1706,7 +1706,7 @@
     /*|*/"\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     /*|*/"abc"
@@ -1719,7 +1719,7 @@
     "\"abc\""/*|*/
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "abc"/*|*/
@@ -1732,7 +1732,7 @@
     "\"abc\""/*|*/"\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "\"abc\""/*|*/"abc"
@@ -1746,7 +1746,7 @@
     "\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "abc" /*|*/
@@ -1761,7 +1761,7 @@
     /*|*/ "\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "\"abc\""
@@ -1775,7 +1775,7 @@
     "\"abc\"", /*|*/ "\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // FIXME: should the point be adjusted?
 // expected-start
 [
@@ -1792,7 +1792,7 @@
     "\"abc\""
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "\"abc\""
@@ -1809,7 +1809,7 @@
     1
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "abc"
@@ -1825,7 +1825,7 @@
     // "a/*|*/bc"
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     // "a/*|*/bc"
@@ -1838,7 +1838,7 @@
     "abc", 1, /*|*/ 2, "def"
 ]
 // context-end
-// action: (json-par-insert-double-quotes t)
+// action: (json-par-insert-double-quotes '(4))
 // expected-start
 [
     "abc", 1, /*|*/ 2, "def"

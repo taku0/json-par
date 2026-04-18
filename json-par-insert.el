@@ -185,41 +185,41 @@ Examples (`|' is the point):
       (when (and (not place-point-before-comma) (eq (char-after) ?\,))
         (forward-char))))))
 
-(defun json-par-insert-true ()
-  "Insert a `true' before or after the current member.
+(defun json-par-insert-true (&optional n)
+  "Insert N `true' before or after the current member.
 
 See `json-par--insert-value' for details."
-  (interactive)
-  (json-par--insert-value "true"))
+  (interactive "p")
+  (unless n
+    (setq n 1))
+  (dotimes (_ n)
+    (json-par--insert-value "true")))
 
 (push #'json-par-insert-true json-par--fixup-adviced-functions)
 
-(defun json-par-insert-false ()
-  "Insert a `false' before or after the current member.
+(defun json-par-insert-false (&optional n)
+  "Insert N `false' before or after the current member.
 
 See `json-par--insert-value' for details."
-  (interactive)
-  (json-par--insert-value "false"))
+  (interactive "p")
+  (unless n
+    (setq n 1))
+  (dotimes (_ n)
+    (json-par--insert-value "false")))
 
 (push #'json-par-insert-false json-par--fixup-adviced-functions)
 
-(defun json-par-insert-null ()
-  "Insert a `null' before or after the current member.
+(defun json-par-insert-null (&optional n)
+  "Insert N `null' before or after the current member.
 
 See `json-par--insert-value' for details."
-  (interactive)
-  (json-par--insert-value "null"))
+  (interactive "p")
+  (unless n
+    (setq n 1))
+  (dotimes (_ n)
+    (json-par--insert-value "null")))
 
 (push #'json-par-insert-null json-par--fixup-adviced-functions)
-
-(defun json-par-insert-self-as-value ()
-  "Insert a char invoked this command before or after the current member.
-
-See `json-par--insert-value' for details."
-  (interactive)
-  (json-par--insert-value (string last-command-event)))
-
-(push #'json-par-insert-self-as-value json-par--fixup-adviced-functions)
 
 (defun json-par-insert-self-as-number (&optional arg)
   "Insert a char invoked this command before or after the current member.
@@ -227,6 +227,8 @@ See `json-par--insert-value' for details."
 See `json-par--insert-value' for details.
 
 This function doesn't move the point after a comma, if any, after the number.
+
+If ARG is given, repeat that times.
 
 If the region is active, combine the input with ARG as the prefix argument
 instead."
@@ -249,7 +251,9 @@ instead."
                 (if (eq n '-) nil (- n)))
                (t
                 n))))
-    (json-par--insert-value (string last-command-event) t)))
+    (json-par--insert-value
+     (make-string (prefix-numeric-value arg) last-command-event)
+     t)))
 
 (push #'json-par-insert-self-as-number json-par--fixup-adviced-functions)
 
@@ -262,8 +266,8 @@ If the region is active, wrap it with the brackets instead.
 
 See `json-par--wrap-region-with-brackets' for details.
 
-Return a list (FINAL-START FINAL-END) where FINAL-START and FINAL-END are the
-start and end of the brackets.
+Return a pair (START . END) where START and END are the start and end of the
+ brackets.
 
 DEFAULT-BRACKETS-STYLE affects whether or not to insert line breaks when
 inserting an empty array or object.  See `json-par-default-brackets-style' for
@@ -289,7 +293,7 @@ details."
       (when should-break-line
         (newline)
         (json-par--open-line-and-indent-both))
-      (list start (json-par--free-marker end)))))
+      (cons start (json-par--free-marker end)))))
 
 (defun json-par--wrap-region-with-brackets
     (open close start end default-brackets-style)
@@ -302,7 +306,7 @@ brackets.
 
 Indent the region after wrapping.
 
-Return a list (FINAL-START FINAL-END) where FINAL-START and FINAL-END are the
+Return a pair (FINAL-START . FINAL-END) where FINAL-START and FINAL-END are the
 start and end of the wrapped brackets."
   (setq end (copy-marker end))
   (let* ((point-marker (point-marker))
@@ -345,7 +349,7 @@ start and end of the wrapped brackets."
     (goto-char point-marker)
     (json-par--free-marker point-marker)
     (json-par-indent-region start end)
-    (list start (json-par--free-marker end))))
+    (cons start (json-par--free-marker end))))
 
 (defun json-par--should-break-line-after-inserting-brackets
     (start end default-brackets-style)
@@ -399,16 +403,16 @@ for details."
                   (line-beginning-position))))
            (not (eq default-brackets-style 'one-line)))))))
 
-(defun json-par-insert-square-brackets (&optional default-brackets-style)
-  "Insert a pair of square brackets before or after the current member.
+(defun json-par-insert-square-brackets (&optional n default-brackets-style)
+  "Insert N pair of square brackets before or after the current member.
 
 See `json-par--insert-value' for details.
 
 If the region is active, wrap it with the brackets instead.
 See `json-par--wrap-region-with-brackets' for details.
 
-Return a list (FINAL-START FINAL-END) where FINAL-START and FINAL-END are the
-start and end of the brackets.
+Return a pair (START . END) where START and END are the start and end of the
+first brackets.  If N is zero or negative, return nil.
 
 DEFAULT-BRACKETS-STYLE affects whether or not to insert line breaks when
 inserting an empty array or object.  It is one of the following:
@@ -437,14 +441,39 @@ program.  If called interactively, the value of
 `json-par-default-brackets-style' is used."
   (interactive
    (list
+    (prefix-numeric-value current-prefix-arg)
     json-par-default-brackets-style))
+  (unless n
+    (setq n 1))
   (unless default-brackets-style
     (setq default-brackets-style 'one-line))
-  (json-par-insert-brackets "[" "]" default-brackets-style))
+  (let ((region-was-active (use-region-p))
+        region)
+    (when (< 0 n)
+      (prog1 (setq region (json-par-insert-brackets
+                           "["
+                           "]"
+                           default-brackets-style))
+        (dotimes (_ (1- n))
+          (setq region
+                (if region-was-active
+                    (progn
+                      (goto-char (car region))
+                      (set-mark (cdr region))
+                      (json-par-insert-brackets
+                       "["
+                       "]"
+                       default-brackets-style))
+                  (save-excursion
+                    (goto-char (cdr region))
+                    (json-par-insert-brackets
+                     "["
+                     "]"
+                     default-brackets-style)))))))))
 
 (push #'json-par-insert-square-brackets json-par--fixup-adviced-functions)
 
-(defun json-par-insert-curly-brackets (&optional default-brackets-style)
+(defun json-par-insert-curly-brackets (&optional n default-brackets-style)
   "Insert a pair of curly brackets before or after the current member.
 
 See `json-par--insert-value' for details.
@@ -454,8 +483,8 @@ See `json-par--wrap-region-with-brackets' for details.
 
 Then, prepend an empty key and a colon for each member if missing.
 
-Return a list (FINAL-START FINAL-END) where FINAL-START and FINAL-END are the
-start and end of the brackets.
+Return a pair (START . FINAL) where START and END are the start and end of the
+first brackets.  If N is zero or negative, return nil.
 
 DEFAULT-BRACKETS-STYLE affects whether or not to insert line breaks when
 inserting an empty array or object.  It is one of the following:
@@ -484,12 +513,41 @@ program.  If called interactively, the value of
 `json-par-default-brackets-style' is used."
   (interactive
    (list
+    (prefix-numeric-value current-prefix-arg)
     json-par-default-brackets-style))
+  (unless n
+    (setq n 1))
   (unless default-brackets-style
     (setq default-brackets-style 'one-line))
-  (let* ((positions (json-par-insert-brackets "{" "}" default-brackets-style))
-         (start (nth 0 positions)))
-    (json-par--prepend-empty-keys-to-values-if-missing start)))
+  (let ((region-was-active (use-region-p))
+        region
+        end)
+    (when (< 0 n)
+      (prog1 (setq region (json-par-insert-brackets
+                           "{"
+                           "}"
+                           default-brackets-style))
+        (setq end (copy-marker (cdr region)))
+        (json-par--prepend-empty-keys-to-values-if-missing (car region))
+        (dotimes (_ (1- n))
+          (setq region
+                (if region-was-active
+                    (progn
+                      (goto-char (car region))
+                      (set-mark end)
+                      (json-par-insert-brackets
+                       "{"
+                       "}"
+                       default-brackets-style))
+                  (save-excursion
+                    (goto-char end)
+                    (json-par-insert-brackets
+                     "{"
+                     "}"
+                     default-brackets-style))))
+          (set-marker end (cdr region))
+          (json-par--prepend-empty-keys-to-values-if-missing (car region)))
+        (json-par--free-marker end)))))
 
 (push #'json-par-insert-curly-brackets json-par--fixup-adviced-functions)
 
@@ -517,32 +575,38 @@ START is the start position of the object."
     (&optional arg action-when-inserting-double-quotes-at-end)
   "Insert double quotes before or after the current member.
 
-- If ARG is given or called with a prefix arg, unwrap the string.
-  See `json-par-destringify' for details.
+- If ARG is zero, do nothing.
+
+- If ARG is negative,  unwrap the string.  See `json-par-destringify' for
+  details.
+
+  If ARG is a symbol `-', a cons, or called interactively with just a
+  \\[universal-argument] prefix arg, ARG is interpreted as -1.
 
   Example (`|' is the point):
   [ \"|1, 2, 3\" ]
   ↓
   [ |1, 2, 3 ]
 
-- Inside a string, insert an escaped double quote.  If the point is just
-  after escape (backslash), insert just one double quote without backslash.
+- Inside a string, insert ARG escaped double quote.  If the point is just
+  after escape (backslash), use that esape for the first dobule quote.
 
   \"abc |def ghi\"
   ↓
   \"abc \\\"|def ghi\"
 
-  If the string is not closed, insert a unescaped double quote.
+  If the string is not closed, insert a unescaped double quote after ARG - 1
+  escaped double quotes.
 
-- Inside a comment, insert just a double quote.
+- Inside a comment, insert just ARG double quote.
 
 - If the point is just before the closing double quote, action depends on
   ACTION-WHEN-INSERTING-DOUBLE-QUOTES-AT-END
 
-  - `insert': insert an escaped double quote.
+  - `insert': insert escaped double quotes.
   - `exit': move the point after the string.
 
-  Defaults to `exit' when called from Lisp program, or the value of
+  Defaults to `insert' when called from Lisp program, or the value of
   `json-par-action-when-inserting-double-quotes-at-end' variable when called
   interactively.
 
@@ -558,51 +622,80 @@ START is the start position of the object."
    (list
     current-prefix-arg
     json-par-action-when-inserting-double-quotes-at-end))
+  (unless arg
+    (setq arg 1))
+  (when (or (consp arg) (eq arg '-))
+    (setq arg -1))
   (unless action-when-inserting-double-quotes-at-end
     (setq action-when-inserting-double-quotes-at-end 'insert))
   (let (parser-state)
-    (if arg
-        (json-par-destringify)
+    (cond
+     ;; Zero
+     ((zerop arg)
+      nil)
+
+     ;; Negative
+     ((< arg 0)
+      (json-par-destringify (- arg)))
+
+     ;; Region is active
+     ((use-region-p)
+      (json-par-stringify-region (region-beginning) (region-end) arg))
+
+     ;; Inside a string
+     ((save-excursion (nth 3 (setq parser-state (syntax-ppss))))
       (cond
-       ;; Region is active
-       ((use-region-p)
-        (json-par-stringify-region (region-beginning) (region-end)))
+       ;; After escape
+       ((json-par--escaped-p)
+        (insert-char ?\")
+        (dotimes (_ (1- arg))
+          (insert "\\\"")))
 
-       ;; Inside a string
-       ((save-excursion (nth 3 (setq parser-state (syntax-ppss))))
-        (cond
-         ;; After escape
-         ((json-par--escaped-p)
-          (insert-char ?\"))
+       ;; Unclosed string
+       ((save-excursion
+          (goto-char (json-par--string-like-beginning-position
+                      parser-state))
+          (forward-sexp)
+          (or (not (eq (char-before) ?\"))
+              (not (memq (char-after)
+                         '(nil ?: ?\] ?\) ?} ?\, ?\s ?\t ?\n ?/)))))
+        (dotimes (_ (1- arg))
+          (insert "\\\""))
+        (insert-char ?\"))
 
-         ;; Unclosed string
-         ((save-excursion
-            (goto-char (json-par--string-like-beginning-position
-                        parser-state))
-            (forward-sexp)
-            (or (not (eq (char-before) ?\"))
-                (not (memq (char-after)
-                           '(nil ?: ?\] ?\) ?} ?\, ?\s ?\t ?\n ?/)))))
-          (insert-char ?\"))
-
-         ;; Before closing quote
-         ((eq (char-after) ?\")
-          (if (eq action-when-inserting-double-quotes-at-end 'exit)
-              (forward-char)
-            (insert "\\\"")))
-
-         ;; Otherwise
-         (t
-          (insert "\\\""))))
-
-       ;; Inside a comment
-       ((json-par--string-like-beginning-position parser-state)
-        (insert "\""))
+       ;; Before closing quote
+       ((eq (char-after) ?\")
+        (dotimes (_ (1- arg))
+          (insert "\\\""))
+        (if (eq action-when-inserting-double-quotes-at-end 'exit)
+            (forward-char)
+          (insert "\\\"")))
 
        ;; Otherwise
        (t
-        (json-par--insert-key-or-value "\"\"")
-        (backward-char))))))
+        (dotimes (_ arg)
+          (insert "\\\"")))))
+
+     ;; Inside a comment
+     ((json-par--string-like-beginning-position parser-state)
+      (dotimes (_ arg)
+        (insert "\"")))
+
+     ;; Otherwise
+     (t
+      (if (eq (json-par--insert-key-or-value "\"\"") 'key)
+          (dotimes (_ (1- arg))
+            (backward-char 2)
+            (json-par-insert-comma)
+            (json-par--insert-key-or-value "\"\""))
+        (save-excursion
+          (dotimes (_ (1- arg))
+            (json-par-insert-comma)
+            (json-par--insert-value "\"\"")))
+        ;; `json-par-insert-comma' inserts a comma before the point.  Skip it.
+        (when (< 1 arg)
+          (backward-char)))
+      (backward-char)))))
 
 (push #'json-par-insert-double-quotes json-par--fixup-adviced-functions)
 
@@ -614,30 +707,44 @@ Return nil otherwise."
        (save-excursion
          (= (mod (skip-chars-backward "\\\\") 2) 1))))
 
-(defun json-par-stringify-region (start end)
+(defun json-par-stringify-region (start end &optional n)
   "Wrap the region from START to END with double quotes.
 
 Special characters in the region is escaped.
 
-If START or END is inside strings, escaped double quotes are inserted."
-  (interactive "r")
-  (save-excursion
-    (let* ((start-atom (json-par--current-atom start))
-           (end-atom (json-par--current-atom end))
-           (start-in-string (and (json-par-token-string-p start-atom)
-                                 (json-par-token-inside-p start-atom)))
-           (end-in-string (and (json-par-token-string-p end-atom)
-                               (json-par-token-inside-p end-atom))))
-      (setq end (copy-marker (json-par-escape-region-for-string start end)))
-      (goto-char end)
-      (insert-before-markers (if end-in-string "\\\"" "\""))
-      (goto-char start)
-      (insert (if start-in-string "\\\"" "\""))
-      (json-par--free-marker end))))
+If START or END is inside strings, escaped double quotes are inserted.
+
+If N is given, repeat that times.  If N is negative, destringify the region
+rather than stringify.  If N is a symbol `-', a cons, or called interactively
+with just a \\[universal-argument] prefix arg, N is interpreted as -1.
+
+Return the end position."
+  (interactive "rP")
+  (unless n
+    (setq n 1))
+  (when (or (consp n) (eq n '-))
+    (setq n -1))
+  (if (< n 0)
+      (json-par-destringify-region start end (- n))
+    (save-excursion
+      (let* ((start-atom (json-par--current-atom start))
+             (end-atom (json-par--current-atom end))
+             (start-in-string (and (json-par-token-string-p start-atom)
+                                   (json-par-token-inside-p start-atom)))
+             (end-in-string (and (json-par-token-string-p end-atom)
+                                 (json-par-token-inside-p end-atom))))
+        (setq end (copy-marker end))
+        (dotimes (_ n)
+          (set-marker end (json-par-escape-region-for-string start end))
+          (goto-char end)
+          (insert-before-markers (if end-in-string "\\\"" "\""))
+          (goto-char start)
+          (insert (if start-in-string "\\\"" "\"")))
+        (json-par--free-marker end)))))
 
 (push #'json-par-stringify-region json-par--fixup-adviced-functions)
 
-(defun json-par-destringify ()
+(defun json-par-destringify (&optional n)
   "Unwrap strings in the region or at the point.
 
 If the region is active, unwrap all strings in it.
@@ -646,94 +753,125 @@ Otherwise, unwrap the nearest string.
 
 Escaped characters in the strings are unescaped.
 
+If N is given, repeat that times.  If N is negative, stringify rather than
+destringify.  If N is a symbol `-', a cons, or called interactively with just a
+\\[universal-argument] prefix arg, N is interpreted as -1.
+
 Inhibit fixing up until next modification."
-  (interactive)
+  (interactive "P")
+  (unless n
+    (setq n 1))
+  (when (or (consp n) (eq n '-))
+    (setq n -1))
   (let* ((parser-state (save-excursion (syntax-ppss)))
          (current-atom (json-par--current-atom parser-state))
          (string-like-beginning-position
-          (json-par--string-like-beginning-position parser-state)))
-    (cond
-     ;; Region is active
-     ((use-region-p)
-      (json-par-destringify-region (region-beginning) (region-end)))
+          (json-par--string-like-beginning-position parser-state))
+         start
+         end)
+    (setq start
+          (cond
+           ;; Region is active
+           ((use-region-p)
+            (json-par-destringify-region (region-beginning) (region-end) n)
+            nil)
 
-     ;; Inside a string
-     ((and (json-par-token-string-p current-atom)
-           (json-par-token-inside-p current-atom))
+           ;; Inside a string
+           ((and (json-par-token-string-p current-atom)
+                 (json-par-token-inside-p current-atom))
+            (json-par-token-start current-atom))
+
+           ;; Inside a comment
+           (string-like-beginning-position
+            nil)
+
+           ;; Before or after a string
+           ((or (save-excursion
+                  (json-par--forward-spaces)
+                  (eq (char-after) ?\"))
+                (save-excursion
+                  (json-par--backward-spaces)
+                  (eq (char-before) ?\")))
+            ;; Prefer nearer string
+            (if (or (eq (char-after) ?\")
+                    (and
+                     (not (eq (char-before) ?\"))
+                     (or (save-excursion
+                           (skip-chars-forward "\s\t")
+                           (eq (char-after) ?\"))
+                         (and
+                          (not (save-excursion
+                                 (skip-chars-backward "\s\t")
+                                 (eq (char-before) ?\")))
+                          (save-excursion
+                            (json-par--forward-spaces)
+                            (eq (char-after) ?\"))))))
+                (save-excursion
+                  (json-par--forward-spaces)
+                  (point))
+              (save-excursion
+                (json-par-backward-token)
+                (point))))
+
+           ;; Otherwise; do nothing
+           (t
+            nil)))
+    (when start
       (save-excursion
-        (goto-char (json-par-token-start current-atom))
-        (json-par--destringify-after)))
-
-     ;; Inside a comment
-     (string-like-beginning-position
-      nil)
-
-     ;; Before or after a string
-     ((or
-       (save-excursion
-         (json-par--forward-spaces)
-         (eq (char-after) ?\"))
-       (save-excursion
-         (json-par--backward-spaces)
-         (eq (char-before) ?\")))
-      ;; Prefer nearer string
-      (if (or (eq (char-after) ?\")
-              (and
-               (not (eq (char-before) ?\"))
-               (or (save-excursion
-                     (skip-chars-forward "\s\t")
-                     (eq (char-after) ?\"))
-                   (and
-                    (not (save-excursion
-                           (skip-chars-backward "\s\t")
-                           (eq (char-before) ?\")))
-                    (save-excursion
-                      (json-par--forward-spaces)
-                      (eq (char-after) ?\"))))))
-          (save-excursion
-            (json-par--forward-spaces)
-            (json-par--destringify-after))
-        (save-excursion
-          (json-par-backward-token)
-          (json-par--destringify-after))))
-
-     ;; Otherwise; do nothing
-     (t
-      nil))))
+        (goto-char start)
+        (if (< 0 n)
+            (progn
+              (json-par--destringify-after)
+              (setq end (point))
+              (json-par-destringify-region start end (1- n)))
+          (json-par-forward-token)
+          (setq end (point))
+          (json-par-stringify-region start end (- n)))))))
 
 (push #'json-par-destringify json-par--fixup-adviced-functions)
 
-(defun json-par-destringify-region (start end)
+(defun json-par-destringify-region (start end &optional n)
   "Unwrap strings overlapping the region from START to END.
 
 Escaped characters in the strings are unescaped.
 
 Inhibit fixing up until next modification.
 
+If N is given, repeat that times.  If N is negative, stringify rather than
+destringify.  If N is a symbol `-', a cons, or called interactively with just a
+\\[universal-argument] prefix arg, N is interpreted as -1.
+
 Return the end position."
-  (interactive "r")
-  (save-excursion
-    (let ((start-string-like-beginning-position
-           (json-par--string-like-beginning-position start))
-          (end-string-like-beginning-position
-           (json-par--string-like-beginning-position end))
-          token)
-      (when start-string-like-beginning-position
-        (setq start start-string-like-beginning-position))
-      (when end-string-like-beginning-position
-        (goto-char end-string-like-beginning-position)
-        (if (eq (char-after) ?\")
-            (json-par-forward-token)
-          (json-par--forward-spaces))
-        (setq end (point)))
-      (setq end (copy-marker end))
-      (goto-char start)
-      (while (progn
-               (setq token (json-par-forward-token))
-               (and (< (json-par-token-start token) end)))
-        (when (json-par-token-string-p token)
-          (goto-char (json-par-token-start token))
-          (json-par--destringify-after)))
+  (interactive "rP")
+  (unless n
+    (setq n 1))
+  (when (or (consp n) (eq n '-))
+    (setq n -1))
+  (if (< n 0)
+      (json-par-stringify-region start end (- n))
+    (setq end (copy-marker end))
+    (save-excursion
+      (dotimes (_ n)
+        (let ((start-string-like-beginning-position
+               (json-par--string-like-beginning-position start))
+              (end-string-like-beginning-position
+               (json-par--string-like-beginning-position end))
+              token)
+          (when start-string-like-beginning-position
+            (setq start start-string-like-beginning-position))
+          (when end-string-like-beginning-position
+            (goto-char end-string-like-beginning-position)
+            (if (eq (char-after) ?\")
+                (json-par-forward-token)
+              (json-par--forward-spaces))
+            (set-marker end (point)))
+          (goto-char start)
+          (while (progn
+                   (setq token (json-par-forward-token))
+                   (and (< (json-par-token-start token) end)))
+            (when (json-par-token-string-p token)
+              (goto-char (json-par-token-start token))
+              (json-par--destringify-after)))))
       (json-par--free-marker end))))
 
 (push #'json-par-destringify-region json-par--fixup-adviced-functions)
@@ -741,15 +879,18 @@ Return the end position."
 (defun json-par--destringify-after ()
   "Unwrap a string just after the point.
 
-Inhibit fixing up until next modification."
-  (let ((start (point-marker))
+Inhibit fixing up until next modification.
+
+Move the point after the destringified region."
+  (let ((start (point))
         (end (save-excursion (json-par-forward-token) (point-marker))))
     (goto-char end)
     (delete-char -1)
     (goto-char start)
     (delete-char 1)
     (goto-char (json-par-unescape-region-for-string start end))
-    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick))))
+    (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick))
+    (json-par--free-marker end)))
 
 (defun json-par--insert-key-or-value (value)
   "Insert VALUE as a key or a value.
@@ -757,6 +898,8 @@ Inhibit fixing up until next modification."
 It is almost same as `json-par--insert-value' but if the point is inside an
 object and not where a value is expected but missing, insert as a key instead.
 
+Return a symbol `key' if VALUE is inserted as a key.  Return a symbol `value'
+otherwise.
 
 Examples (`|' is the point):
 
@@ -766,72 +909,94 @@ Where a value is expected but not a key:
   ↓
   { \"a\": \"new_value\"| }
 
-  { |\"a\": 1 }
-  ↓
-  { \"\": \"new_value\"|, \"a\": 1 }
-
 Where a key is expected:
 
   { |: 1 }
   ↓
-  { \"new_key\": 1| }
+  { \"new_key\"|: 1 }
 
   { \"a\": 1, | }
   ↓
-  { \"a\": 1, \"new_key\": | }
+  { \"a\": 1, \"new_key\"|: }
 
   { \"a\": 1| }
   ↓
-  { \"a\": 1, \"new_key\": | }"
+  { \"a\": 1, \"new_key\"|:  }
+
+  { |\"a\": 1 }
+  ↓
+  { \"new_key\"|: , \"a\": 1 }"
   (json-par--out-comment)
   (json-par--out-atom t)
   (let* ((next-token (save-excursion (json-par-forward-token)))
          (previous-token (save-excursion (json-par-backward-token)))
          (parent-token (json-par--parent-token))
-         (inside-object (json-par-token-open-curly-bracket-p parent-token)))
+         (inside-object (json-par-token-open-curly-bracket-p parent-token))
+         (next-is-value (and (or (json-par-token-open-bracket-p next-token)
+                                 (json-par-token-atom-p next-token))
+                             (not (json-par--object-key-p next-token t)))))
     (cond
      ;; Not inside an object.
      ((not inside-object)
-      (json-par--insert-value value t))
+      (json-par--insert-value value t)
+      'value)
 
-     ;; Place expecting a value but not a key.
+     ;; Between colons.
      ;;
-     ;; A value is expected:
+     ;; A value is expected after colon on the same line:
+     ;;
      ;; {
      ;;   "a": |
      ;;   : 1
      ;; }
      ;;
-     ;; A key is expected:
+     ;; { "a": | : 1 }
+     ;;
+     ;; A key is expected before colon on the same line:
+     ;;
      ;; {
      ;;   "a":
      ;;   |: 1
      ;; }
      ;;
-     ;; A Value is expected:
-     ;; { "a": | : 1 }
+     ;; Otherwise, value is expected:
+     ;;
+     ;; {
+     ;;   "a":
+     ;;   |
+     ;;   : 1
+     ;; }
      ((and (json-par-token-colon-p previous-token)
-           (or (not (json-par-token-atom-p next-token))
-               (json-par--object-key-p next-token t))
-           (not (json-par-token-open-bracket-p next-token))
-           (or (not (json-par-token-colon-p next-token))
-               (not (json-par--same-line-p (json-par-token-start next-token)
-                                           (point)))
-               (json-par--same-line-p (json-par-token-end previous-token)
-                                      (point))))
-      (json-par--insert-value value t))
+           (json-par-token-colon-p next-token))
+      (if (and (json-par--same-line-p
+                (json-par-token-start next-token)
+                (point))
+               (not (json-par--same-line-p
+                     (json-par-token-end previous-token)
+                     (point))))
+          (progn
+            (json-par--insert-key value previous-token next-token)
+            'key)
+        (json-par--insert-value value t)
+        'value))
+
+     ;; After colon without a value.
+     ((and (json-par-token-colon-p previous-token)
+           (not next-is-value))
+      (json-par--insert-value value t)
+      'value)
 
      ;; Before colon without a key.
      ((and (json-par-token-colon-p next-token)
            (not (json-par--object-key-p previous-token)))
-      (json-par--insert-key value previous-token next-token))
+      (json-par--insert-key value previous-token next-token)
+      'key)
 
-     ;; Value without key.
-     ((and (or (json-par-token-open-bracket-p next-token)
-               (json-par-token-atom-p next-token))
-           (not (json-par--object-key-p next-token))
+     ;; Before value without key.
+     ((and next-is-value
            (not (json-par-token-colon-p previous-token)))
-      (json-par--insert-key value previous-token next-token))
+      (json-par--insert-key value previous-token next-token)
+      'key)
 
      ;; Otherwise; insert a new member and replace the key with the `value'.
      (t
@@ -841,7 +1006,8 @@ Where a key is expected:
       (let ((key-token (json-par-backward-token)))
         (delete-region (json-par-token-start key-token)
                        (json-par-token-end key-token)))
-      (insert value)))))
+      (insert value)
+      'key))))
 
 (defun json-par--insert-key (key previous-token next-token)
   "Insert KEY before or after the current member as a object key.
@@ -907,84 +1073,108 @@ Only mandatory characters; solidus (\"/\") is not mandatory to escape.")
 
 The keys are the second characters of escape sequences.")
 
-(defun json-par-escape-region-for-string (start end)
+(defun json-par-escape-region-for-string (start end &optional n)
   "Escape the region from START to END to be a valid string.
 
 Escape only mandatory characters; quotation mark, reverse solidus, and the
 control characters (U+0000 through U+001F).  Solidus (\"/\") is left as is.
 
+If N is given, repeat that times.  If N is negative, unescape the region.  If N
+is a symbol `-', a cons, or called interactively with just a
+\\[universal-argument] prefix arg, N is interpreted as -1.
+
 Return the end position of the region."
-  (interactive "r")
-  (save-excursion
-    (save-match-data
-      (goto-char start)
-      (setq end (copy-marker end))
-      (while (re-search-forward "[\u0000-\u001F\"\\]" end t)
-        (let* ((char (char-after (match-beginning 0)))
-               (short-form (char-table-range json-par--escape-table char)))
-          (replace-match (or short-form (format "\\u%04x" char)) t t)))
-      (json-par--free-marker end))))
+  (interactive "rP")
+  (unless n
+    (setq n 1))
+  (when (or (consp n) (eq n '-))
+    (setq n -1))
+  (if (< n 0)
+      (json-par-unescape-region-for-string start end (- n))
+    (save-excursion
+      (save-match-data
+        (setq end (copy-marker end))
+        (dotimes (_ n)
+          (goto-char start)
+          (while (re-search-forward "[\u0000-\u001F\"\\]" end t)
+            (let* ((char (char-after (match-beginning 0)))
+                   (short-form (char-table-range json-par--escape-table char)))
+              (replace-match (or short-form (format "\\u%04x" char)) t t))))
+        (json-par--free-marker end)))))
 
 (push #'json-par-escape-region-for-string json-par--fixup-adviced-functions)
 
-(defun json-par-unescape-region-for-string (start end)
+(defun json-par-unescape-region-for-string (start end &optional n)
   "Unescape the region from START to END as a string.
 
 Invalid sequences are left as is.
 
+If N is given, repeat that times.  If N is negative, escape the region.  If N is
+a symbol `-', a cons, or called interactively with just a
+\\[universal-argument] prefix arg, N is interpreted as -1.
+
 Return the end position of the region."
-  (interactive "r")
-  (save-excursion
-    (save-match-data
-      (goto-char start)
-      (setq end (copy-marker end))
-      (while (re-search-forward "\\\\." end t)
-        (let* ((char (char-after (1+ (match-beginning 0))))
-               (short-form (char-table-range json-par--unescape-table char))
-               (match-beginning (match-beginning 0))
-               (match-end (match-end 0))
-               high-surrogate
-               low-surrogate
-               replacement)
-          (cond
-           ;; Two-character sequence escape
-           (short-form
-            (replace-match short-form t t))
+  (interactive "rP")
+  (unless n
+    (setq n 1))
+  (when (or (consp n) (eq n '-))
+    (setq n -1))
+  (if (< n 0)
+      (json-par-escape-region-for-string start end (- n))
+    (save-excursion
+      (save-match-data
+        (setq end (copy-marker end))
+        (dotimes (_ n)
+          (goto-char start)
+          (while (re-search-forward "\\\\." end t)
+            (let* ((char (char-after (1+ (match-beginning 0))))
+                   (short-form (char-table-range json-par--unescape-table char))
+                   (match-beginning (match-beginning 0))
+                   (match-end (match-end 0))
+                   high-surrogate
+                   low-surrogate
+                   replacement)
+              (cond
+               ;; Two-character sequence escape
+               (short-form
+                (replace-match short-form t t))
 
-           ;; Six-character sequence escape
-           ((and (eq char ?u)
-                 (looking-at "[0-9a-zA-Z]\\{4\\}"))
-            (setq match-end (match-end 0))
-            (setq high-surrogate
-                  (string-to-number (match-string-no-properties 0) 16))
-            (if (and (<= #xD800 high-surrogate #xDBFF)
-                     (save-excursion
-                       (goto-char match-end)
-                       (looking-at "\\\\u\\([0-9a-zA-Z]\\{4\\}\\)")))
-                ;; This may be a surrogate pair; proceeding.
-                (progn
-                  (setq match-end (match-end 0))
-                  (setq low-surrogate
-                        (string-to-number (match-string-no-properties 1) 16))
-                  (if (<= #xDC00 low-surrogate #xDFFF)
-                      ;; This is actually a surrogate pair.
-                      (setq replacement
-                            (string (logior
-                                     #x10000
-                                     (ash (- high-surrogate #xD800) 10)
-                                     (- low-surrogate #xDC00))))
-                    ;; Not a surrogate pair; go back to the first sequence
-                    (setq match-end (- match-end 6))
-                    (setq replacement (string high-surrogate))))
-              ;; Not a surrogate pair
-              (setq replacement (string high-surrogate)))
-            (goto-char match-beginning)
-            (delete-region match-beginning match-end)
-            (insert-before-markers replacement))
+               ;; Six-character sequence escape
+               ((and (eq char ?u)
+                     (looking-at "[0-9a-zA-Z]\\{4\\}"))
+                (setq match-end (match-end 0))
+                (setq high-surrogate
+                      (string-to-number (match-string-no-properties 0) 16))
+                (if (and (<= #xD800 high-surrogate #xDBFF)
+                         (save-excursion
+                           (goto-char match-end)
+                           (looking-at "\\\\u\\([0-9a-zA-Z]\\{4\\}\\)")))
+                    ;; This may be a surrogate pair; proceeding.
+                    (progn
+                      (setq match-end (match-end 0))
+                      (setq low-surrogate
+                            (string-to-number
+                             (match-string-no-properties 1)
+                             16))
+                      (if (<= #xDC00 low-surrogate #xDFFF)
+                          ;; This is actually a surrogate pair.
+                          (setq replacement
+                                (string (logior
+                                         #x10000
+                                         (ash (- high-surrogate #xD800) 10)
+                                         (- low-surrogate #xDC00))))
+                        ;; Not a surrogate pair; go back to the first sequence
+                        (setq match-end (- match-end 6))
+                        (setq replacement (string high-surrogate))))
+                  ;; Not a surrogate pair
+                  (setq replacement (string high-surrogate)))
+                (goto-char match-beginning)
+                (delete-region match-beginning match-end)
+                (insert-before-markers replacement))
 
-           ;; Invalid sequence; leave it as is
-           (t nil))))
-      (json-par--free-marker end))))
+               ;; Invalid sequence; leave it as is
+               (t nil)))))
+        (json-par--free-marker end)))))
 
 (push #'json-par-unescape-region-for-string json-par--fixup-adviced-functions)
 
@@ -1023,8 +1213,8 @@ If PROTECTION-MARKERS is omitted, default to `json-par--protection-markers'."
 
 (defvar electric-indent-mode)
 
-(defun json-par-insert-comma ()
-  "Insert a comma before or after the current member.
+(defun json-par-insert-comma (&optional n)
+  "Insert N comma before or after the current member.
 
 Insert spaces and line breaks if needed.
 
@@ -1183,109 +1373,116 @@ Details:
     |,
     \"b\": 2
   }"
-  (interactive)
+  (interactive "p")
+  (unless n
+    (setq n 1))
   (json-par--out-comment)
   (json-par--out-atom)
-  (let* ((electric-indent-mode nil)
-         (next-token (save-excursion (json-par-forward-token)))
-         (previous-token (save-excursion (json-par-backward-token)))
-         (parent-token (json-par--parent-token))
-         (next-is-object-key (json-par--object-key-p next-token t))
-         (previous-is-object-key (json-par--object-key-p previous-token))
-         (next-is-value
-          (and (or (json-par-token-atom-p next-token)
-                   (json-par-token-open-bracket-p next-token))
-               (not next-is-object-key)))
-         (previous-is-value
-          (and (or (json-par-token-atom-p previous-token)
-                   (json-par-token-close-bracket-p previous-token))
-               (not previous-is-object-key)))
-         (one-line
-          (json-par--same-line-p (json-par-token-start parent-token)
-                                 (json-par-token-start next-token)))
-         (insert-newline-after-comma
-          (and (not one-line)
-               (not (json-par--multiple-members-on-same-line-around-point-p
-                     3))))
-         value-placeholder-marker)
-    (when (or (and (json-par-token-colon-p next-token)
-                   previous-is-object-key)
-              (and (json-par-token-colon-p previous-token)
-                   next-is-value))
-      (json-par-beginning-of-member-point-only))
-    (when (memq (char-before) '(?\[ ?\( ?{ ?\,))
-      (insert-char ?\s)
-      (when (and (json-par-token-comma-p previous-token)
-                 insert-newline-after-comma)
-        (newline-and-indent)))
-    (when (memq (char-after) '(?} ?\) ?\]))
-      (if one-line
-          (save-excursion (insert-char ?\s))
-        (json-par--open-line-and-indent-both)))
-    (cond
-     ;; Inside an empty brackets, or between two commas or other places
-     ;; expecting a value (but not before/after a colon)
-     ((and (memq (json-par-token-type previous-token)
-                 '({ \( \[ \, outside-of-buffer))
-           (memq (json-par-token-type next-token)
-                 '(} \) \] \, outside-of-buffer)))
-      (when (and (eq (char-after) ?\,)
-                 insert-newline-after-comma)
-        (json-par--open-line-and-indent-both))
-      (setq value-placeholder-marker (point-marker))
-      (json-par--insert-comma-after-point insert-newline-after-comma))
+  (let ((electric-indent-mode nil)
+        result)
+    (dotimes (_ n)
+      (let* ((next-token (save-excursion (json-par-forward-token)))
+             (previous-token (save-excursion (json-par-backward-token)))
+             (parent-token (json-par--parent-token))
+             (next-is-object-key (json-par--object-key-p next-token t))
+             (previous-is-object-key (json-par--object-key-p previous-token))
+             (next-is-value
+              (and (or (json-par-token-atom-p next-token)
+                       (json-par-token-open-bracket-p next-token))
+                   (not next-is-object-key)))
+             (previous-is-value
+              (and (or (json-par-token-atom-p previous-token)
+                       (json-par-token-close-bracket-p previous-token))
+                   (not previous-is-object-key)))
+             (one-line
+              (json-par--same-line-p (json-par-token-start parent-token)
+                                     (json-par-token-start next-token)))
+             (insert-newline-after-comma
+              (and (not one-line)
+                   (not (json-par--multiple-members-on-same-line-around-point-p
+                         3))))
+             value-placeholder-marker)
+        (when (or (and (json-par-token-colon-p next-token)
+                       previous-is-object-key)
+                  (and (json-par-token-colon-p previous-token)
+                       next-is-value))
+          (json-par-beginning-of-member-point-only))
+        (when (memq (char-before) '(?\[ ?\( ?{ ?\,))
+          (insert-char ?\s)
+          (when (and (json-par-token-comma-p previous-token)
+                     insert-newline-after-comma)
+            (newline-and-indent)))
+        (when (memq (char-after) '(?} ?\) ?\]))
+          (if one-line
+              (save-excursion (insert-char ?\s))
+            (json-par--open-line-and-indent-both)))
+        (cond
+         ;; Inside an empty brackets, or between two commas or other places
+         ;; expecting a value (but not before/after a colon)
+         ((and (memq (json-par-token-type previous-token)
+                     '({ \( \[ \, outside-of-buffer))
+               (memq (json-par-token-type next-token)
+                     '(} \) \] \, outside-of-buffer)))
+          (when (and (eq (char-after) ?\,)
+                     insert-newline-after-comma)
+            (json-par--open-line-and-indent-both))
+          (setq value-placeholder-marker (point-marker))
+          (json-par--insert-comma-after-point insert-newline-after-comma))
 
-     ;; Between values, value and object key, colon and object key, or colons
-     ((or (and previous-is-value next-is-value)
-          (and (or previous-is-value
-                   (json-par-token-colon-p previous-token))
-               (or next-is-object-key
-                   (json-par-token-colon-p next-token))))
-      (json-par--insert-comma-after-previous-token)
-      (when (eq (char-before) ?\,)
-        (if (memq (char-after) '(?\s ?\t))
-            (forward-char)
-          (unless (eq (char-after) ?\n)
-            (insert-char ?\s))))
-      (setq value-placeholder-marker nil))
+         ;; Between values, value and object key, colon and object key, or
+         ;; colons
+         ((or (and previous-is-value next-is-value)
+              (and (or previous-is-value
+                       (json-par-token-colon-p previous-token))
+                   (or next-is-object-key
+                       (json-par-token-colon-p next-token))))
+          (json-par--insert-comma-after-previous-token)
+          (when (eq (char-before) ?\,)
+            (if (memq (char-after) '(?\s ?\t))
+                (forward-char)
+              (unless (eq (char-after) ?\n)
+                (insert-char ?\s))))
+          (setq value-placeholder-marker nil))
 
-     ;; Before close bracket or comma
-     ((or (json-par-token-close-bracket-p next-token)
-          (json-par-token-comma-p next-token)
-          (json-par-token-outside-of-buffer-p next-token))
-      (json-par--insert-comma-after-previous-token)
-      (when (eq (char-before) ?\,)
-        (insert-char ?\s)
-        (when insert-newline-after-comma (newline-and-indent)))
-      (when (and (json-par-token-close-bracket-p next-token)
-                 (not one-line))
-        (json-par-indent-line))
-      (setq value-placeholder-marker (point-marker))
-      (when (memq (char-after) '(?} ?\) ?\]))
-        (save-excursion (insert-char ?\s))))
+         ;; Before close bracket or comma
+         ((or (json-par-token-close-bracket-p next-token)
+              (json-par-token-comma-p next-token)
+              (json-par-token-outside-of-buffer-p next-token))
+          (json-par--insert-comma-after-previous-token)
+          (when (eq (char-before) ?\,)
+            (insert-char ?\s)
+            (when insert-newline-after-comma (newline-and-indent)))
+          (when (and (json-par-token-close-bracket-p next-token)
+                     (not one-line))
+            (json-par-indent-line))
+          (setq value-placeholder-marker (point-marker))
+          (when (memq (char-after) '(?} ?\) ?\]))
+            (save-excursion (insert-char ?\s))))
 
-     ;; Otherwise (before or after a colon, or before some value or object key)
-     (t
-      (setq value-placeholder-marker (point-marker))
-      (json-par--insert-comma-after-point insert-newline-after-comma)))
-    (when value-placeholder-marker
-      (save-excursion
-        (let (token)
-          (json-par--record-protection-markers-to-undo-list)
-          (while (json-par-token-comma-p
-                  (setq token (json-par-forward-token)))
-            t)
-          (goto-char (json-par-token-start token))
-          (unless (or (json-par-token-close-bracket-p token)
-                      (json-par-token-outside-of-buffer-p token))
-            (setq token (json-par-backward-token)))
-          (while (json-par-token-comma-p
-                  (setq token (json-par-backward-token)))
-            (json-par--add-protection-marker))
-          (when (or (json-par-token-open-bracket-p token)
-                    (json-par-token-outside-of-buffer-p token))
-            (json-par--add-protection-marker))))
-      (json-par--free-marker value-placeholder-marker))))
+         ;; Otherwise (before or after a colon, or before some value or
+         ;; object key)
+         (t
+          (setq value-placeholder-marker (point-marker))
+          (json-par--insert-comma-after-point insert-newline-after-comma)))
+        (when value-placeholder-marker
+          (save-excursion
+            (let (token)
+              (json-par--record-protection-markers-to-undo-list)
+              (while (json-par-token-comma-p
+                      (setq token (json-par-forward-token)))
+                t)
+              (goto-char (json-par-token-start token))
+              (unless (or (json-par-token-close-bracket-p token)
+                          (json-par-token-outside-of-buffer-p token))
+                (setq token (json-par-backward-token)))
+              (while (json-par-token-comma-p
+                      (setq token (json-par-backward-token)))
+                (json-par--add-protection-marker))
+              (when (or (json-par-token-open-bracket-p token)
+                        (json-par-token-outside-of-buffer-p token))
+                (json-par--add-protection-marker))))
+          (setq result (json-par--free-marker value-placeholder-marker)))))
+    result))
 
 (push #'json-par-insert-comma json-par--fixup-adviced-functions)
 
@@ -1346,8 +1543,8 @@ If the previous token is a colon, keep one space after it."
         (delete-char 1)))
     (insert-before-markers ",")))
 
-(defun json-par-insert-colon ()
-  "Insert a colon before or after the current member.
+(defun json-par-insert-colon (&optional n)
+  "Insert N colon before or after the current member.
 
 - If the point is before a colon, move after it.
 
@@ -1355,78 +1552,83 @@ If the previous token is a colon, keep one space after it."
 
 - Otherwise, insert a empty key and colon before/after the member.
   See `json-par--insert-key' for details."
-  (interactive)
+  (interactive "p")
+  (unless n
+    (setq n 1))
   (json-par--out-comment)
   (json-par--out-atom)
-  (let* ((next-token (save-excursion (json-par-forward-token)))
-         (previous-token (save-excursion (json-par-backward-token)))
-         (parent-token (json-par--parent-token))
-         (next-is-object-key
-          (json-par--object-key-p next-token t))
-         (next-is-value
-          (or (json-par-token-atom-p next-token)
-              (json-par-token-open-bracket-p next-token)))
-         (one-line
-          (<= (save-excursion (goto-char (json-par-token-start next-token))
-                              (line-beginning-position))
-              (json-par-token-end parent-token))))
-    (cond
-     ;; Before a colon
-     ((json-par-token-colon-p next-token)
-      (forward-char)
-      (if next-is-value
-          (skip-chars-forward "\s\t\n")
+  (dotimes (_ n)
+    (let* ((next-token (save-excursion (json-par-forward-token)))
+           (previous-token (save-excursion (json-par-backward-token)))
+           (parent-token (json-par--parent-token))
+           (next-is-object-key
+            (json-par--object-key-p next-token t))
+           (next-is-value
+            (or (json-par-token-atom-p next-token)
+                (json-par-token-open-bracket-p next-token)))
+           (one-line
+            (<= (save-excursion (goto-char (json-par-token-start next-token))
+                                (line-beginning-position))
+                (json-par-token-end parent-token))))
+      (cond
+       ;; Before a colon
+       ((json-par-token-colon-p next-token)
+        (forward-char)
+        (if next-is-value
+            (skip-chars-forward "\s\t\n")
+          (when (memq (char-after) '(?\s ?\t))
+            (forward-char))))
+
+       ;; After a key
+       ((and (json-par-token-string-p previous-token)
+             (save-excursion
+               (json-par-beginning-of-member-point-only)
+               (= (point) (json-par-token-start previous-token))))
+        (if (= (point) (json-par-token-end previous-token))
+            (progn
+              (insert-char ?:)
+              (when (not (memq (char-after) '(?\s ?\t ?\n)))
+                (insert-char ?\s)))
+          (save-excursion
+            (goto-char (json-par-token-end previous-token))
+            (insert-char ?:)))
+        (if next-is-value
+            (skip-chars-forward "\s\t\n")
+          (when (and (eq (char-before) ?:)
+                     (memq (char-after) '(?\s ?\t)))
+            (forward-char)
+            (when (memq (char-after) '(?\] ?\) ?}))
+              (backward-char)
+              (insert-char ?\s)))))
+
+       ;; Otherwise
+       (t
+        (when next-is-object-key
+          (json-par-insert-comma))
+        (json-par--insert-key "\"\"" previous-token next-token)
+        (forward-char)
+        (when (and (eq (char-after) ?\n) (not next-is-value))
+          (insert-char ?\s))
         (when (memq (char-after) '(?\s ?\t))
-          (forward-char))))
-
-     ;; After a key
-     ((and (json-par-token-string-p previous-token)
-           (save-excursion
-             (json-par-beginning-of-member-point-only)
-             (= (point) (json-par-token-start previous-token))))
-      (if (= (point) (json-par-token-end previous-token))
-          (progn
-            (insert-char ?:)
-            (when (not (memq (char-after) '(?\s ?\t ?\n)))
-              (insert-char ?\s)))
-        (save-excursion
-          (goto-char (json-par-token-end previous-token))
-          (insert-char ?:)))
-      (if next-is-value
-          (skip-chars-forward "\s\t\n")
-        (when (and (eq (char-before) ?:)
-                   (memq (char-after) '(?\s ?\t)))
-          (forward-char)
-          (when (memq (char-after) '(?\] ?\) ?}))
-            (backward-char)
-            (insert-char ?\s)))))
-
-     ;; Otherwise
-     (t
-      (when next-is-object-key
-        (json-par-insert-comma))
-      (json-par--insert-key "\"\"" previous-token next-token)
-      (forward-char)
-      (when (and (eq (char-after) ?\n) (not next-is-value))
-        (insert-char ?\s))
-      (when (memq (char-after) '(?\s ?\t))
-        (forward-char))
-      (when (memq (char-after) '(?} ?\) ?\]))
-        (if one-line
-            (save-excursion (insert-char ?\s))
-          (json-par--open-line-and-indent-both)
-          (insert-char ?\s)))
-      (when next-is-value
-        (skip-chars-forward "\s\t\n"))))))
+          (forward-char))
+        (when (memq (char-after) '(?} ?\) ?\]))
+          (if one-line
+              (save-excursion (insert-char ?\s))
+            (json-par--open-line-and-indent-both)
+            (insert-char ?\s)))
+        (when next-is-value
+          (skip-chars-forward "\s\t\n")))))))
 
 (push #'json-par-insert-colon json-par--fixup-adviced-functions)
 
-(defun json-par-insert-reverse-solidus ()
-  "Insert a reverse solidus.
+(defun json-par-insert-reverse-solidus (&optional n)
+  "Insert N reverse solidus.
 
 Inhibit fixup until next modification."
-  (interactive)
-  (insert-char ?\\)
+  (interactive "p")
+  (unless n
+    (setq n 1))
+  (insert-char ?\\ n)
   (setq json-par--inhibit-fixup-tick (buffer-chars-modified-tick)))
 
 (provide 'json-par-insert)
