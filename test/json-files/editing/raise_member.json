@@ -140,3 +140,18 @@
 ]/*|*/
 // expected-end
 // test-end
+
+// context-start
+{
+    "a": {
+        "/*|*/b": "bbb"
+    }
+}
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+{
+    /*|*/"b": "bbb"
+}
+// expected-end
+// test-end

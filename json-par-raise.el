@@ -60,6 +60,8 @@ Do nothing at top-level."
          start-of-parent
          end-of-parent)
     (unless (zerop depth)
+      (json-par--out-comment)
+      (json-par--out-atom)
       (json-par-up-backward-point-only arg)
       (json-par-beginning-of-member-point-only)
       (setq start-of-parent (point-marker))
