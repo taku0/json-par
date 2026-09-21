@@ -562,7 +562,8 @@ START is the start position of the object."
           last-token)
       (while (progn
                (setq token (json-par-forward-token-or-list))
-               (not (json-par-token-close-curly-bracket-p token)))
+               (and (not (json-par-token-close-curly-bracket-p token))
+                    (not (json-par-token-outside-of-buffer-p token))))
         (unless (or (json-par--object-key-p token)
                     (memq (json-par-token-type token) '(\, other :))
                     (eq (json-par-token-type last-token) ':))

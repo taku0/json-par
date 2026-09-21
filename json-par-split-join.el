@@ -362,9 +362,11 @@ nothing."
           (goto-char (json-par-token-end next-token))
           (setq next-token (json-par-forward-token)))))
     (cond
-     ;; Beginning of buffer/end of buffer
+     ;; Beginning/end of buffer/array/object
      ((or (json-par-token-outside-of-buffer-p previous-token)
-          (json-par-token-outside-of-buffer-p next-token))
+          (json-par-token-outside-of-buffer-p next-token)
+          (json-par-token-open-bracket-p previous-token)
+          (json-par-token-close-bracket-p next-token))
       nil)
 
      ;; Between comments

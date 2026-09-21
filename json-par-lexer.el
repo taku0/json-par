@@ -303,6 +303,14 @@ Atom is one of the following tokens:
 Return nil otherwise."
   (memq (json-par-token-type token) '(string number constant other)))
 
+(defun json-par-token-unclosed-string-p (token)
+  "Return non-nil if the TOKEN is an unclosed string.
+
+Return nil otherwise."
+  (and (json-par-token-string-p token)
+       (or (not (eq (char-before (json-par-token-end token)) ?\"))
+           (= (json-par-token-length token) 1))))
+
 (defun json-par-token-one-line-p (token)
   "Return non-nil if TOKEN has no line breaks in it.
 
@@ -332,9 +340,11 @@ type `outside-of-buffer'."
   (cond
    ;; Outside of buffer
    ((or (eobp)
+        ;; `json-par--forward-spaces' don't skip unclosed comments.
         (and (eq (char-after) ?/)
-             (eq (char-after (1+ (point))) ?/)
-             (eq (char-after (line-end-position)) nil)))
+             (eq (char-after (1+ (point))) ?*))
+        (and (eq (char-after) ?/)
+             (eq (char-after (1+ (point))) ?/)))
     (json-par-token 'outside-of-buffer (point) (point)))
 
    ;; Separators and parentheses
@@ -434,7 +444,8 @@ Return the token skipped."
          (previous-start (json-par-token-start previous-token))
          (previous-end (json-par-token-end previous-token))
          (syntax-propertize-extend-region-functions nil)
-         (syntax-propertize-function nil))
+         (syntax-propertize-function nil)
+         start-of-list)
     (cond
      ;; List
      ((memq previous-type '(} ?\) \]))
@@ -445,13 +456,18 @@ Return the token skipped."
             ;; non-nil.  This is a lightweight alternative for it.  If
             ;; `backward-list' becomes fast enough, replace this with
             ;; `backward-list'.
-            (goto-char (nth 1 (syntax-ppss)))
-            (json-par-token
-             (assoc-default previous-type '((} . {})
-                                            (\) . \(\))
-                                            (\] . \[\])))
-             (point)
-             previous-end))
+            (setq start-of-list (nth 1 (syntax-ppss)))
+            (if start-of-list
+                (progn
+                  (goto-char start-of-list)
+                  (json-par-token
+                   (assoc-default previous-type '((} . {})
+                                                  (\) . \(\))
+                                                  (\] . \[\])))
+                   (point)
+                   previous-end))
+              (goto-char previous-start)
+              previous-token))
         (scan-error
          (goto-char previous-start)
          previous-token)))
@@ -618,15 +634,13 @@ If the point is not after a comment, return nil."
 If KEEP-LINE is non-nil, don't skip newlines except inside comments."
   (let ((space-chars (if keep-line "\s\t" "\s\t\n"))
         (syntax-propertize-extend-region-functions nil)
-        (syntax-propertize-function nil))
+        (syntax-propertize-function nil)
+        pos)
     (skip-chars-forward space-chars)
-    (while (and (eq (char-after) ?/)
-                (or (and (eq (char-after (1+ (point))) ?*)
-                         (forward-comment 1))
-                    (and (not keep-line)
-                         (eq (char-after (1+ (point))) ?/)
-                         (eq (char-after (line-end-position)) ?\n)
-                         (forward-comment 1))))
+    (while (progn
+             (setq pos (point))
+             (or (forward-comment 1)
+                 (progn (goto-char pos) nil)))
       (skip-chars-forward space-chars))))
 
 (defun json-par--backward-spaces (&optional keep-line)
@@ -697,17 +711,21 @@ If PARSER-STATE is a number or a marker, use that position for (syntax-ppss)."
 (defun json-par--out-atom (&optional skip-comma)
   "Move after an atom if the point is inside an atom.
 
-When SKIP-COMMA is non-nil, skip following comma if any."
+When SKIP-COMMA is non-nil, skip following comma if any.
+
+If the atom is an unclosed string, move before the atom instead."
   (unless json-par--already-out-of-atom
     (let ((current-atom (json-par--current-atom)))
       (when (json-par-token-inside-p current-atom)
-        (goto-char (json-par-token-end current-atom))
-        (when (and skip-comma
-                   (save-excursion
-                     (json-par--forward-spaces)
-                     (eq (char-after) ?\,)))
-          (json-par--forward-spaces)
-          (forward-char))))))
+        (if (json-par-token-unclosed-string-p current-atom)
+            (goto-char (json-par-token-start current-atom))
+          (goto-char (json-par-token-end current-atom))
+          (when (and skip-comma
+                     (save-excursion
+                       (json-par--forward-spaces)
+                       (eq (char-after) ?\,)))
+            (json-par--forward-spaces)
+            (forward-char)))))))
 
 (defun json-par--object-key-p (token &optional right-associative)
   "Return non-nil if TOKEN is a object key.

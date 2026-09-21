@@ -142,7 +142,7 @@ Regions between top-level values are not modified."
       (json-par--out-comment)
       (setq start (point))
       (json-par--out-atom)
-      (when (/= start (point))
+      (when (< start (point))
         (json-par-backward-token))
       (setq start (point)))
     (save-excursion

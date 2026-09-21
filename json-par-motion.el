@@ -102,11 +102,6 @@ Signal `scan-error' if it hits a close parenthesis."
                 (skip-chars-forward "\s\t\n")
                 (json-par--forward-sexp-1)))))
       (setq token (json-par-forward-token-or-list-or-comment))
-      (when (bolp)
-        (backward-char)
-        (when (<= (point) pos)
-          (skip-chars-forward "\s\t\n")
-          (json-par--forward-sexp-1)))
       (when (json-par-token-close-bracket-p token)
         (goto-char pos)
         (signal 'scan-error
@@ -175,6 +170,10 @@ before/after comments if any."
                     (not done)))
         (setq token (json-par-forward-token-or-list))
         (cond
+         ;; Unclosed comment
+         ((json-par-token-outside-of-buffer-p token)
+          (setq done t))
+
          ;; Colon
          ((json-par-token-colon-p token)
           (if (or colon-token value-token)
@@ -238,7 +237,9 @@ Otherwise, skip spaces backward and move forward one space if exists."
     (skip-chars-backward "\s\t")
     (cond
      ((eq (char-before) ?\n)
-      (backward-char))
+      (backward-char)
+      (when (nth 4 (syntax-ppss))
+        (skip-chars-forward "\s\t\n")))
      (prefer-close-bracket
       (skip-chars-forward "\s\t")
       (when (memq (char-before) '(?\s ?\t))
@@ -1707,13 +1708,15 @@ the token instead.
 If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
 line breaks between the brackets."
   (json-par--forward-spaces)
-  (let ((current-atom (json-par--current-atom)))
+  (let ((current-atom (json-par--current-atom))
+        (last-token nil))
     (if (json-par-token-inside-p current-atom)
         (goto-char (json-par-token-end current-atom))
       (while (progn
                (json-par--forward-spaces)
-               (not (memq (char-after) '(nil ?\] ?\) ?}))))
-        (json-par-forward-token-or-list))
+               (and (not (memq (char-after) '(nil ?\] ?\) ?})))
+                    (not (json-par-token-outside-of-buffer-p last-token))))
+        (setq last-token (json-par-forward-token-or-list)))
       (when (memq (char-after) '(?\] ?\) ?}))
         (forward-char)
         (when collapse-if-empty
