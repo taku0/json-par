@@ -369,6 +369,12 @@ nothing."
           (json-par-token-close-bracket-p next-token))
       nil)
 
+     ;; Before/after object key
+     ((or (json-par-token-colon-p previous-token)
+          (json-par-token-colon-p next-token)
+          (json-par--object-key-p next-token))
+      nil)
+
      ;; Between comments
      ((and (json-par-token-comment-p previous-token)
            (json-par-token-comment-p next-token))

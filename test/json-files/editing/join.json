@@ -498,3 +498,93 @@
 ]
 // expected-end
 // test-end
+
+// context-start
+{
+    "a"/*|*/: [ 1 ],
+    "b": [ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a"/*|*/: [ 1 ],
+    "b": [ 2 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": /*|*/[ 1 ],
+    "b": [ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a": /*|*/[ 1 ],
+    "b": [ 2 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": [ 1 ]/*|*/,
+    "b": [ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a": [ 1 ]/*|*/,
+    "b": [ 2 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": [ 1 ],
+    /*|*/"b": [ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a": [ 1 ],
+    /*|*/"b": [ 2 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": [ 1 ],
+    "b"/*|*/: [ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a": [ 1 ],
+    "b"/*|*/: [ 2 ]
+}
+// expected-end
+// test-end
+
+// context-start
+{
+    "a": [ 1 ],
+    "b": /*|*/[ 2 ]
+}
+// context-end
+// action: (json-par-join-if-special)
+// expected-start
+{
+    "a": [ 1 ],
+    "b": /*|*/[ 2 ]
+}
+// expected-end
+// test-end
