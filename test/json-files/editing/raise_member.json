@@ -114,3 +114,29 @@
 ]
 // expected-end
 // test-end
+
+// context-start
+/*|*/[
+    "aaa"
+]
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+/*|*/[
+    "aaa"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    "aaa"
+]/*|*/
+// context-end
+// action: (json-par-raise-member)
+// expected-start
+[
+    "aaa"
+]/*|*/
+// expected-end
+// test-end

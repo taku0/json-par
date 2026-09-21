@@ -35,7 +35,9 @@
 (defun json-par-raise-member (&optional arg)
   "Replace the parent member with the current member or selection.
 
-If ARG is given, repeat that time."
+If ARG is given, repeat that time.
+
+Do nothing at top-level."
   (interactive "p")
   (let* ((start (if (use-region-p)
                     (region-beginning)
@@ -44,6 +46,9 @@ If ARG is given, repeat that time."
                     (json-par--backward-spaces)
                     (skip-chars-forward "\s\t\n")
                     (point))))
+         (depth (save-excursion
+                  (goto-char start)
+                  (nth 0 (syntax-ppss))))
          (end (if (use-region-p)
                   (region-end)
                 (save-excursion
@@ -54,17 +59,18 @@ If ARG is given, repeat that time."
                   (point))))
          start-of-parent
          end-of-parent)
-    (json-par-up-backward-point-only arg)
-    (json-par-beginning-of-member-point-only)
-    (setq start-of-parent (point-marker))
-    (setq end-of-parent
-          (save-excursion
-            (json-par-end-of-member-point-only)
-            (point-marker)))
-    (transpose-regions (point) (point) start end)
-    (goto-char (- start-of-parent (- end start)))
-    (delete-region (json-par--free-marker start-of-parent)
-                   (json-par--free-marker end-of-parent))))
+    (unless (zerop depth)
+      (json-par-up-backward-point-only arg)
+      (json-par-beginning-of-member-point-only)
+      (setq start-of-parent (point-marker))
+      (setq end-of-parent
+            (save-excursion
+              (json-par-end-of-member-point-only)
+              (point-marker)))
+      (transpose-regions (point) (point) start end)
+      (goto-char (- start-of-parent (- end start)))
+      (delete-region (json-par--free-marker start-of-parent)
+                     (json-par--free-marker end-of-parent)))))
 
 (push #'json-par-raise-member json-par--fixup-adviced-functions)
 
