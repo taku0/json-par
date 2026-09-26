@@ -107,8 +107,8 @@ See `json-par-split' for details."
           (let ((marker (copy-marker end-position)))
             (set-marker-insertion-type marker t)
             marker))
-         ;; String that contains a comma, spaces, and a empty key with a colon
-         ;; (if the string is a object value) to be inserted between the two
+         ;; String that contains a comma, spaces, and an empty key with a colon
+         ;; (if the string is an object value) to be inserted between the two
          ;; split strings.
          ;; We build this before splitting the string to get better line break
          ;; behavior.
@@ -312,8 +312,8 @@ See `json-par-split' for details."
           (let ((marker (copy-marker end-position)))
             (set-marker-insertion-type marker t)
             marker))
-         ;; String that contains a comma, spaces, and a empty key with a colon
-         ;; (if the array/object is a object value) to be inserted between the
+         ;; String that contains a comma, spaces, and an empty key with a colon
+         ;; (if the array/object is an object value) to be inserted between the
          ;; two split array/object.
          ;; We build this before splitting the array/object to get better line
          ;; break behavior.

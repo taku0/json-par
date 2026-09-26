@@ -351,7 +351,7 @@ before a close bracket otherwise.  This also affects the direction of marking."
 See `json-par-action-when-deleting-brackets-from-outside' for details of ACTION.
 
 Assuming the point is after an close bracket if DIRECTION is `backward', or
-before a open bracket otherwise.  This also affects the direction of marking."
+before an open bracket otherwise.  This also affects the direction of marking."
   (if (eq action 'enter)
       (if (eq direction 'backward)
           (progn
@@ -702,7 +702,7 @@ following:
 The default value is `delete' when called from Lisp program, or the value of
 variable `json-par-action-when-deleting-comma' when called interactively.
 
-Otherwise, delete/mark the preceding value."
+Otherwise, delete/mark the following value."
   (interactive
    (list
     json-par-action-when-deleting-value-or-member
@@ -926,7 +926,7 @@ MARK-DIRECTION is a symbol `backward' and mark forward otherwise."
 (push #'json-par-delete-current-value-or-key json-par--fixup-adviced-functions)
 
 (defun json-par--delete-key (token keep-member-if-empty action mark-direction)
-  "Delete a object key TOKEN.
+  "Delete an object key TOKEN.
 
 If the key is empty, delete the whole member unless KEEP-MEMBER-IF-EMPTY.
 
@@ -1121,7 +1121,7 @@ interactively."
 
 If N is negative, delete the preceding members.
 
-At the end of the buffer, delete the spaces and line breaks before the point.
+At the end of the buffer, delete the spaces and line breaks after the point.
 
 ACTION is one of `delete', `mark-or-delete', or `mark', defaults to `delete'
 when called from Lisp program, or the value of
@@ -1145,6 +1145,7 @@ ACTION-WHEN-DELETING-BRACKETS-FROM-INSIDE.  It is one of the following:
 - `mark-or-delete-inner': mark contents of the object/array if not empty.  Mark
    whole object/array otherwise.  If already marked, delete it.
 - `exit': move the point out of the object/array.
+- `none': do nothing.
 
 The default value is `delete-outer' when called from Lisp program, or the value
 of variable `json-par-action-when-deleting-brackets-from-inside' when called

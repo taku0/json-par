@@ -1011,7 +1011,7 @@ Where a key is expected:
       'key))))
 
 (defun json-par--insert-key (key previous-token next-token)
-  "Insert KEY before or after the current member as a object key.
+  "Insert KEY before or after the current member as an object key.
 
 Insert spaces, commas, a colon if needed.
 
@@ -1551,7 +1551,7 @@ If the previous token is a colon, keep one space after it."
 
 - If the point is after a key without a colon, insert a colon.
 
-- Otherwise, insert a empty key and colon before/after the member.
+- Otherwise, insert an empty key and colon before/after the member.
   See `json-par--insert-key' for details."
   (interactive "p")
   (unless n

@@ -126,7 +126,7 @@ If POS is nil, the point is used."
   (- (json-par-token-end token) (json-par-token-start token)))
 
 (defun json-par-token-empty-string-p (token)
-  "Return the end position of TOKEN.
+  "Return non-nil if TOKEN is an empty string.
 
 Return nil otherwise."
   (and (json-par-token-string-p token)
@@ -385,7 +385,7 @@ type `outside-of-buffer'."
     (json-par-token 'other (1- (point)) (point)))))
 
 (defun json-par-backward-token ()
-  "Move the point forward to the beginning of the previous token.
+  "Move the point backward to the beginning of the previous token.
 
 Return a token object.  If no more tokens available, return a token with
 type `outside-of-buffer'."
@@ -728,9 +728,9 @@ If the atom is an unclosed string, move before the atom instead."
             (forward-char)))))))
 
 (defun json-par--object-key-p (token &optional right-associative)
-  "Return non-nil if TOKEN is a object key.
+  "Return non-nil if TOKEN is an object key.
 
-A token is a object key if and only if:
+A token is an object key if and only if:
 
 - it is a string,
 - it is before colon, and
@@ -738,18 +738,18 @@ A token is a object key if and only if:
 
 Examples:
 
-  // \"a\" is a object key
+  // \"a\" is an object key
   { \"a\": 1 }
 
-  // \"b\" is not a object key
+  // \"b\" is not an object key
   { \"a\": \"b\" }
 
-  // \"b\" is not a object key if RIGHT-ASSOCIATIVE is nil
+  // \"b\" is not an object key if RIGHT-ASSOCIATIVE is nil
   { \"a\": \"b\": }
   // this is treated as:
   { \"a\": \"b\", : }
   // If RIGHT-ASSOCIATIVE is non-nil, it is treated as the following,
-  // so \"b\" is a object key.
+  // so \"b\" is an object key.
   { \"a\": , \"b\": }
 
 This function affects where a comma is inserted by `json-par-insert-comma'."

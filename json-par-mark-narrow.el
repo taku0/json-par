@@ -54,7 +54,7 @@ If the region is not active or ALLOW-EXTEND is nil:
 - If the member is empty and a comma is around the point, mark it (the
   following one is preferred) and the following spaces.
 
-- Inside a empty brackets, mark the whole object/array.
+- Inside an empty brackets, mark the whole object/array.
 
 Otherwise, extend the region forward if the point is before the mark, or
 backward if not.  See `json-par--region-to-extend-backward' or
@@ -707,7 +707,7 @@ repeatedly, and the region is not active, push a mark first."
 (defun json-par-beginning-of-object-value (&optional push-mark parsed)
   "Move the point to the start of the object value of the current member.
 
-If the point is not in a object, go to the beginning of the member.
+If the point is not in an object, go to the beginning of the member.
 
 If the region is active, move mark to the end of the member.
 

@@ -112,9 +112,9 @@ Signal `scan-error' if it hits a close parenthesis."
 (defun json-par--backward-sexp-1 ()
   "Move backward a token or list.
 
-Inside a string or a comment, forward a word.
+Inside a string or a comment, backward a word.
 
-Signal `scan-error' if it hits a open parenthesis."
+Signal `scan-error' if it hits an open parenthesis."
   (let ((string-like-beginning-position
          (json-par--string-like-beginning-position))
         (pos (point))
@@ -368,7 +368,7 @@ move to the beginning of the comment."
     (&optional push-mark parsed include-comment)
   "Move the point to the start of the object value of the current member.
 
-If the point is not in a object, go to the beginning of the member.
+If the point is not in an object, go to the beginning of the member.
 
 If PUSH-MARK is non-nil or called interactively, the function is not called
 repeatedly, and the region is not active, push a mark first.
