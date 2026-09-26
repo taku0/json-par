@@ -99,6 +99,7 @@ See `json-par-split' for details."
     (when escape-sequence
       (goto-char (cdr escape-sequence))))
   (let* ((is-key (json-par--object-key-p string-token))
+         (unclosed (json-par-token-unclosed-string-p string-token))
          (end-position (save-excursion
                          (json-par-end-of-member-point-only)
                          (point)))
@@ -114,6 +115,8 @@ See `json-par-split' for details."
          (comma-and-spaces
           (save-excursion
             (goto-char end-position)
+            (when unclosed
+              (insert-char ?\"))
             (json-par-insert-comma)
             (unless is-key
               (json-par--insert-value "0" t)
@@ -121,6 +124,10 @@ See `json-par-split' for details."
             ;; `json-par-insert-comma' may insert extra spaces after the point.
             ;; Delete it.
             (delete-region (point) (json-par--free-marker end-marker))
+            (when unclosed
+              (save-excursion
+                (goto-char end-position)
+                (delete-char 1)))
             (delete-and-extract-region end-position (point)))))
     (insert-char ?\")
     (when is-key
@@ -149,10 +156,11 @@ If the point is not on an escape sequence, return nil."
 (defun json-par--split-comment (beginning-position)
   "Split a comment at BEGINNING-POSITION."
   (let* ((pos (point))
+         closed
          (end-position
           (save-excursion
             (goto-char beginning-position)
-            (forward-comment 1)
+            (setq closed (forward-comment 1))
             (point)))
          (single-line
           (save-excursion
@@ -174,6 +182,7 @@ If the point is not on an escape sequence, return nil."
     (when (= (point) (1+ beginning-position))
       (forward-char))
     (when (and (not single-line)
+               closed
                (= (point) (1- end-position)))
       (backward-char))
     (insert suffix)
@@ -201,7 +210,11 @@ than the suffix.  If the comment contains only asterisks, those asterisks are
 part of the prefix except the last asterisk.
 
 If POINT is given, neither the prefix nor the suffix go beyond POINT."
-  (let* ((prefix-end-position
+  (let* ((closed
+          (save-excursion
+            (goto-char beginning-position)
+            (forward-comment 1)))
+         (prefix-end-position
           (save-excursion
             (goto-char beginning-position)
             (looking-at "/[*]+[\s\t\n*]*")
@@ -209,19 +222,41 @@ If POINT is given, neither the prefix nor the suffix go beyond POINT."
              (+ beginning-position 2)
              (min
               (match-end 0)
-              (- end-position 2)
+              (if closed (- end-position 2) end-position)
               (or point (point-max))))))
          (prefix (buffer-substring beginning-position prefix-end-position))
-         (suffix (buffer-substring
-                  (save-excursion
-                    (goto-char end-position)
-                    (backward-char)
-                    (skip-chars-backward "*\s\t\n")
-                    (max
-                     (point)
-                     prefix-end-position
-                     (or point (point-min))))
-                  end-position)))
+         (suffix
+          (cond
+           (closed
+            (buffer-substring
+             (save-excursion
+               (goto-char end-position)
+               (backward-char)
+               (skip-chars-backward "*\s\t\n")
+               (max (point)
+                    prefix-end-position
+                    (or point (point-min))))
+             end-position))
+
+           ((string-match-p "/[*]+[\s\t]*\n" prefix)
+            (save-excursion
+              (goto-char beginning-position)
+              (forward-line)
+              (back-to-indentation)
+              (concat
+               "\n"
+               (if (eq (char-after) ?*)
+                   (buffer-substring (line-beginning-position) (point))
+                 (goto-char beginning-position)
+                 (forward-char)
+                 (make-string (current-column) ?\s))
+               "*/")))
+
+           ((string-match-p "/[*]+[\s\t]+" prefix)
+            " */")
+
+           (t
+            "*/"))))
     (cons prefix suffix)))
 
 (defun json-par--prefix-and-suffix-of-single-line-comment
