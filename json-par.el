@@ -426,10 +426,15 @@ It is restored when JSON Par mode is disabled.")
           (when cell
             (setq minor-mode-map-alist
                   (cons cell (delq cell minor-mode-map-alist)))))
-        (setq-local json-par-old-forward-sexp-function forward-sexp-function)
+        (unless (eq forward-sexp-function #'json-par-forward-sexp)
+          (setq-local json-par-old-forward-sexp-function forward-sexp-function))
         (setq-local forward-sexp-function #'json-par-forward-sexp)
-        (setq-local json-par-old-indent-line-function indent-line-function)
+        (unless (eq indent-line-function #'json-par-indent-line)
+          (setq-local json-par-old-indent-line-function indent-line-function))
         (setq-local indent-line-function #'json-par-indent-line)
+        (unless (eq indent-region-function #'json-par-indent-region)
+          (setq-local json-par-old-indent-region-function
+                      indent-region-function))
         (setq-local indent-region-function #'json-par-indent-region)
         (add-hook 'post-self-insert-hook #'json-par--post-self-insert nil t)
         (json-par--add-install-advice-to-deferred-hook-functions-to-hooks)
