@@ -33,10 +33,34 @@
                          (or load-file-name buffer-file-name))))
 
 (defvar json-par-test-running nil)
-(defvar json-par-test-jsonc-modes '((jsonc-mode js-indent-level)
-                                    (jsonian-c-mode jsonian-default-indentation)
-                                    (json-ts-mode json-ts-mode-indent-offset)
-                                    (js-json-mode js-indent-level)))
+(defvar json-par-test-jsonc-modes
+  '((jsonc-mode
+     js-indent-level
+     (lambda () (require 'json-mode nil t))
+     functionp)
+    (jsonian-c-mode
+     jsonian-default-indentation
+     (lambda () (require 'jsonian nil t))
+     functionp)
+    (json-ts-mode
+     json-ts-mode-indent-offset
+     (lambda ()
+       (require 'treesit nil t)
+       (condition-case err
+           (json-par-ensure-json-ts-grammar)
+         (error
+          (message "JSON grammar setup failed: %s" (error-message-string err))))
+       (require 'json-ts-mode nil t))
+     (lambda (mode)
+       (and (functionp mode)
+            (fboundp 'treesit-ready-p)
+            (treesit-ready-p 'json t))))
+    (js-json-mode
+     js-indent-level
+     (lambda () (require 'js nil t))
+     functionp))
+  "Test modes, indentation variables, setup functions, and availability
+predicates.")
 
 (defvar js-indent-level)
 (defvar jsonian-default-indentation)
@@ -55,12 +79,6 @@ Return the error-buffer"
 (defun json-par-run-test (&optional tests)
   "Run TESTS for `json-par-mode'."
   (interactive)
-  (require 'treesit nil t)
-  (json-par-ensure-json-ts-grammar)
-  (require 'json-mode nil t)
-  (require 'jsonian nil t)
-  (require 'json-ts-mode nil t)
-  (require 'js nil t)
   (unless tests
     (dolist (test-source (directory-files json-par-test-basedir
                                           t "json-par-test-.*.el"))
@@ -76,23 +94,36 @@ Return the error-buffer"
                        (cons 'error 0)
                        (cons 'warning 0)
                        (cons 'info 0)
-                       (cons 'ok 0)))
+                       (cons 'ok 0)
+                       (cons 'skipped 0)))
+        (available-modes nil)
         (progress-reporter (unless noninteractive
                              (make-progress-reporter "Running tests..."))))
+    (dolist (tuple json-par-test-jsonc-modes)
+      (let ((mode (nth 0 tuple))
+            (setup (nth 2 tuple))
+            (available-p (nth 3 tuple)))
+        (funcall setup)
+        (if (funcall available-p mode)
+            (push tuple available-modes)
+          (setcdr (assq 'skipped error-counts)
+                  (1+ (cdr (assq 'skipped error-counts))))
+          (json-par-print-message
+           error-buffer (format "Skipped %s: mode unavailable\n" mode)))))
+    (setq available-modes (nreverse available-modes))
     (setq json-par-test-running t)
     (unwind-protect
         (dolist (test tests)
-          (dolist (tuple json-par-test-jsonc-modes)
+          (dolist (tuple available-modes)
             (let ((mode (nth 0 tuple))
                   (indent-level-variable (nth 1 tuple)))
-              (when (functionp mode)
-                (funcall
-                 test
-                 mode
-                 indent-level-variable
-                 error-buffer
-                 error-counts
-                 progress-reporter)))))
+              (funcall
+               test
+               mode
+               indent-level-variable
+               error-buffer
+               error-counts
+               progress-reporter))))
       (setq json-par-test-running nil))
     (when (not noninteractive)
       (progress-reporter-done progress-reporter))
@@ -102,7 +133,9 @@ Return the error-buffer"
       "Errors: " (prin1-to-string (assoc-default 'error error-counts)) "\n"
       "Warning: " (prin1-to-string (assoc-default 'warning error-counts)) "\n"
       "Info: " (prin1-to-string (assoc-default 'info error-counts)) "\n"
-      "OK: " (prin1-to-string (assoc-default 'ok error-counts)) "\n"))
+      "OK: " (prin1-to-string (assoc-default 'ok error-counts)) "\n"
+      "Skipped modes: "
+      (prin1-to-string (assoc-default 'skipped error-counts)) "\n"))
     (if noninteractive
         (kill-emacs (min 63 (assoc-default 'error error-counts)))
       (compilation-mode))))
