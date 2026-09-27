@@ -794,7 +794,9 @@ Point is assumed to be in a string, after the opening delimiter."
         (setq done t))
 
        ((eq (char-after) ?\\)
-        (forward-char 2))
+        (forward-char)
+        (unless (eobp)
+          (forward-char)))
 
        ((eq (char-after) ?\")
         (forward-char)
