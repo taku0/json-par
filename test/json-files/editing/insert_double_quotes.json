@@ -1655,6 +1655,43 @@
 // test-end
 
 
+// context-start
+["a/*[|*/bc", 1/*]*/]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+["a/*|*/\"bc\", 1"]
+// expected-end
+// test-end
+
+// context-start
+["a/*[*/bc", 1/*|]*/]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+["a\"bc\", 1"/*|*/]
+// expected-end
+// test-end
+
+// context-start
+[/*[|*/1, "ab/*]*/c"]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+[/*|*/"1, \"ab\"c"]
+// expected-end
+// test-end
+
+// context-start
+[/*[*/1, "ab/*|]*/c"]
+// context-end
+// action: (json-par-insert-double-quotes)
+// expected-start
+["1, \"ab\"/*|*/c"]
+// expected-end
+// test-end
+
+
 /// With prefix args
 
 // context-start
