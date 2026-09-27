@@ -61,7 +61,7 @@ If you feel JSON Par mode officious, you can just pick a few functions and bind 
 
 ```elisp
 (require 'json-mode) ; or jsonian-mode, json-ts-mode, js-json-mode
-(require 'json-par-mode)
+(require 'json-par)
 
 ;; or jsonian-mode-map, json-ts-mode-map, js-json-mode-map
 (define-key json-mode-map (kbd "M-/") #'json-par-insert-guessed)
