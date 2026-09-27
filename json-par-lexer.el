@@ -448,7 +448,7 @@ Return the token skipped."
          start-of-list)
     (cond
      ;; List
-     ((memq previous-type '(} ?\) \]))
+     ((memq previous-type '(} \) \]))
       (condition-case nil
           (progn
             ;; `backward-list' is 10x slower than this and takes a few seconds
