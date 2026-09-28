@@ -155,8 +155,7 @@ If the point is not on an escape sequence, return nil."
 
 (defun json-par--split-comment (beginning-position)
   "Split a comment at BEGINNING-POSITION."
-  (let* ((pos (point))
-         closed
+  (let* (closed
          (end-position
           (save-excursion
             (goto-char beginning-position)
@@ -166,6 +165,13 @@ If the point is not on an escape sequence, return nil."
           (save-excursion
             (goto-char beginning-position)
             (looking-at "//")))
+         (pos
+          (progn
+            (when (and (not single-line)
+                       closed
+                       (= (point) (1- end-position)))
+              (backward-char))
+            (point)))
          (prefix-and-suffix
           (if single-line
               (json-par--prefix-and-suffix-of-single-line-comment
@@ -181,10 +187,6 @@ If the point is not on an escape sequence, return nil."
          before-prefix-position)
     (when (= (point) (1+ beginning-position))
       (forward-char))
-    (when (and (not single-line)
-               closed
-               (= (point) (1- end-position)))
-      (backward-char))
     (insert suffix)
     (newline)
     (setq before-prefix-position (point))

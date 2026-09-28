@@ -388,6 +388,20 @@
 
 // context-start
 [
+    /*ab*/*|*//
+]
+// context-end
+// action: (json-par-split)
+// expected-start
+[
+    /*ab*/
+    /*/*|*/*/
+]
+// expected-end
+// test-end
+
+// context-start
+[
     /// aaa/*|*/bbb
 ]
 // context-end
@@ -504,7 +518,7 @@
 // action: (json-par-split)
 // expected-start
 [
-    /*****/
+    /******/
     /*****/*|*/*/
 ]
 // expected-end
