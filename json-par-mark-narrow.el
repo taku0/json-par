@@ -1396,7 +1396,7 @@ extend."
 If ARG is negative, call `json-par-narrow' that times.  If it is a symbol `-',
 a cons, or called interactively with just a \\[universal-argument] prefix arg,
 it is interpreted as -1."
-  (interactive "P\np")
+  (interactive "P")
   (when (or (consp arg) (eq arg '-))
     (setq arg -1))
   (setq arg (prefix-numeric-value arg))
