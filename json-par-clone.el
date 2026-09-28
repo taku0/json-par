@@ -576,9 +576,9 @@ json-par\N{U+2D}clone-decrease-level or other custom key bindings."
          'post-command-hook
          #'json-par--delete-clone-level-overlay
          nil
-         t))))
-  (unless json-par--clone-level-locations
-    (delete-overlay json-par--clone-level-overlay)))
+         t)))
+    (unless json-par--clone-level-locations
+      (delete-overlay json-par--clone-level-overlay))))
 
 (defun json-par-clone-decrease-level-prefix-command (arg)
   "Decrease the level parameter of the next invocation of cloning commands.
