@@ -235,7 +235,10 @@ Insert a space after colon if not exists."
           (setq end (copy-marker end))
           (while (and (< (point) end)
                       (search-forward "\\n" end t))
-            (replace-match "\n"))
+            (when (save-excursion
+                    (backward-char)
+                    (json-par--escaped-p))
+              (replace-match "\n")))
           (json-par--free-marker end)))))))
 
 (push #'json-par-multiline json-par--fixup-adviced-functions)

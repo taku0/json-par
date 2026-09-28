@@ -586,6 +586,33 @@ bbb\"ccc"
 // expected-end
 // test-end
 
+// context-start
+[
+    /*|*/"aaa\\nbbb"
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    /*|*/"aaa\\nbbb"
+]
+// expected-end
+// test-end
+
+// context-start
+[
+    /*|*/"aaa\\nbbb\nccc"
+]
+// context-end
+// action: (json-par-multiline)
+// expected-start
+[
+    /*|*/"aaa\\nbbb
+ccc"
+]
+// expected-end
+// test-end
+
 
 /// Oneline
 
