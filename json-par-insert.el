@@ -1142,14 +1142,14 @@ Return the end position of the region."
 
                ;; Six-character sequence escape
                ((and (eq char ?u)
-                     (looking-at "[0-9a-zA-Z]\\{4\\}"))
+                     (looking-at "[0-9a-fA-F]\\{4\\}"))
                 (setq match-end (match-end 0))
                 (setq high-surrogate
                       (string-to-number (match-string-no-properties 0) 16))
                 (if (and (<= #xD800 high-surrogate #xDBFF)
                          (save-excursion
                            (goto-char match-end)
-                           (looking-at "\\\\u\\([0-9a-zA-Z]\\{4\\}\\)")))
+                           (looking-at "\\\\u\\([0-9a-fA-F]\\{4\\}\\)")))
                     ;; This may be a surrogate pair; proceeding.
                     (progn
                       (setq match-end (match-end 0))
