@@ -14,6 +14,15 @@
 /// Object key
 
 // context-start
+{"a/*|*/bc": 1}
+// context-end
+// action: (json-par-split)
+// expected-start
+{"a": , /*|*/"bc": 1}
+// expected-end
+// test-end
+
+// context-start
 [
     {"a/*|*/aa": "a"}
 ]
@@ -81,6 +90,24 @@
 
 
 /// String (not key)
+
+// context-start
+["a/*|*/bc"]
+// context-end
+// action: (json-par-split)
+// expected-start
+["a", /*|*/"bc"]
+// expected-end
+// test-end
+
+// context-start
+["\uA/*|*/BCDa"]
+// context-end
+// action: (json-par-split)
+// expected-start
+["\uABCD", /*|*/"a"]
+// expected-end
+// test-end
 
 // context-start
 [

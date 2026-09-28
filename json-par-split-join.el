@@ -148,7 +148,7 @@ If the point is not on an escape sequence, return nil."
           (1+ (point))))
 
    ((save-excursion
-      (backward-char 5)
+      (goto-char (max (point-min) (- (point) 5)))
       (looking-at ".\\{,4\\}\\(\\\\u[0-9a-fA-F]\\{,4\\}\\)"))
     (cons (match-beginning 1)
           (match-end 1)))))
