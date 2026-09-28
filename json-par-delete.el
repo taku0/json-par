@@ -2302,8 +2302,8 @@ rather than outer."
     (delete-horizontal-space))
   (when (save-excursion (forward-line 0) (looking-at "[\s\t]*$"))
     (delete-horizontal-space)
-    (delete-char -1)
-    (forward-char)
+    (unless (eobp)
+      (delete-char 1))
     (skip-chars-forward "\s\t")))
 
 (defun json-par-delete-object-value (&optional action)
