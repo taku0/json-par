@@ -69,15 +69,16 @@ backward if not.  See `json-par--region-to-extend-backward' or
   (setq arg (prefix-numeric-value arg))
   (if (< arg 0)
       (json-par-pop-region (- arg))
-    (let* ((should-extend (and allow-extend
-                               (or (and (mark t)
-                                        (/= (point) (mark t)))
-                                   (use-region-p))))
-           (direction (if should-extend
-                          (if (< (mark t) (point)) -1 1)
-                        0)))
+    (let ((should-extend (and allow-extend
+                              (or (and (mark t)
+                                       (/= (point) (mark t)))
+                                  (use-region-p)))))
       (dotimes (_ arg)
-        (json-par--mark-more-1 direction should-extend)
+        (json-par--mark-more-1
+         (if should-extend
+             (if (< (mark t) (point)) -1 1)
+           0)
+         should-extend)
         (setq should-extend t)))))
 
 (defun json-par-pop-region (&optional arg)
@@ -1387,6 +1388,7 @@ extend."
       (setq json-par--narrow-direction direction)
       (dotimes (_ arg)
         (json-par--narrow-1 direction should-extend)
+        (setq direction json-par--narrow-direction)
         (setq should-extend t))))
   (recenter))
 
