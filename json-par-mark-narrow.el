@@ -1361,6 +1361,38 @@ mark inside the key."
 (defvar-local json-par--restriction-history '()
   "History of the narrowed areas by `json-par-narrow'.")
 
+(defun json-par--free-restriction (restriction)
+  "Detach the markers in RESTRICTION.
+
+RESTRICTION is a pair (START . END) where each of START and END is a marker or
+nil."
+  (when (markerp (car restriction))
+    (set-marker (car restriction) nil))
+  (when (markerp (cdr restriction))
+    (set-marker (cdr restriction) nil)))
+
+(defun json-par--clear-restriction-history ()
+  "Discard the restriction history and detach its markers."
+  (dolist (restriction json-par--restriction-history)
+    (json-par--free-restriction restriction))
+  (setq json-par--restriction-history nil))
+
+(defun json-par--add-restriction-history (start end)
+  "Save region from START to END to the restriction history."
+  (let* ((old-history (copy-sequence json-par--restriction-history))
+         (restriction (cons (unless (= start (point-min))
+                              (copy-marker start))
+                            (unless (= end (point-max))
+                              (copy-marker end t))))
+         (retained (make-hash-table :test 'eq)))
+    (let ((history-delete-duplicates t))
+      (add-to-history 'json-par--restriction-history restriction))
+    (dolist (entry json-par--restriction-history)
+      (puthash entry t retained))
+    (dolist (entry (cons restriction old-history))
+      (unless (gethash entry retained)
+        (json-par--free-restriction entry)))))
+
 (defun json-par-narrow (&optional arg allow-extend)
   "Narrow to the current value, or extend the narrowed area if repeated.
 
@@ -1410,8 +1442,13 @@ it is interpreted as -1."
 (defun json-par--pop-restriction-1 ()
   "Undo `json-par-narrow'."
   (if json-par--restriction-history
-      (let ((region (pop json-par--restriction-history)))
-        (narrow-to-region (nth 0 region) (nth 1 region)))
+      (let ((restriction (pop json-par--restriction-history)))
+        (unwind-protect
+            (if (and (null (car restriction)) (null (cdr restriction)))
+                (widen)
+              (narrow-to-region (or (car restriction) 1)
+                                (or (cdr restriction) (1+ (buffer-size)))))
+          (json-par--free-restriction restriction)))
     (widen)))
 
 (defun json-par--narrow-1 (direction should-extend)
@@ -1428,9 +1465,8 @@ details."
         new-end)
     (widen)
     (unless should-extend
-      (setq json-par--restriction-history '()))
-    (let ((history-delete-duplicates t))
-      (add-to-history 'json-par--restriction-history (list start end)))
+      (json-par--clear-restriction-history))
+    (json-par--add-restriction-history start end)
     (cond
      ((not should-extend)
       (setq region
