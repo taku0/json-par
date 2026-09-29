@@ -108,12 +108,13 @@ Insert empty keys if missing."
                                 (json-par-token-close-bracket-p token)
                                 (json-par-token-outside-of-buffer-p token)))))
                (unless valid
-                 (push (list
-                        'apply
-                        (lambda (position)
-                          (move-marker marker position))
-                        (marker-position marker))
-                       buffer-undo-list)
+                 (unless (eq buffer-undo-list t)
+                   (push (list
+                          'apply
+                          (lambda (position)
+                            (move-marker marker position))
+                          (marker-position marker))
+                         buffer-undo-list))
                  (move-marker marker nil)
                  (setq changed t))
                valid))

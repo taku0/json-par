@@ -1205,12 +1205,13 @@ See also `json-par--protection-markers'."
   "Record current PROTECTION-MARKERS to the undo list.
 
 If PROTECTION-MARKERS is omitted, default to `json-par--protection-markers'."
-  (push (list
-         'apply
-         (lambda (protection-markers)
-           (setq json-par--protection-markers protection-markers))
-         (or protection-markers json-par--protection-markers))
-        buffer-undo-list))
+  (unless (eq buffer-undo-list t)
+    (push (list
+           'apply
+           (lambda (protection-markers)
+             (setq json-par--protection-markers protection-markers))
+           (or protection-markers json-par--protection-markers))
+          buffer-undo-list)))
 
 (defvar electric-indent-mode)
 
