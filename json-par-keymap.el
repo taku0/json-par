@@ -1,4 +1,4 @@
-;;; json-par-kemap.el --- Keymap helpers for JSON Par mode -*- lexical-binding: t -*-
+;;; json-par-keymap.el --- Keymap helpers for JSON Par mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 taku0
 ;;

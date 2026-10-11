@@ -1,4 +1,4 @@
-;;; json-par.el --- Inserting values in JSON Par mode -*- lexical-binding: t -*-
+;;; json-par-insert.el --- Inserting values in JSON Par mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 taku0
 ;;

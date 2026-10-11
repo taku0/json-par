@@ -1,4 +1,4 @@
-;;; json-par.el --- Indenting lines in JSON Par mode -*- lexical-binding: t -*-
+;;; json-par-indent.el --- Indenting lines in JSON Par mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 taku0
 ;;
