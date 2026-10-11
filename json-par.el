@@ -459,12 +459,16 @@ It is restored when JSON Par mode is disabled.")
       (setq-local indent-region-function json-par-old-indent-region-function))
     (remove-hook 'post-self-insert-hook #'json-par--post-self-insert t)
     (json-par--remove-advice-from-deferred-hook-functions)
-    (json-par-enable-ancestors-out-of-window-overlay nil)
-    (json-par-enable-ancestor-overlays nil)
-    (json-par-enable-current-member-overlay nil)
-    (kill-local-variable 'json-par-show-ancestors-out-of-window)
-    (kill-local-variable 'json-par-highlight-ancestors)
-    (kill-local-variable 'json-par-highlight-current-member)
+    ;; The `json-par-enable-*-overlay' functions also set their corresponding
+    ;; options, but we want to keep those local variables.  Therefore, bind the
+    ;; variables temporarily so disabling the mode only removes the overlays.
+    (let ((json-par-show-ancestors-out-of-window
+           json-par-show-ancestors-out-of-window)
+          (json-par-highlight-ancestors json-par-highlight-ancestors)
+          (json-par-highlight-current-member json-par-highlight-current-member))
+      (json-par-enable-ancestors-out-of-window-overlay nil)
+      (json-par-enable-ancestor-overlays nil)
+      (json-par-enable-current-member-overlay nil))
     (remove-hook 'after-change-functions #'json-par--update-changed-region t)
     (remove-hook 'post-command-hook #'json-par--fixup-changed-region t)))
 
