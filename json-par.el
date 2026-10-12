@@ -63,6 +63,7 @@
 ;;; Code:
 
 (require 'easymenu)
+(require 'cl-lib)
 (require 'json-par-utils)
 (require 'json-par-keymap)
 (require 'json-par-lexer)
@@ -458,7 +459,11 @@ It is restored when JSON Par mode is disabled.")
     (when (eq indent-region-function #'json-par-indent-region)
       (setq-local indent-region-function json-par-old-indent-region-function))
     (remove-hook 'post-self-insert-hook #'json-par--post-self-insert t)
-    (json-par--remove-advice-from-deferred-hook-functions)
+    (unless (cl-some (lambda (buffer)
+                       (buffer-local-value 'json-par-mode buffer))
+                     (buffer-list))
+      (json-par--remove-advice-from-deferred-hook-functions)
+      (json-par--remove-install-advice-to-deferred-hook-functions-from-hooks))
     ;; The `json-par-enable-*-overlay' functions also set their corresponding
     ;; options, but we want to keep those local variables.  Therefore, bind the
     ;; variables temporarily so disabling the mode only removes the overlays.

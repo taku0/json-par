@@ -6,6 +6,69 @@
 (require 'json-par)
 (require 'json-par-test)
 
+(defvar json-par-test--deferred-load-hook nil)
+
+(defun json-par-test--deferred-pre-command ()
+  "Stand in for a deferred pre-command hook function during mode tests.")
+
+(defun json-par-run-test-mode-keeps-advice-until-last-buffer
+    (&optional
+     jsonc-mode
+     _indent-level-variable
+     error-buffer
+     error-counts
+     _progress-reporter)
+  "Test global advice and load hook remain until the last mode buffer exits."
+  (let ((json-par--deferred-pre-command-hook-functions
+         '(json-par-test--deferred-pre-command))
+        (json-par--hooks-to-install-advices-to-deferred-hook-functions
+         '(json-par-test--deferred-load-hook))
+        (json-par-test--deferred-load-hook nil)
+        (buffer-a (generate-new-buffer " *json-par-test-mode-a*"))
+        (buffer-b (generate-new-buffer " *json-par-test-mode-b*"))
+        initial after-first after-last)
+    (unwind-protect
+        (progn
+          (dolist (buffer (list buffer-a buffer-b))
+            (with-current-buffer buffer
+              (funcall jsonc-mode)
+              (json-par-mode 1)))
+          (setq initial
+                (and (advice-member-p #'json-par--supress-pre-command-hooks
+                                      'json-par-test--deferred-pre-command)
+                     (memq #'json-par--install-advice-to-deferred-hook-functions
+                           json-par-test--deferred-load-hook)))
+          (with-current-buffer buffer-a
+            (json-par-mode 0))
+          (setq after-first
+                (and (advice-member-p #'json-par--supress-pre-command-hooks
+                                      'json-par-test--deferred-pre-command)
+                     (memq #'json-par--install-advice-to-deferred-hook-functions
+                           json-par-test--deferred-load-hook)))
+          (with-current-buffer buffer-b
+            (json-par-mode 0))
+          (setq after-last
+                (and (not (advice-member-p
+                           #'json-par--supress-pre-command-hooks
+                           'json-par-test--deferred-pre-command))
+                     (not (memq
+                           #'json-par--install-advice-to-deferred-hook-functions
+                           json-par-test--deferred-load-hook))))
+          (let ((status (if (and initial after-first after-last) 'ok 'error)))
+            (setcdr (assq status error-counts)
+                    (1+ (cdr (assq status error-counts))))
+            (when (eq status 'error)
+              (json-par-show-error
+               error-buffer "json-par-test-mode.el" 1 "error"
+               (format "%S: advice/hook lifecycle: %S %S %S"
+                       jsonc-mode initial after-first after-last)))))
+      (advice-remove 'json-par-test--deferred-pre-command
+                     #'json-par--supress-pre-command-hooks)
+      (remove-hook 'json-par-test--deferred-load-hook
+                   #'json-par--install-advice-to-deferred-hook-functions)
+      (kill-buffer buffer-a)
+      (kill-buffer buffer-b))))
+
 (defun json-par-run-test-mode-restores-functions (&optional
                                                   jsonc-mode
                                                   _indent-level-variable

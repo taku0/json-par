@@ -450,6 +450,11 @@ See `json-par--flatten-keymap' for TAIL, PREFIX, and SEEN-KEYMAPS."
   (dolist (hook json-par--hooks-to-install-advices-to-deferred-hook-functions)
     (add-hook hook #'json-par--install-advice-to-deferred-hook-functions)))
 
+(defun json-par--remove-install-advice-to-deferred-hook-functions-from-hooks ()
+  "Remove `json-par--install-advice-to-deferred-hook-functions' from hooks."
+  (dolist (hook json-par--hooks-to-install-advices-to-deferred-hook-functions)
+    (remove-hook hook #'json-par--install-advice-to-deferred-hook-functions)))
+
 
 (provide 'json-par-keymap)
 
