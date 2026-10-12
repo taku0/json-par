@@ -31,11 +31,12 @@ package:
 
 install: package
 ## Installs the package.
+	JSON_PAR_PACKAGE_ARCHIVE="$$( ls dist/*.tar | sort -V | tail -n 1 )" \
 	${INVOKE_ELDEV} emacs --batch \
 	  -l package \
 	  -f package-initialize \
 	  -f package-refresh-contents \
-	  --eval '(package-install-file "'"$$( ls dist/*.tar | sort | tail -n 1 )"'")'
+	  --eval '(package-install-file (getenv "JSON_PAR_PACKAGE_ARCHIVE"))'
 
 clean:
 ## Cleans the dist directory, *.elc, and .eldev.
