@@ -81,7 +81,7 @@ Return the error-buffer"
   (interactive)
   (unless tests
     (dolist (test-source (directory-files json-par-test-basedir
-                                          t "json-par-test-.*.el"))
+                                          t "\\`json-par-test-.*\\.el\\'"))
       (load (file-name-sans-extension test-source) nil 'nomsg))
     (mapatoms (lambda (sym)
                 (and (fboundp sym)
