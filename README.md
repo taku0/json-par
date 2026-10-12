@@ -1,7 +1,7 @@
 [![License GPL 3][badge-license]][copying]
 [![Run Tests][badge-run-test]][action-run-test]
-<!-- [![MELPA](https://melpa.org/packages/json-par-badge.svg)](https://melpa.org/#/json-par) -->
-<!-- [![MELPA](https://stable.melpa.org/packages/json-par-badge.svg)](https://melpa.org/#/json-par) -->
+[![MELPA](https://melpa.org/packages/json-par-badge.svg)](https://melpa.org/#/json-par)
+[![MELPA](https://stable.melpa.org/packages/json-par-badge.svg)](https://melpa.org/#/json-par)
 
 # JSON Par mode
 
