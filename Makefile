@@ -32,7 +32,7 @@ package:
 install: package
 ## Installs the package.
 	JSON_PAR_PACKAGE_ARCHIVE="$$( ls dist/*.tar | sort -V | tail -n 1 )" \
-	${INVOKE_ELDEV} emacs --batch \
+	emacs -Q --batch \
 	  -l package \
 	  -f package-initialize \
 	  -f package-refresh-contents \
