@@ -18,7 +18,7 @@ then
     docker \
         run \
         --rm \
-        --volume $(realpath .tree-sitter):/tree-sitter \
+        --volume="$(realpath .tree-sitter)":/tree-sitter \
         $EXTRA_OPT \
         --workdir="/tree-sitter" \
         gcc:15 \
