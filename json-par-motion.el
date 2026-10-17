@@ -834,7 +834,10 @@ Priority (from high to low):
              (goto-char start-of-member)
              (json-par--backward-spaces)
              (point)))
-        (if (memq (char-before) '(nil ?\[ ?\( ?{))
+        (if (save-excursion
+              (goto-char start-of-member)
+              (json-par--backward-spaces)
+              (memq (char-before) '(nil ?\[ ?\( ?{)))
             'after-open-bracket-on-same-line
           'after-comma-on-same-line))
 
@@ -890,7 +893,10 @@ Priority (from high to low):
              (goto-char end-of-member)
              (json-par--forward-spaces)
              (point)))
-        (if (memq (char-before) '(nil ?\] ?\) ?}))
+        (if (save-excursion
+              (goto-char end-of-member)
+              (json-par--forward-spaces)
+              (memq (char-after) '(nil ?\] ?\) ?})))
             'before-close-bracket-on-same-line
           'before-comma-on-same-line))
 
