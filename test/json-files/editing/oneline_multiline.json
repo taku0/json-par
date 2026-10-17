@@ -1019,3 +1019,68 @@ bbb\"ccc"
 ]
 // expected-end
 // test-end
+
+
+/// Pretty print long lines.
+
+// context-start
+/*|*/{"a":{"b":"bbb"}, "c":["ccc",111,true,false,null]}
+// context-end
+// action: (json-par--pretty-print-long-line)
+// expected-start
+/*|*/{
+    "a": {
+        "b": "bbb"
+    },
+    "c": [
+        "ccc",
+        111,
+        true,
+        false,
+        null
+    ]
+}
+// expected-end
+// test-end
+
+// context-start
+/*|*/{"a": {}, "b": []}
+// context-end
+// action: (json-par--pretty-print-long-line)
+// expected-start
+/*|*/{
+    "a": {},
+    "b": []
+}
+// expected-end
+// test-end
+
+// context-start
+/*|*/[{}, []]
+// context-end
+// action: (json-par--pretty-print-long-line)
+// expected-start
+/*|*/[
+    {},
+    []
+]
+// expected-end
+// test-end
+
+// context-start
+/*|*/{}
+// context-end
+// action: (json-par--pretty-print-long-line)
+// expected-start
+/*|*/{}
+// expected-end
+// test-end
+
+// context-start
+/*|*/[]
+// context-end
+// action: (json-par--pretty-print-long-line)
+// expected-start
+/*|*/[]
+// expected-end
+// test-end

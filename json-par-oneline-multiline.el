@@ -588,10 +588,10 @@ partially."
             (unless empty
               (setq level (1+ level)))
             (delete-region match-end (point))
-            (insert ?\n)
-            (indent-to (* level offset))
-            (when empty
-              (forward-char)))
+            (if empty
+                (forward-char)
+              (insert ?\n)
+              (indent-to (* level offset))))
 
            ((or (eq char ?\])
                 (eq char ?}))
