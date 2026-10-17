@@ -426,8 +426,8 @@ to the beginning of the comments."
    (list
     (not (eq last-command 'json-par-beginning-of-list))
     nil))
-  (json-par-up-backward-point-only 1 push-mark)
-  (json-par-down-point-only nil 'member include-comment))
+  (when (zerop (json-par-up-backward-point-only 1 push-mark))
+    (json-par-down-point-only nil 'member include-comment)))
 
 (defun json-par-end-of-list-point-only (&optional push-mark include-comment)
   "Move the point after last the member of the current array/object.
@@ -441,8 +441,8 @@ to the end of the comments."
    (list
     (not (eq last-command 'json-par-end-of-list))
     nil))
-  (json-par-up-forward-point-only 1 push-mark)
-  (json-par-down-point-only nil 'member include-comment))
+  (when (zerop (json-par-up-forward-point-only 1 push-mark))
+    (json-par-down-point-only nil 'member include-comment)))
 
 (defun json-par--find-member (p)
   "Find a member satisfying a predicate P.
@@ -1298,8 +1298,7 @@ This function affects `json-par--join-line-backward' and
   (let ((result nil)
         (end-of-list nil))
     (save-excursion
-      (json-par-up-backward-point-only)
-      (forward-char)
+      (json-par-beginning-of-list-point-only)
       (while (and (not result)
                   (not end-of-list)
                   (progn
@@ -1676,6 +1675,8 @@ If ARG is given, repeat that times.  If ARG is negative, move backward.
 If PUSH-MARK is non-nil or called interactively, and the region is not active,
 push a mark first.
 
+Return the number of requested steps that could not be completed.
+
 If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
 line breaks between the brackets.
 
@@ -1695,9 +1696,11 @@ When called interactively, it defaults to the value of the variable
     (json-par--out-comment)
     (let ((json-par--already-out-of-comment t)
           (json-par--already-out-of-atom json-par--already-out-of-atom))
-      (dotimes (_ arg)
-        (json-par--up-forward-1 collapse-if-empty)
-        (setq json-par--already-out-of-atom t)))))
+      (while (and (> arg 0)
+                  (json-par--up-forward-1 collapse-if-empty))
+        (setq arg (1- arg))
+        (setq json-par--already-out-of-atom t))
+      arg)))
 
 (defun json-par--up-forward-1 (collapse-if-empty)
   "Move the point to the end of the surrounding brackets.
@@ -1706,12 +1709,16 @@ If the point is inside a string, an number, or a constants, move to the end of
 the token instead.
 
 If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
-line breaks between the brackets."
+line breaks between the brackets.
+
+Return non-nil if a surrounding bracket or token was found."
   (json-par--forward-spaces)
   (let ((current-atom (json-par--current-atom))
         (last-token nil))
     (if (json-par-token-inside-p current-atom)
-        (goto-char (json-par-token-end current-atom))
+        (progn
+          (goto-char (json-par-token-end current-atom))
+          t)
       (while (progn
                (json-par--forward-spaces)
                (and (not (memq (char-after) '(nil ?\] ?\) ?})))
@@ -1725,7 +1732,8 @@ line breaks between the brackets."
             (skip-chars-backward "\s\t\n")
             (when (memq (char-before) '(?\[ ?\( ?{))
               (backward-char)
-              (json-par-oneline))))))))
+              (json-par-oneline))))
+        t))))
 
 (defun json-par-up-backward-point-only
     (&optional arg push-mark collapse-if-empty)
@@ -1737,6 +1745,8 @@ the token instead.
 If ARG is given, repeat that times.  If ARG is negative, move forward.
 If PUSH-MARK is non-nil or called interactively, and the region is not active,
 push a mark first.
+
+Return the number of requested steps that could not be completed.
 
 If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
 line breaks between the brackets.
@@ -1757,9 +1767,11 @@ When called interactively, it defaults to the value of the variable
     (json-par--out-comment)
     (let ((json-par--already-out-of-comment t)
           (json-par--already-out-of-atom json-par--already-out-of-atom))
-      (dotimes (_ arg)
-        (json-par--up-backward-1 collapse-if-empty)
-        (setq json-par--already-out-of-atom t)))))
+      (while (and (> arg 0)
+                  (json-par--up-backward-1 collapse-if-empty))
+        (setq arg (1- arg))
+        (setq json-par--already-out-of-atom t))
+      arg)))
 
 (defun json-par--up-backward-1 (collapse-if-empty)
   "Move the point to the start of the surrounding brackets.
@@ -1768,14 +1780,18 @@ If the point is inside a string, an number, or a constants, move to the start of
 the token instead.
 
 If COLLAPSE-IF-EMPTY is non-nil and the brackets is empty, delete all spaces and
-line breaks between the brackets."
+line breaks between the brackets.
+
+Return non-nil if a surrounding bracket or token was found."
   (json-par--backward-spaces)
   (let ((current-atom (if json-par--already-out-of-atom
                           nil
                         (json-par--current-atom)))
         start)
     (if (json-par-token-inside-p current-atom)
-        (goto-char (json-par-token-start current-atom))
+        (progn
+          (goto-char (json-par-token-start current-atom))
+          t)
       (setq start (nth 1 (syntax-ppss)))
       (if start
           (progn
@@ -1786,8 +1802,10 @@ line breaks between the brackets."
                 (skip-chars-forward "\s\t\n")
                 (when (memq (char-after) '(?\] ?\) ?}))
                   (forward-char)
-                  (json-par-oneline)))))
-        (goto-char (point-min))))))
+                  (json-par-oneline))))
+            t)
+        (goto-char (point-min))
+        nil))))
 
 (defun json-par--parent-token ()
   "Return the open bracket token surrounding the point.

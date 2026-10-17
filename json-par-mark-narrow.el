@@ -1070,7 +1070,14 @@ the token instead.
 
 If ARG is given, repeat that times.  If ARG is negative, move backward.
 
-If the region is active, mark the key or value after movement.
+When no enclosing bracket or token remains for a requested step, move to the
+end of the buffer (or the beginning if ARG is negative).
+
+When the region is active and the requested step completed, mark the
+object/array or token.  When the region is active and the requested step cannot
+be completed, mark the whole buffer.
+
+Return the number of requested steps that could not be completed.
 
 If PUSH-MARK is non-nil or called interactively, and the region is not active,
 push a mark first.
@@ -1086,11 +1093,15 @@ When called interactively, it defaults to the value of the variable
     t
     json-par-collapse-when-exit-from-empty-brackets))
   (json-par--save-region-history-if-moved
-   (json-par-up-forward-point-only arg push-mark collapse-if-empty)
-   (when (region-active-p)
-     (set-mark (save-excursion
-                 (json-par-backward-token-or-list)
-                 (point))))))
+   (let ((remaining
+          (json-par-up-forward-point-only arg push-mark collapse-if-empty)))
+     (when (region-active-p)
+       (set-mark (if (> remaining 0)
+                     (if (< (or arg 1) 0) (point-max) (point-min))
+                   (save-excursion
+                     (json-par-backward-token-or-list)
+                     (point)))))
+     remaining)))
 
 (defun json-par-up-backward (&optional arg push-mark collapse-if-empty)
   "Move the point to the start of the surrounding brackets.
@@ -1100,7 +1111,14 @@ the token instead.
 
 If ARG is given, repeat that times.  If ARG is negative, move forward.
 
-If the region is active, mark the key or value after movement.
+When no enclosing bracket or token remains for a requested step, move to the
+beginning of the buffer (or the end if ARG is negative).
+
+When the region is active and the requested step completed, mark the
+object/array or token.  When the region is active and the requested step cannot
+be completed, mark the whole buffer.
+
+Return the number of requested steps that could not be completed.
 
 If PUSH-MARK is non-nil or called interactively, and the region is not active,
 push a mark first.
@@ -1116,11 +1134,15 @@ When called interactively, it defaults to the value of the variable
     t
     json-par-collapse-when-exit-from-empty-brackets))
   (json-par--save-region-history-if-moved
-   (json-par-up-backward-point-only arg push-mark collapse-if-empty)
-   (when (region-active-p)
-     (set-mark (save-excursion
-                 (json-par-forward-token-or-list)
-                 (point))))))
+   (let ((remaining
+          (json-par-up-backward-point-only arg push-mark collapse-if-empty)))
+     (when (region-active-p)
+       (set-mark (if (> remaining 0)
+                     (if (< (or arg 1) 0) (point-min) (point-max))
+                   (save-excursion
+                     (json-par-forward-token-or-list)
+                     (point)))))
+     remaining)))
 
 (defun json-par-down (&optional push-mark place)
   "Move the point inside the current value/key.
