@@ -546,95 +546,99 @@ For details of EXTRACT-CANDIDATES, see `json-par--guess-next'."
          new-key-token
          first-token)
     (with-current-buffer (car pending-buffers)
-      (when key
-        (while (and (not preceding-match-key)
-                    (not following-match-key)
-                    (or (< (point-min) searched-start)
-                        (< searched-end (point-max))))
-          (goto-char searched-start)
-          (if (search-backward key nil t)
+      (save-excursion
+        (when key
+          (while (and (not preceding-match-key)
+                      (not following-match-key)
+                      (or (< (point-min) searched-start)
+                          (< searched-end (point-max))))
+            (goto-char searched-start)
+            (if (search-backward key nil t)
+                (progn
+                  (setq searched-start (point))
+                  (setq first-token (json-par-forward-token))
+                  (when (json-par--object-key-p first-token)
+                    (setq preceding-match-key first-token)))
+              (setq searched-start (point-min)))
+            (goto-char searched-end)
+            (if (search-forward key nil t)
+                (progn
+                  (setq searched-end (point))
+                  (setq first-token (json-par-backward-token))
+                  (when (json-par--object-key-p first-token)
+                    (setq following-match-key first-token)))
+              (setq searched-end (point-max)))))
+        (cond
+         ((and (null key)
+               (or (< (point-min) searched-start)
+                   (= searched-end (point-min)))
+               (not (and (save-excursion
+                           (json-par--backward-spaces)
+                           (bobp))
+                         (save-excursion
+                           (json-par--forward-spaces)
+                           (eobp)))))
+          (goto-char (point-min))
+          (json-par--guess-state-updated
+           last-state
+           :candidates (funcall extract-candidates last-state)
+           :searched-start (point-min)
+           :searched-end (point-max)))
+
+         ((and (null preceding-match-key) (null following-match-key))
+          (if (cdr pending-buffers)
               (progn
-                (setq searched-start (point))
-                (setq first-token (json-par-forward-token))
-                (when (json-par--object-key-p first-token)
-                  (setq preceding-match-key first-token)))
-            (setq searched-start (point-min)))
-          (goto-char searched-end)
-          (if (search-forward key nil t)
-              (progn
-                (setq searched-end (point))
-                (setq first-token (json-par-backward-token))
-                (when (json-par--object-key-p first-token)
-                  (setq following-match-key first-token)))
-            (setq searched-end (point-max)))))
-      (cond
-       ((and (null key)
-             (or (< (point-min) searched-start)
-                 (= searched-end (point-min)))
-             (not (and (save-excursion
-                         (json-par--backward-spaces)
-                         (bobp))
-                       (save-excursion
-                         (json-par--forward-spaces)
-                         (eobp)))))
-        (goto-char (point-min))
-        (json-par--guess-state-updated
-         last-state
-         :candidates (funcall extract-candidates last-state)
-         :searched-start (point-min)
-         :searched-end (point-max)))
+                (pop pending-buffers)
+                (with-current-buffer (car pending-buffers)
+                  (save-excursion
+                    (json-par--guess-state-updated
+                     last-state
+                     :candidates ()
+                     :pending-buffers pending-buffers
+                     :searched-start (point-min)
+                     :searched-end (point-min)))))
+            (setq json-buffers (json-par--guess-state-json-buffers last-state))
+            (setq max-ancestors
+                  (json-par--guess-state-max-ancestors last-state))
+            (when (and (< 1 max-ancestors) key)
+              (with-current-buffer (car json-buffers)
+                (save-excursion
+                  (goto-char (json-par-token-start key-token))
+                  (setq key-token-and-depth (json-par--parent-key))
+                  (setq new-key-token (nth 0 key-token-and-depth))
+                  (when new-key-token
+                    (json-par--guess-state-updated
+                     last-state
+                     :key-token new-key-token
+                     :depth (+ depth (nth 1 key-token-and-depth))
+                     :max-ancestors (1- max-ancestors)
+                     :candidates ()
+                     :pending-buffers json-buffers
+                     :searched-start (point-min)
+                     :searched-end (point-min))))))))
 
-       ((and (null preceding-match-key) (null following-match-key))
-        (if (cdr pending-buffers)
-            (progn
-              (pop pending-buffers)
-              (with-current-buffer (car pending-buffers)
-                (json-par--guess-state-updated
-                 last-state
-                 :candidates ()
-                 :pending-buffers pending-buffers
-                 :searched-start (point-min)
-                 :searched-end (point-min))))
-          (setq json-buffers (json-par--guess-state-json-buffers last-state))
-          (setq max-ancestors (json-par--guess-state-max-ancestors last-state))
-          (when (and (< 1 max-ancestors) key)
-            (with-current-buffer (car json-buffers)
-              (goto-char (json-par-token-start key-token))
-              (setq key-token-and-depth (json-par--parent-key))
-              (setq new-key-token (nth 0 key-token-and-depth))
-              (when new-key-token
-                (json-par--guess-state-updated
-                 last-state
-                 :key-token new-key-token
-                 :depth (+ depth (nth 1 key-token-and-depth))
-                 :max-ancestors (1- max-ancestors)
-                 :candidates ()
-                 :pending-buffers json-buffers
-                 :searched-start (point-min)
-                 :searched-end (point-min)))))))
+         ((or (null following-match-key)
+              (and preceding-match-key
+                   (< (- pos (json-par-token-end preceding-match-key))
+                      (- (json-par-token-start following-match-key) pos))))
+          (when following-match-key
+            (setq searched-end (json-par-token-start following-match-key)))
+          (goto-char (json-par-token-start preceding-match-key))
+          (json-par--guess-state-updated
+           last-state
+           :candidates (funcall extract-candidates last-state)
+           :searched-start searched-start
+           :searched-end searched-end))
 
-       ((or (null following-match-key)
-            (and preceding-match-key
-                 (< (- pos (json-par-token-end preceding-match-key))
-                    (- (json-par-token-start following-match-key) pos))))
-        (when following-match-key
-          (setq searched-end (json-par-token-start following-match-key)))
-        (goto-char (json-par-token-start preceding-match-key))
-        (json-par--guess-state-updated
-         last-state
-         :candidates (funcall extract-candidates last-state)
-         :searched-start searched-start
-         :searched-end searched-end))
-
-       (t
-        (when preceding-match-key
-          (setq searched-start (json-par-token-end preceding-match-key)))
-        (goto-char (json-par-token-start following-match-key))
-        (json-par--guess-state-updated
-         last-state
-         :candidates (funcall extract-candidates last-state)
-         :searched-start searched-start
-         :searched-end searched-end))))))
+         (t
+          (when preceding-match-key
+            (setq searched-start (json-par-token-end preceding-match-key)))
+          (goto-char (json-par-token-start following-match-key))
+          (json-par--guess-state-updated
+           last-state
+           :candidates (funcall extract-candidates last-state)
+           :searched-start searched-start
+           :searched-end searched-end)))))))
 
 (defun json-par--normalize-guessed-text (text)
   "Normalize the TEXT of the guessed value/member for deduplication."
@@ -657,21 +661,22 @@ See `json-par--guess-next' for details."
           (buffer (car (json-par--guess-state-pending-buffers last-state)))
           text)
       (with-current-buffer buffer
-        (while (and candidates (null value-token))
-          (goto-char (pop candidates))
-          (json-par-beginning-of-object-value-point-only)
-          (setq value-token (json-par-forward-token-or-list))
-          (unless (json-par--guess-eligible-value-p value-token seen-values)
-            (setq value-token nil)))
-        (when value-token
-          (setq text (json-par--normalize-guessed-text
-                      (json-par-token-text-no-properties value-token)))
-          (list
-           text
-           (json-par--guess-state-updated
-            last-state
-            :candidates candidates
-            :seen-values (cons text seen-values))))))))
+        (save-excursion
+          (while (and candidates (null value-token))
+            (goto-char (pop candidates))
+            (json-par-beginning-of-object-value-point-only)
+            (setq value-token (json-par-forward-token-or-list))
+            (unless (json-par--guess-eligible-value-p value-token seen-values)
+              (setq value-token nil)))
+          (when value-token
+            (setq text (json-par--normalize-guessed-text
+                        (json-par-token-text-no-properties value-token)))
+            (list
+             text
+             (json-par--guess-state-updated
+              last-state
+              :candidates candidates
+              :seen-values (cons text seen-values)))))))))
 
 (defun json-par--guess-eligible-value-p (value-token seen-values)
   "Return non-nil if the VALUE-TOKEN is an eligible value for guessing.
@@ -743,16 +748,17 @@ See `json-par--guess-next' for details."
            key-token
            (text nil))
       (with-current-buffer buffer
-        (while (and candidates (null text))
-          (goto-char (pop candidates))
-          (setq key-token (save-excursion (json-par-forward-token)))
-          (when (and (json-par--object-key-p key-token)
-                     (not (member (json-par--read-token key-token)
-                                  sibling-keys)))
-            (setq text (concat (json-par-token-text-no-properties key-token)
-                               ": "))
-            (when (member text seen-values)
-              (setq text nil)))))
+        (save-excursion
+          (while (and candidates (null text))
+            (goto-char (pop candidates))
+            (setq key-token (save-excursion (json-par-forward-token)))
+            (when (and (json-par--object-key-p key-token)
+                       (not (member (json-par--read-token key-token)
+                                    sibling-keys)))
+              (setq text (concat (json-par-token-text-no-properties key-token)
+                                 ": "))
+              (when (member text seen-values)
+                (setq text nil))))))
       (when text
         (list
          text
@@ -779,21 +785,22 @@ See `json-par--guess-next' for details."
           key-token
           (text nil))
       (with-current-buffer buffer
-        (while (and candidates (null text))
-          (goto-char (pop candidates))
-          (setq key-token (save-excursion (json-par-forward-token)))
-          (when (or (not (json-par--object-key-p key-token))
-                    (not (member (json-par--read-token key-token)
-                                 sibling-keys)))
-            (setq text (json-par--normalize-guessed-text
-                        (buffer-substring-no-properties
-                         (point)
-                         (save-excursion
-                           (json-par-end-of-member-point-only)
-                           (point)))))
-            (when (or (string-empty-p text)
-                      (member text seen-values))
-              (setq text nil)))))
+        (save-excursion
+          (while (and candidates (null text))
+            (goto-char (pop candidates))
+            (setq key-token (save-excursion (json-par-forward-token)))
+            (when (or (not (json-par--object-key-p key-token))
+                      (not (member (json-par--read-token key-token)
+                                   sibling-keys)))
+              (setq text (json-par--normalize-guessed-text
+                          (buffer-substring-no-properties
+                           (point)
+                           (save-excursion
+                             (json-par-end-of-member-point-only)
+                             (point)))))
+              (when (or (string-empty-p text)
+                        (member text seen-values))
+                (setq text nil))))))
       (when text
         (list
          text
