@@ -672,6 +672,17 @@
 /// Deleting spaces
 
 // context-start
+[  1,
+/*|*/ ]
+// context-end
+// action: (json-par-delete-forward-char 1)
+// expected-start
+[  1
+/*|*/]
+// expected-end
+// test-end
+
+// context-start
 [
     1,       /*|*/2
 ]

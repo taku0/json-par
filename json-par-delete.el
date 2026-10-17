@@ -1911,7 +1911,7 @@ ACTION-WHEN-JOINING-NON-EMPTY-LINES."
                     (memq (char-before start) '(?: ?, ?\[ ?\( ?{))))
               (setq end (1- end)))
             (if (and (= (- end start) 1)
-                     (not (memq (char-before) '(?\s ?\t \n))))
+                     (not (memq (char-before) '(?\s ?\t ?\n))))
                 ;; Deleting one space.
                 (json-par--delete-one-space-after start)
               (delete-region start end)))
