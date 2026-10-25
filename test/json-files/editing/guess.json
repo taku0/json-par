@@ -1,4 +1,4 @@
-/// Test for commands relating to inserting colons.
+/// Test for inserting guessed values and keys.
 
 // Each test consisits with “context”, “actions”, and “expected text”.
 //
@@ -388,6 +388,59 @@
         2,
         3
     ]/*|*/
+]
+// expected-end
+// test-end
+
+
+/// Exhausting candidates removes inserted spaces
+
+// context-start
+[
+  {"a": 1, "b": 2},
+  {/*|*/
+}
+]
+// context-end
+// action: (execute-kbd-macro (kbd "? ? ?"))
+// expected-start
+[
+  {"a": 1, "b": 2},
+  {/*|*/
+}
+]
+// expected-end
+// test-end
+
+// context-start
+[[1, 2], [/*|*/]]
+// context-end
+// action: (execute-kbd-macro (kbd "? ? ?"))
+// expected-start
+[[1, 2], [/*|*/]]
+// expected-end
+// test-end
+
+
+/// The region to be deleted is saved as markers, so it is adjusted after fixup
+
+// context-start
+[
+  [
+    [1,2,3],
+  ]
+  /*|*/
+]
+// context-end
+// action: (json-par--update-changed-region (point-min) (point-max) 0)
+// action: (json-par-insert-guessed 2 nil t)
+// action: (json-par--fixup-changed-region)
+// action: (json-par-insert-guessed 2 json-par--last-state t)
+// expected-start
+[
+  [
+    [1,2,3]
+  ]/*|*/
 ]
 // expected-end
 // test-end

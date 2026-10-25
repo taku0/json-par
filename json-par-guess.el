@@ -103,9 +103,9 @@ SIBLING-KEYS: A list of key strings in the current object.
 
 MAX-ANCESTORS: The max number of ancestors to search.
 
-INSERTED-START: The start of the last inserted text.
+INSERTED-START: The start position, or a marker after insertion.
 
-INSERTED-END: The end of the last inserted text.
+INSERTED-END: The end position, or a marker after insertion.
 
 SEARCHED-START: The start of the range searched for the key.
 
@@ -402,12 +402,10 @@ searched.
 
 If all buffers are searched, the key of ancestors are searched from this buffer
 and other `json-mode' buffers, up to MAX-ANCESTORS keys, including the first
-key.  MAX-ANCESTORS is meaningful only for the first invocation of successive
-invocations.
+key.  MAX-ANCESTORS is ignored except the first invocation of successive
+invocations, and the value stored in the state is used after that.
 
-When all candidates are tried, remove the inserted text.  Note that when
-inserting a member, a comma may be left after the previous member.  This
-behavior may be fixed in future.
+When all candidates are tried, remove the inserted text.
 
 Return a state object (`json-par--guess-state').  When the state is passed as
 LAST-STATE, resume the search from the state.  If SAVE-STATE is non-nil, the
@@ -454,18 +452,11 @@ invocation."
             (json-par--insert-value guessed-text nil t)))
           (unless (json-par--same-line-p inserted-start (point))
             (json-par-indent-region inserted-start (point)))
-          (setq inserted-start
-                (save-excursion
-                  (goto-char (json-par--free-marker inserted-start))
-                  (skip-chars-forward "\s\t\n")
-                  (point)))
-          (setq inserted-end (point))
+          (setq inserted-end (point-marker))
           (setq new-state (json-par--guess-state-updated
                            new-state
                            :inserted-start inserted-start
                            :inserted-end inserted-end))
-          (when save-state
-            (setq json-par--last-state new-state))
           new-state)
       (when (called-interactively-p 'interactive)
         (message
@@ -478,9 +469,15 @@ invocation."
 
           ((eq target 'member)
            "Cannot guess member"))))
-      (when save-state
-        (setq json-par--last-state nil))
-      nil)))
+      nil)
+    (when save-state
+      (when json-par--last-state
+        (json-par--free-marker
+         (json-par--guess-state-inserted-start json-par--last-state))
+        (json-par--free-marker
+         (json-par--guess-state-inserted-end json-par--last-state)))
+      (setq json-par--last-state new-state))
+    new-state))
 
 (push #'json-par-insert-guessed json-par--fixup-adviced-functions)
 
